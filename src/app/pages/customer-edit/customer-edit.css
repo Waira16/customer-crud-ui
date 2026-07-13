@@ -1,0 +1,49 @@
+.customer-edit-container {
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.edit-card {
+  width: 100%;
+  max-width: 500px;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+mat-card-title {
+  margin-bottom: 24px !important;
+  font-size: 22px;
+  font-weight: 500;
+  color: #333;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.button-loading {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+}

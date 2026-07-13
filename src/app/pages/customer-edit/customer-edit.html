@@ -1,0 +1,51 @@
+<div class="customer-edit-container">
+  <mat-card class="edit-card">
+    <mat-card-title>Müşteri Düzenle</mat-card-title>
+
+    @if (isLoading) {
+      <div class="spinner-container">
+        <mat-spinner diameter="50"></mat-spinner>
+      </div>
+    } @else {
+      <form (ngSubmit)="onSubmit()" #editForm="ngForm" class="edit-form">
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Adı</mat-label>
+          <input matInput [(ngModel)]="customer.firstName" name="firstName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Soyadı</mat-label>
+          <input matInput [(ngModel)]="customer.lastName" name="lastName" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>E-posta</mat-label>
+          <input matInput type="email" [(ngModel)]="customer.email" name="email" required>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Telefon</mat-label>
+          <input matInput [(ngModel)]="customer.phone" name="phone">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Yaş</mat-label>
+          <input matInput type="number" [(ngModel)]="customer.age" name="age">
+        </mat-form-field>
+
+        <div class="action-buttons">
+          <button mat-stroked-button type="button" routerLink="/customer-list">İptal</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSaving || !editForm.valid">
+            @if (isSaving) {
+              <span class="button-loading">Kaydediliyor...</span>
+            } @else {
+              <mat-icon>save</mat-icon> Güncelle
+            }
+          </button>
+        </div>
+
+      </form>
+    }
+  </mat-card>
+</div>
