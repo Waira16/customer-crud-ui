@@ -1,33 +1,466 @@
 <div class="dashboard-container">
 
-  <h2>CRM Dashboard</h2>
 
-  <div class="card-grid">
-
-    <mat-card class="stat-card">
-
-      <mat-card-header>
-        <mat-icon mat-card-avatar color="primary">
-          people
-        </mat-icon>
-
-        <mat-card-title>
-          Total Customers
-        </mat-card-title>
-
-      </mat-card-header>
+  <h2>
+    CRM Dashboard
+  </h2>
 
 
-      <mat-card-content>
 
-        <p class="stat-value">
-          {{ totalCustomers }}
+
+  <div
+    *ngIf="isLoading"
+    class="loading">
+
+
+    <mat-spinner></mat-spinner>
+
+
+  </div>
+
+
+
+
+
+
+
+  <div
+    class="card-grid"
+    *ngIf="!isLoading">
+
+
+
+
+
+    <!-- CUSTOMERS -->
+
+
+    <mat-card
+      class="metric-card total"
+      (click)="toggleCustomers()">
+
+
+
+      <mat-icon>
+        people
+      </mat-icon>
+
+
+      <div>
+
+
+        <h3>
+          Customers
+        </h3>
+
+
+        <p>
+          {{totalCustomers}}
         </p>
 
-      </mat-card-content>
+
+      </div>
+
 
     </mat-card>
 
+
+
+
+
+
+
+
+
+    <!-- INVOICES -->
+
+
+    <mat-card
+      class="metric-card standard"
+      (click)="toggleInvoices()">
+
+
+
+      <mat-icon>
+        receipt_long
+      </mat-icon>
+
+
+      <div>
+
+
+        <h3>
+          Invoices
+        </h3>
+
+
+        <p>
+          {{totalInvoices}}
+        </p>
+
+
+      </div>
+
+
+    </mat-card>
+
+
+
+
   </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- CUSTOMER AÇILAN ALAN -->
+
+
+  <div
+    class="detail-section"
+    *ngIf="customersOpen">
+
+
+
+    <h3>
+      Customer Statistics
+    </h3>
+
+
+
+
+
+    <div class="mini-grid">
+
+
+
+      <div class="mini-card danger">
+
+
+        <span>
+          High Risk
+        </span>
+
+
+        <b>
+          {{highRiskCustomers}}
+        </b>
+
+
+      </div>
+
+
+
+
+
+      <div class="mini-card medium">
+
+
+        <span>
+          Medium Risk
+        </span>
+
+
+        <b>
+          {{mediumRiskCustomers}}
+        </b>
+
+
+      </div>
+
+
+
+
+
+      <div class="mini-card low">
+
+
+        <span>
+          Low Risk
+        </span>
+
+
+        <b>
+          {{lowRiskCustomers}}
+        </b>
+
+
+      </div>
+
+
+
+    </div>
+
+
+
+
+
+
+
+    <div class="charts">
+
+
+      <mat-card class="chart-card">
+
+
+        <h3>
+          Risk Distribution
+        </h3>
+
+
+        <canvas
+
+          baseChart
+
+          [data]="riskChartData"
+
+          [type]="riskChartType">
+
+
+        </canvas>
+
+
+      </mat-card>
+
+
+
+
+
+
+
+      <mat-card class="chart-card">
+
+
+        <h3>
+          Age Distribution
+        </h3>
+
+
+
+        <canvas
+
+          baseChart
+
+          [data]="ageChartData"
+
+          [type]="ageChartType">
+
+
+        </canvas>
+
+
+      </mat-card>
+
+
+
+    </div>
+
+
+
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- INVOICE AÇILAN ALAN -->
+
+
+  <div
+    class="detail-section"
+    *ngIf="invoicesOpen">
+
+
+
+    <h3>
+      Invoice Statistics
+    </h3>
+
+
+
+
+
+
+
+    <div class="mini-grid">
+
+
+
+      <div class="mini-card total">
+
+
+        <span>
+          Total Invoice
+        </span>
+
+
+        <b>
+          {{totalInvoices}}
+        </b>
+
+
+      </div>
+
+
+
+
+
+
+      <div class="mini-card low">
+
+
+        <span>
+          Paid
+        </span>
+
+
+        <b>
+          {{paidInvoices}}
+        </b>
+
+
+      </div>
+
+
+
+
+
+
+      <div class="mini-card danger">
+
+
+        <span>
+          Unpaid
+        </span>
+
+
+        <b>
+          {{unpaidInvoices}}
+        </b>
+
+
+      </div>
+
+
+
+
+
+
+      <div class="mini-card standard">
+
+
+        <span>
+          Expected Revenue
+        </span>
+
+
+        <b>
+          {{expectedRevenue}} ₺
+        </b>
+
+
+      </div>
+
+
+
+
+
+
+      <div class="mini-card low">
+
+
+        <span>
+          Collected
+        </span>
+
+
+        <b>
+          {{collectedRevenue}} ₺
+        </b>
+
+
+      </div>
+
+
+
+
+
+
+      <div class="mini-card danger">
+
+
+        <span>
+          Pending
+        </span>
+
+
+        <b>
+          {{pendingRevenue}} ₺
+        </b>
+
+
+      </div>
+
+
+
+
+    </div>
+
+
+
+
+
+
+
+
+    <mat-card class="chart-card invoice-chart">
+
+
+      <h3>
+        Invoice Status
+      </h3>
+
+
+
+      <canvas
+
+        baseChart
+
+        [data]="invoiceChartData"
+
+        [type]="invoiceChartType">
+
+
+      </canvas>
+
+
+
+    </mat-card>
+
+
+
+
+  </div>
+
+
+
+
+
 
 </div>

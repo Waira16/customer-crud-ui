@@ -1,71 +1,170 @@
-.customer-list-container {
-  padding: 24px;
+mat-card {
+
+  background: white;
+
+  border-radius: 18px;
+
+  padding: 15px;
+
+  box-shadow:
+    0 8px 25px rgba(0,0,0,.08);
+
 }
 
-.list-card {
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
 
 mat-card-title {
-  margin: 0 !important;
-  font-size: 22px;
-  font-weight: 500;
-  color: #333;
+
+  color: #1e293b;
+
+  font-size: 24px;
+
+  font-weight: 800;
+
 }
 
-.table-responsive {
+
+
+table {
+
   width: 100%;
-  overflow-x: auto;
+
+  margin-top: 20px;
+
 }
 
-.full-width-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+
 
 th.mat-mdc-header-cell {
-  background-color: #f5f5f5;
-  color: #333;
-  font-weight: bold;
-  font-size: 14px;
+
+  background: #eef2ff;
+
+  color: #2563eb;
+
+  font-weight: 700;
+
 }
+
+
 
 td.mat-mdc-cell {
-  font-size: 14px;
-  color: #555;
-}
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 200px;
+
+  color: #334155;
+
 }
 
-.spinner-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 0;
+
+
+tr.mat-mdc-row {
+
+  transition: .2s;
+
 }
 
-.no-data-cell {
-  text-align: center;
-  padding: 30px !important;
-  color: #888;
-  font-style: italic;
+
+
+tr.mat-mdc-row:hover {
+
+  background: #eff6ff;
+
 }
 
-button mat-icon {
-  margin-right: 4px;
-  vertical-align: middle;
+
+
+/* Düzenle */
+
+button[color="primary"] {
+
+  color: #2563eb;
+
+}
+
+
+
+button[color="primary"]:hover {
+
+  background: #dbeafe;
+
+}
+
+
+
+/* Sil */
+
+button[color="warn"] {
+
+  color: #ef4444;
+
+}
+
+
+
+button[color="warn"]:hover {
+
+  background: #fee2e2;
+
+}
+
+
+
+/* ikon animasyon */
+
+button[mat-icon-button] {
+
+  transition: .2s;
+
+}
+
+
+
+button[mat-icon-button]:hover {
+
+  transform: scale(1.1);
+
+}
+
+
+
+/* Risk renkleri */
+
+.risk-badge {
+
+  padding: 6px 14px;
+
+  border-radius: 20px;
+
+  font-weight: bold;
+
+  display: inline-block;
+
+}
+
+
+
+.risk-badge.high {
+
+  background-color: #ffcccc;
+
+  color: #d32f2f;
+
+}
+
+
+
+.risk-badge.medium {
+
+  background-color: #ffe0a3;
+
+  color: #ff9800;
+
+}
+
+
+
+.risk-badge.low {
+
+  background-color: #c8f7c5;
+
+  color: #2e7d32;
+
 }

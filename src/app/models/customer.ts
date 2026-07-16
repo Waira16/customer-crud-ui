@@ -1,6 +1,9 @@
+import { Tariff } from './tariff';
+
+
 export interface Customer {
 
-  id?: number;
+  id: number;
 
   firstName: string;
 
@@ -16,8 +19,10 @@ export interface Customer {
 
   hasLatePayments: boolean;
 
-  churnRiskScore?: number;
+  churnRiskScore: number;
 
-  riskStatus?: string;
+  riskStatus: 'HIGH' | 'MEDIUM' | 'LOW';
+
+  tariff: Tariff;
 
 }

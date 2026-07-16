@@ -1,0 +1,196 @@
+.tariff-page {
+
+  padding:30px;
+
+}
+
+
+
+h1 {
+
+  font-size:32px;
+
+  margin-bottom:30px;
+
+  color:#1e293b;
+
+}
+
+
+
+
+
+.cards {
+
+
+  display:grid;
+
+
+  grid-template-columns:
+
+  repeat(auto-fit,minmax(280px,1fr));
+
+
+  gap:25px;
+
+
+}
+
+
+
+
+
+
+
+.card {
+
+
+  background:white;
+
+
+  border-radius:18px;
+
+
+  padding:25px;
+
+
+  box-shadow:
+
+  0 8px 25px rgba(0,0,0,.12);
+
+
+  transition:.3s;
+
+
+}
+
+
+
+
+
+
+.card:hover {
+
+
+  transform:translateY(-6px);
+
+
+  box-shadow:
+
+  0 15px 30px rgba(0,0,0,.18);
+
+
+}
+
+
+
+
+
+
+
+.card-header {
+
+
+  display:flex;
+
+
+  justify-content:space-between;
+
+
+  align-items:center;
+
+
+  margin-bottom:25px;
+
+
+}
+
+
+
+
+
+.card-header h2 {
+
+
+  margin:0;
+
+
+  color:#1e293b;
+
+
+  font-size:22px;
+
+
+}
+
+
+
+
+
+
+
+.type {
+
+
+  background:#dbeafe;
+
+
+  color:#2563eb;
+
+
+  padding:6px 14px;
+
+
+  border-radius:20px;
+
+
+  font-size:13px;
+
+
+  font-weight:bold;
+
+
+}
+
+
+
+
+
+
+
+.info p {
+
+
+  color:#475569;
+
+
+  font-size:16px;
+
+
+  margin:15px 0;
+
+
+}
+
+
+
+
+
+
+
+.price {
+
+
+  font-size:28px !important;
+
+
+  font-weight:bold;
+
+
+  color:#16a34a !important;
+
+
+  margin-top:25px !important;
+
+
+}

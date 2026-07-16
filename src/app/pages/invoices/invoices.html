@@ -1,0 +1,248 @@
+<div class="invoice-page">
+
+
+  <h1>
+    Invoices
+  </h1>
+
+
+
+  <div class="cards">
+
+
+    <div class="card total">
+
+      <h3>
+        Total Revenue
+      </h3>
+
+      <p>
+        {{ formatMoney(getTotalAmount()) }}
+      </p>
+
+    </div>
+
+
+
+    <div class="card paid-card">
+
+      <h3>
+        Paid
+      </h3>
+
+      <p>
+        {{ formatMoney(getPaidAmount()) }}
+      </p>
+
+    </div>
+
+
+
+
+    <div class="card unpaid-card">
+
+      <h3>
+        Unpaid
+      </h3>
+
+      <p>
+        {{ formatMoney(getUnpaidAmount()) }}
+      </p>
+
+    </div>
+
+
+  </div>
+
+
+
+
+
+  <div class="filter-box">
+
+
+    <label>
+      Payment Status:
+    </label>
+
+
+    <select
+      [(ngModel)]="selectedStatus"
+      (change)="filterInvoices()">
+
+
+      <option value="ALL">
+        All
+      </option>
+
+
+      <option value="PAID">
+        Paid
+      </option>
+
+
+      <option value="UNPAID">
+        Unpaid
+      </option>
+
+
+    </select>
+
+
+  </div>
+
+
+
+
+
+
+
+  <div class="table-box">
+
+
+    <table>
+
+
+      <thead>
+
+        <tr>
+
+         <th>
+  ID
+</th>
+
+
+<th>
+  Customer
+</th>
+
+
+<th>
+  Amount
+</th>
+
+
+          <th>
+            Due Date
+          </th>
+
+
+          <th>
+            Billing Period
+          </th>
+
+
+          <th>
+            Status
+          </th>
+
+
+          <th>
+            Action
+          </th>
+
+
+        </tr>
+
+
+      </thead>
+
+
+
+
+      <tbody>
+
+
+        <tr *ngFor="let invoice of filteredInvoices">
+
+
+          <td>
+            #{{invoice.id}}
+          </td>
+
+<td>
+  {{invoice.customerName}}
+</td>
+
+          <td>
+            {{formatMoney(invoice.amount)}}
+          </td>
+
+
+
+          <td>
+            {{invoice.dueDate}}
+          </td>
+
+
+
+          <td>
+            {{invoice.billingPeriod}}
+          </td>
+
+
+
+
+          <td>
+
+
+            <span
+            [class.paid]="invoice.status === 'PAID'"
+            [class.unpaid]="invoice.status === 'UNPAID'">
+
+
+              {{invoice.status}}
+
+
+            </span>
+
+
+          </td>
+
+
+
+
+          <td>
+
+
+            <button
+            *ngIf="invoice.status === 'UNPAID'"
+            (click)="payInvoice(invoice.id)">
+
+
+              Pay
+
+
+            </button>
+
+
+            <span
+            *ngIf="invoice.status === 'PAID'"
+            class="completed">
+
+
+              Completed
+
+
+            </span>
+
+
+          </td>
+
+
+
+        </tr>
+
+
+      </tbody>
+
+
+    </table>
+
+
+  </div>
+
+
+
+
+</div>

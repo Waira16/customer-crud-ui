@@ -1,3 +1,61 @@
-<mat-toolbar color="primary">
-  Customer Management System
-</mat-toolbar>
+<div class="header">
+
+
+  <div class="title-area">
+
+
+    <h1>
+      Customer Management System
+    </h1>
+
+
+    <p>
+      {{ currentPage }}
+    </p>
+
+
+  </div>
+
+
+
+
+  <div class="search-box">
+
+
+    <mat-icon>
+      search
+    </mat-icon>
+
+
+    <input
+      type="text"
+      [formControl]="searchControl"
+      placeholder="Müşteri ara...">
+
+
+
+    <div
+      class="search-result"
+      *ngIf="customers.length > 0">
+
+
+      <div
+        class="customer-item"
+        *ngFor="let customer of customers"
+        (click)="goToCustomer(customer.id)">
+
+
+        {{ customer.firstName }}
+        {{ customer.lastName }}
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+</div>

@@ -1,1 +1,27 @@
-/* You can add global styles to this file, and also import other style files */
+html,
+body {
+
+  height:100%;
+
+}
+
+
+body {
+
+  margin:0;
+
+  font-family:Roboto, Arial, sans-serif;
+
+  background:#e8eef7;
+
+}
+
+
+
+/* Material kart genel */
+
+.mat-mdc-card {
+
+  border-radius:18px !important;
+
+}

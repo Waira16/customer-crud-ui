@@ -2,26 +2,26 @@
   <mat-card class="edit-card">
     <mat-card-title>Müşteri Düzenle</mat-card-title>
 
-    @if (isLoading) {
+    @if(isLoading){
       <div class="spinner-container">
-        <mat-spinner diameter="50"></mat-spinner>
+        <mat-spinner></mat-spinner>
       </div>
     } @else {
       <form (ngSubmit)="onSubmit()" #editForm="ngForm" class="edit-form">
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Adı</mat-label>
-          <input matInput [(ngModel)]="customer.firstName" name="firstName" required>
+          <input matInput [(ngModel)]="customer.firstName" name="firstName">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Soyadı</mat-label>
-          <input matInput [(ngModel)]="customer.lastName" name="lastName" required>
+          <input matInput [(ngModel)]="customer.lastName" name="lastName">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>E-posta</mat-label>
-          <input matInput type="email" [(ngModel)]="customer.email" name="email" required>
+          <input matInput [(ngModel)]="customer.email" name="email">
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
@@ -34,16 +34,32 @@
           <input matInput type="number" [(ngModel)]="customer.age" name="age">
         </mat-form-field>
 
-        <div class="action-buttons">
-          <button mat-stroked-button type="button" routerLink="/customer-list">İptal</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="isSaving || !editForm.valid">
-            @if (isSaving) {
-              <span class="button-loading">Kaydediliyor...</span>
-            } @else {
-              <mat-icon>save</mat-icon> Güncelle
-            }
-          </button>
-        </div>
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Şikayet Sayısı</mat-label>
+          <input matInput type="number" [(ngModel)]="customer.complaintCount" name="complaintCount">
+        </mat-form-field>
+
+        <mat-checkbox [(ngModel)]="customer.hasLatePayments" name="hasLatePayments">
+          Geç ödeme var
+        </mat-checkbox>
+
+        <mat-form-field appearance="outline" class="full-width" style="margin-top: 15px;">
+          <mat-label>Churn Risk Skoru</mat-label>
+          <input matInput type="number" [(ngModel)]="customer.churnRiskScore" name="churnRiskScore">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Risk Durumu</mat-label>
+          <mat-select [(ngModel)]="customer.riskStatus" name="riskStatus">
+            <mat-option value="LOW">LOW</mat-option>
+            <mat-option value="MEDIUM">MEDIUM</mat-option>
+            <mat-option value="HIGH">HIGH</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving">
+          {{ isSaving ? 'Kaydediliyor...' : 'Güncelle' }}
+        </button>
 
       </form>
     }

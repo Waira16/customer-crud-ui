@@ -1,60 +1,287 @@
 <div class="add-customer-container">
+
   <mat-card class="customer-card">
+
     <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle' }}</mat-card-title>
+
+      <mat-card-title>
+        {{ isEditMode ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle' }}
+      </mat-card-title>
+
     </mat-card-header>
 
+
+
     @if (isLoading && isEditMode) {
+
+
       <div class="spinner-container">
+
         <mat-spinner diameter="40"></mat-spinner>
+
       </div>
+
+
     } @else {
-      <form #customerForm="ngForm" (ngSubmit)="onSubmit(customerForm)">
+
+
+
+      <form
+        #customerForm="ngForm"
+        (ngSubmit)="onSubmit(customerForm)">
+
+
+
         <mat-card-content class="form-content">
-          
+
+
+
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Adı</mat-label>
-            <input matInput name="firstName" [(ngModel)]="customer.firstName" required #firstName="ngModel">
-            @if (firstName.invalid && (firstName.dirty || firstName.touched)) {
-              <mat-error>Ad alanı zorunludur.</mat-error>
+
+            <mat-label>
+              Adı
+            </mat-label>
+
+
+            <input
+              matInput
+              name="firstName"
+              [(ngModel)]="customer.firstName"
+              required
+              #firstName="ngModel">
+
+
+
+            @if(firstName.invalid && (firstName.dirty || firstName.touched)) {
+
+              <mat-error>
+                Ad alanı zorunludur.
+              </mat-error>
+
             }
+
+
           </mat-form-field>
 
+
+
+
+
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Soyadı</mat-label>
-            <input matInput name="lastName" [(ngModel)]="customer.lastName" required #lastName="ngModel">
-            @if (lastName.invalid && (lastName.dirty || lastName.touched)) {
-              <mat-error>Soyad alanı zorunludur.</mat-error>
+
+
+            <mat-label>
+              Soyadı
+            </mat-label>
+
+
+            <input
+              matInput
+              name="lastName"
+              [(ngModel)]="customer.lastName"
+              required
+              #lastName="ngModel">
+
+
+
+            @if(lastName.invalid && (lastName.dirty || lastName.touched)) {
+
+              <mat-error>
+                Soyad alanı zorunludur.
+              </mat-error>
+
             }
+
+
           </mat-form-field>
 
+
+
+
+
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>E-posta</mat-label>
-            <input matInput type="email" name="email" [(ngModel)]="customer.email" required email #email="ngModel">
-            @if (email.invalid && (email.dirty || email.touched)) {
-              <mat-error>Geçerli bir e-posta adresi giriniz.</mat-error>
+
+
+            <mat-label>
+              E-posta
+            </mat-label>
+
+
+            <input
+              matInput
+              type="email"
+              name="email"
+              [(ngModel)]="customer.email"
+              required
+              #email="ngModel">
+
+
+
+            @if(email.invalid && (email.dirty || email.touched)) {
+
+              <mat-error>
+                E-posta zorunludur.
+              </mat-error>
+
             }
+
+
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Telefon</mat-label>
-            <input matInput name="phone" [(ngModel)]="customer.phone">
-          </mat-form-field>
+
+
+
 
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Yaş</mat-label>
-            <input matInput type="number" name="age" [(ngModel)]="customer.age">
+
+
+            <mat-label>
+              Telefon
+            </mat-label>
+
+
+            <input
+              matInput
+              name="phone"
+              [(ngModel)]="customer.phone">
+
+
           </mat-form-field>
+
+
+
+
+
+          <mat-form-field appearance="outline" class="full-width">
+
+
+            <mat-label>
+              Yaş
+            </mat-label>
+
+
+            <input
+              matInput
+              type="number"
+              name="age"
+              [(ngModel)]="customer.age"
+              min="18">
+
+
+          </mat-form-field>
+
+
+
+
+
+
+          <mat-form-field appearance="outline" class="full-width">
+
+
+            <mat-label>
+              Şikayet Sayısı
+            </mat-label>
+
+
+            <input
+              matInput
+              type="number"
+              name="complaintCount"
+              min="0"
+              [(ngModel)]="customer.complaintCount">
+
+
+          </mat-form-field>
+
+
+
+
+
+
+          <mat-form-field appearance="outline" class="full-width">
+
+
+            <mat-label>
+              Geç Ödeme Durumu
+            </mat-label>
+
+
+            <mat-select
+              name="hasLatePayments"
+              [(ngModel)]="customer.hasLatePayments">
+
+
+              <mat-option [value]="false">
+                Hayır
+              </mat-option>
+
+
+              <mat-option [value]="true">
+                Evet
+              </mat-option>
+
+
+            </mat-select>
+
+
+          </mat-form-field>
+
+
+
+
 
         </mat-card-content>
 
-        <mat-card-actions class="form-actions">
-          <button mat-button type="button" routerLink="/customer-list" [disabled]="isLoading">İptal</button>
-          <button mat-raised-button color="primary" type="submit" [disabled]="customerForm.invalid || isLoading">
-            {{ isLoading ? 'Kaydediliyor...' : 'Kaydet' }}
+
+
+
+
+
+        <mat-card-actions>
+
+
+          <button
+            mat-button
+            type="button"
+            routerLink="/customers">
+
+
+            İptal
+
+
           </button>
+
+
+
+
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="customerForm.invalid || isLoading">
+
+
+            {{ isLoading ? 'Kaydediliyor...' : 'Kaydet' }}
+
+
+          </button>
+
+
+
         </mat-card-actions>
+
+
+
+
       </form>
+
+
+
     }
+
+
   </mat-card>
+
+
 </div>

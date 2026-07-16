@@ -1,0 +1,661 @@
+<mat-card *ngIf="customer">
+
+
+  <mat-card-header>
+
+    <mat-card-title>
+      Müşteri Detayı
+    </mat-card-title>
+
+  </mat-card-header>
+
+
+
+
+  <mat-card-content>
+
+
+
+    <p>
+      <strong>Ad:</strong>
+      {{ customer.firstName }}
+    </p>
+
+
+
+    <p>
+      <strong>Soyad:</strong>
+      {{ customer.lastName }}
+    </p>
+
+
+
+    <p>
+      <strong>Email:</strong>
+      {{ customer.email }}
+    </p>
+
+
+
+    <p>
+      <strong>Telefon:</strong>
+      {{ customer.phone }}
+    </p>
+
+
+
+    <p>
+      <strong>Yaş:</strong>
+      {{ customer.age }}
+    </p>
+
+
+
+    <p>
+      <strong>Şikayet Sayısı:</strong>
+      {{ customer.complaintCount }}
+    </p>
+
+
+
+    <p>
+      <strong>Geç Ödeme:</strong>
+
+      {{ customer.hasLatePayments ? 'Var' : 'Yok' }}
+
+    </p>
+
+
+
+
+    <p>
+
+      <strong>Churn Risk Skoru:</strong>
+
+      {{ customer.churnRiskScore }}
+
+    </p>
+
+
+
+
+    <p>
+
+      <strong>Risk Durumu:</strong>
+
+
+      <span
+        class="risk-badge"
+        [ngStyle]="{
+          'background-color': getRiskColor(customer.riskStatus),
+          'color':'white'
+        }">
+
+        {{ customer.riskStatus }}
+
+      </span>
+
+
+    </p>
+
+
+
+
+    <mat-divider></mat-divider>
+
+
+
+    <br>
+
+
+
+
+    <!-- TARİFE LİSTESİ -->
+
+<mat-card class="price-card">
+
+  <mat-card-content>
+
+    <div class="price-title">
+      Toplam Aylık Ücret
+    </div>
+
+    <div class="price-value">
+      {{ getTotalMonthlyPrice() }} ₺
+    </div>
+
+    <div class="price-sub">
+      Sadece aktif tarifeler hesaplanır.
+    </div>
+
+  </mat-card-content>
+
+</mat-card>
+    <h3>
+      Tarifeler
+    </h3>
+
+
+
+    <div
+      *ngIf="customer.tariffs && customer.tariffs.length > 0">
+
+
+
+      <mat-card
+
+        *ngFor="let ct of customer.tariffs"
+
+        style="margin-bottom:15px;">
+
+
+
+        <mat-card-content>
+
+
+          <p>
+
+            <strong>Tarife:</strong>
+
+            {{ ct.tariff.name }}
+
+          </p>
+
+
+
+
+          <p>
+
+            <strong>İnternet:</strong>
+
+            {{ ct.tariff.dataGB }} GB
+
+          </p>
+
+
+
+
+          <p>
+
+            <strong>Dakika:</strong>
+
+            {{ ct.tariff.minutes }}
+
+          </p>
+
+
+
+
+          <p>
+
+            <strong>Ücret:</strong>
+
+            {{ ct.tariff.price }} ₺
+
+          </p>
+
+
+
+
+          <p>
+
+            <strong>Başlangıç:</strong>
+
+            {{ ct.startDate }}
+
+          </p>
+
+
+
+
+          <p>
+
+<strong>Durum:</strong>
+
+<span
+[class.active]="ct.active"
+[class.passive]="!ct.active">
+
+{{ ct.active ? 'Aktif' : 'Pasif' }}
+
+</span>
+
+</p>
+
+
+<div class="tariff-actions">
+
+  butonlar burada
+
+</div>
+
+<div class="tariff-actions">
+
+  <button
+    *ngIf="ct.active"
+    mat-raised-button
+    color="warn"
+    (click)="deactivateTariff(ct.id)">
+
+    Pasif Yap
+
+  </button>
+
+  <button
+    *ngIf="!ct.active"
+    mat-raised-button
+    color="primary"
+    (click)="activateTariff(ct.id)">
+
+    Aktif Et
+
+  </button>
+
+  <button
+    *ngIf="!ct.active"
+    mat-raised-button
+    color="accent"
+    (click)="deleteTariff(ct.id)">
+
+    Sil
+
+  </button>
+
+</div>
+
+
+        </mat-card-content>
+
+
+      </mat-card>
+
+
+
+    </div>
+
+
+
+
+
+    <p
+
+    *ngIf="!customer.tariffs || customer.tariffs.length === 0">
+
+
+      Tarife bulunamadı.
+
+
+    </p>
+
+
+
+
+
+
+
+    <mat-divider></mat-divider>
+
+
+
+    <br>
+
+
+
+
+
+    <!-- TARİFE EKLEME -->
+
+
+    <h3>
+
+      Yeni Tarife Ekle
+
+    </h3>
+
+
+
+
+    <mat-form-field
+
+      appearance="outline"
+
+      style="width:100%;">
+
+
+
+      <mat-label>
+
+        Tarife Seç
+
+      </mat-label>
+
+
+
+
+      <mat-select
+
+        [(ngModel)]="selectedTariffId">
+
+
+
+        <mat-option
+
+          *ngFor="let tariff of tariffs"
+
+          [value]="tariff.id">
+
+
+
+          {{ tariff.name }}
+
+          -
+
+          {{ tariff.price }} ₺
+
+          -
+
+          {{ tariff.type }}
+
+
+
+        </mat-option>
+
+
+
+      </mat-select>
+
+
+
+    </mat-form-field>
+
+
+
+
+
+
+
+    <button
+
+      mat-raised-button
+
+      color="primary"
+
+      (click)="updateTariff()">
+
+
+
+      <mat-icon>
+
+        add
+
+      </mat-icon>
+
+
+      Tarife Ekle
+
+
+    </button>
+
+
+
+
+
+
+    <br>
+    <br>
+
+
+
+
+
+
+    <mat-divider></mat-divider>
+
+
+
+
+    <br>
+
+
+
+
+
+    <!-- FATURALAR -->
+
+
+    <h3>
+
+      Faturalar
+
+    </h3>
+
+
+
+
+
+
+    <table
+
+      *ngIf="invoices.length > 0"
+
+      class="invoice-table">
+
+
+
+      <thead>
+
+
+        <tr>
+
+
+          <th>
+
+            Dönem
+
+          </th>
+
+
+
+          <th>
+
+            Tutar
+
+          </th>
+
+
+
+          <th>
+
+            Son Ödeme
+
+          </th>
+
+
+
+          <th>
+
+            Durum
+
+          </th>
+
+
+
+          <th>
+
+            İşlem
+
+          </th>
+
+
+        </tr>
+
+
+      </thead>
+
+
+
+
+
+      <tbody>
+
+
+
+        <tr
+
+        *ngFor="let invoice of invoices">
+
+
+
+          <td>
+
+            {{ invoice.billingPeriod }}
+
+          </td>
+
+
+
+
+          <td>
+
+            {{ invoice.amount }} ₺
+
+          </td>
+
+
+
+
+          <td>
+
+            {{ invoice.dueDate }}
+
+          </td>
+
+
+
+
+          <td>
+
+            {{ invoice.status }}
+
+          </td>
+
+
+
+
+          <td>
+
+
+
+            <button
+
+              *ngIf="invoice.status === 'UNPAID'"
+
+              mat-raised-button
+
+              color="primary"
+
+              (click)="payInvoice(invoice.id)">
+
+
+
+              Öde
+
+
+
+            </button>
+
+
+
+            <span
+
+            *ngIf="invoice.status === 'PAID'">
+
+              Ödendi
+
+
+            </span>
+
+
+
+          </td>
+
+
+
+        </tr>
+
+
+
+      </tbody>
+
+
+
+    </table>
+
+
+
+
+
+
+    <p
+
+    *ngIf="invoices.length === 0">
+
+
+      Bu müşteriye ait fatura bulunamadı.
+
+
+    </p>
+
+
+
+
+  </mat-card-content>
+
+
+
+</mat-card>
+
+
+
+
+
+
+
+<mat-card *ngIf="!customer">
+
+
+  <mat-card-content>
+
+    Müşteri yükleniyor...
+
+  </mat-card-content>
+
+
+</mat-card>
+
+
+
+
+
+
+<br>
+
+
+
+
+
+<button
+
+mat-raised-button
+
+color="accent"
+
+(click)="goBack()">
+
+
+
+Listeye Dön
+
+
+
+</button>

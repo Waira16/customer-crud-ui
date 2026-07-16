@@ -6,7 +6,7 @@
 
 .edit-card {
   width: 100%;
-  max-width: 500px;
+  max-width: 500px; /* Formun genişliği burada 500px ile sınırlandı */
   padding: 24px;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -22,28 +22,15 @@ mat-card-title {
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* Alanlar arası boşluk */
 }
 
 .full-width {
   width: 100%;
 }
 
-.action-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 16px;
-}
-
 .spinner-container {
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 40px 0;
-}
-
-.button-loading {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
 }

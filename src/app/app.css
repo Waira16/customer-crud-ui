@@ -1,27 +1,38 @@
-html,
-body {
-  height: 100%;
-  margin: 0;
-}
-
 .sidenav-container {
-  height: 100vh;
+
+  height:100vh;
+
+  background:#e8eef7;
+
 }
 
-mat-sidenav {
-  width: 250px;
-  min-width: 250px;
-}
+
 
 .sidebar-width {
-  width: 250px;
+
+  width:240px;
+
+  background:linear-gradient(
+    180deg,
+    #2563eb,
+    #8b5cf6
+  );
+
+  border-radius:0;
+
+  overflow:hidden;
+
 }
 
-mat-sidenav-content {
-  height: 100vh;
-}
+
 
 .content-wrapper {
-  padding: 20px;
-  box-sizing: border-box;
+
+
+  padding:20px;
+
+
+  box-sizing:border-box;
+
+
 }

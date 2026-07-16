@@ -1,27 +1,138 @@
 .sidebar {
-  height: 100%;
-  padding: 20px 10px;
-  box-sizing: border-box;
+
+  height:100%;
+
+  padding:25px 15px;
+
+  box-sizing:border-box;
+
+  display:flex;
+
+  flex-direction:column;
+
+  justify-content:space-between;
+
 }
+
+
 
 .menu-item {
-  margin-bottom: 10px;
+
+  margin-bottom:12px;
+
 }
+
+
 
 .menu-item a {
-  display: block;
-  padding: 12px 15px;
-  text-decoration: none;
-  border-radius: 8px;
-  color: #333;
-  font-size: 16px;
+
+
+  display:block;
+
+  padding:14px 18px;
+
+  border-radius:12px;
+
+  color:white;
+
+  text-decoration:none;
+
+  font-size:16px;
+
+  transition:.25s;
+
 }
+
+
 
 .menu-item a:hover {
-  background-color: #f0f0f0;
+
+
+  background:rgba(255,255,255,.2);
+
+
 }
 
+
+
 .menu-item a.active {
-  background-color: #e0e0e0;
-  font-weight: bold;
+
+
+  background:white;
+
+  color:#2563eb;
+
+  font-weight:bold;
+
+
+}
+
+
+
+/* ADD CUSTOMER BUTTON */
+
+.add-button {
+
+
+  display:flex;
+
+  justify-content:center;
+
+  margin-bottom:20px;
+
+
+}
+
+
+
+.add-button a {
+
+
+  width:55px;
+
+  height:55px;
+
+  border-radius:50%;
+
+  background:white;
+
+  color:#2563eb;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  text-decoration:none;
+
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+
+  transition:.25s;
+
+
+}
+
+
+
+.add-button a:hover {
+
+
+  transform:scale(1.1);
+
+
+}
+
+
+
+.add-button mat-icon {
+
+
+  font-size:32px;
+
+  width:32px;
+
+  height:32px;
+
+
 }

@@ -1,17 +1,35 @@
 <mat-sidenav-container class="sidenav-container">
 
-  <mat-sidenav mode="side" opened class="sidebar-width">
+
+  <mat-sidenav
+    mode="side"
+    opened
+    class="sidebar-width">
+
+
     <app-sidebar></app-sidebar>
+
+
   </mat-sidenav>
+
+
 
   <mat-sidenav-content>
 
+
     <app-navbar></app-navbar>
 
+
     <div class="content-wrapper">
+
+
       <router-outlet></router-outlet>
+
+
     </div>
 
+
   </mat-sidenav-content>
+
 
 </mat-sidenav-container>

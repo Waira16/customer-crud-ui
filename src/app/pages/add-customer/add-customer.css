@@ -1,46 +1,163 @@
 .add-customer-container {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 40px 20px;
+
+  display:flex;
+
+  justify-content:center;
+
+  padding:40px 20px;
+
 }
+
+
 
 .customer-card {
-  width: 100%;
-  max-width: 500px;
-  padding: 16px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+
+  width:100%;
+
+  max-width:500px;
+
+  padding:25px;
+
+  background:white;
+
+  border-radius:18px;
+
+  box-shadow:
+  0 10px 30px rgba(0,0,0,0.12);
+
+
 }
+
+
 
 mat-card-title {
-  margin-bottom: 24px !important;
-  font-size: 20px;
-  font-weight: 500;
-  color: #333;
+
+
+  color:#1e293b !important;
+
+  font-size:24px;
+
+  font-weight:700;
+
 }
+
+
 
 .form-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:15px;
+
 }
+
+
 
 .full-width {
-  width: 100%;
+
+  width:100%;
+
 }
+
+
+
+/* Input kutusu */
+
+::ng-deep .mat-mdc-text-field-wrapper {
+
+
+  background:#f8fafc !important;
+
+  border-radius:12px;
+
+}
+
+
+
+/* Label renkleri */
+
+::ng-deep .mat-mdc-floating-label {
+
+
+  color:#334155 !important;
+
+  font-weight:500;
+
+}
+
+
+
+/* Yazılan değer */
+
+::ng-deep .mat-mdc-input-element {
+
+
+  color:#0f172a !important;
+
+}
+
+
+
 
 .form-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
-  padding: 0 8px !important;
+
+  display:flex;
+
+  justify-content:flex-end;
+
+  gap:15px;
+
+  margin-top:25px;
+
 }
 
+
+
+button[color="primary"] {
+
+
+background:linear-gradient(
+135deg,
+#2563eb,
+#8b5cf6
+) !important;
+
+
+color:white !important;
+
+
+border-radius:12px;
+
+
+}
+
+
+
+button[color="primary"]:hover {
+
+
+box-shadow:
+0 8px 20px rgba(37,99,235,.35);
+
+
+transform:translateY(-2px);
+
+
+}
+
+
+
 .spinner-container {
-  display: flex;
-  justify-content: center;
-  padding: 30px 0;
+
+
+display:flex;
+
+justify-content:center;
+
+padding:30px;
+
+
 }

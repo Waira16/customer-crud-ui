@@ -1,0 +1,81 @@
+<div class="tariff-page">
+
+
+  <h1>
+    Tariffs
+  </h1>
+
+
+  <h2>
+    TARİFE SAYISI:
+    {{tariffs.length}}
+  </h2>
+
+
+
+  <div class="cards">
+
+
+    <div
+      class="card"
+      *ngFor="let tariff of tariffs">
+
+
+      <div class="card-header">
+
+
+        <h2>
+          {{tariff.name}}
+        </h2>
+
+
+        <span class="type">
+          {{tariff.type}}
+        </span>
+
+
+      </div>
+
+
+
+      <div class="info">
+
+
+        <p>
+          <b>
+            Internet:
+          </b>
+
+          {{tariff.dataGB}} GB
+        </p>
+
+
+
+        <p>
+          <b>
+            Minutes:
+          </b>
+
+          {{tariff.minutes}} DK
+        </p>
+
+
+
+        <p class="price">
+
+          {{tariff.price | number:'1.2-2'}} ₺
+
+        </p>
+
+
+
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+</div>
