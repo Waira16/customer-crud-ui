@@ -17,6 +17,8 @@ export interface Tariff {
 
   type: 'FIBER' | 'DSL' | 'MOBILE';
 
+  imageUrl?: string;
+
 }
 
 

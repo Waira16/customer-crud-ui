@@ -18,6 +18,8 @@ export interface Tariff {
 
   type:string;
 
+  imageUrl?: string;
+
 }
 
 

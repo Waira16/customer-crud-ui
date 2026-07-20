@@ -1,12 +1,9 @@
 <div class="tariff-page">
 
-
-  <h1>
-    Tarifeler ve Ek Paketler
-  </h1>
+  <h1>Tarifeler, Ek Paketler ve Cihaz Mağazası</h1>
 
   <div *ngIf="isLoading" class="loading-box">
-    Tarifeler yukleniyor...
+    Katalog yukleniyor...
   </div>
 
   <div *ngIf="!isLoading && loadError" class="error-box">
@@ -15,194 +12,170 @@
 
   <ng-container *ngIf="!isLoading && !loadError">
 
-
-  <section class="section-block">
-
-    <div class="section-header">
-
-      <h2>İnternet & Mobil Tarifeler</h2>
-
-      <span class="count-badge">{{ tariffs.length }} tarife</span>
-
-    </div>
-
-
-    <div class="cards">
-
-
-      <div
-        class="card tariff-card"
-        *ngFor="let tariff of tariffs">
-
-
-        <div class="card-header">
-
-
-          <h2>
-            {{tariff.name}}
-          </h2>
-
-
-          <span class="type">
-            {{tariff.type}}
-          </span>
-
-
-        </div>
-
-
-
-        <div class="info">
-
-
-          <p>
-            <b>Internet:</b>
-            {{tariff.dataGB}} GB
-          </p>
-
-
-
-          <p>
-            <b>Dakika:</b>
-            {{tariff.minutes}} DK
-          </p>
-
-
-
-          <p class="price">
-            {{ tariff.price | money }} / ay
-          </p>
-
-
-
-        </div>
-
-
+    <section class="section-block">
+      <div class="section-header">
+        <h2>İnternet & Mobil Tarifeler</h2>
+        <span class="count-badge">{{ tariffs.length }} tarife</span>
       </div>
 
+      <div class="cards">
+        <div class="card tariff-card" *ngFor="let tariff of tariffs">
+          <div class="card-image-wrap">
+            <img
+              class="card-image"
+              [src]="catalogImageUrl(tariff.imageUrl, tariff.type)"
+              [alt]="tariff.name"
+              loading="lazy"
+              (error)="onImageError($event, tariff.type)" />
+          </div>
 
-    </div>
+          <div class="card-header">
+            <h2>{{ tariff.name }}</h2>
+            <span class="type">{{ tariffTypeLabel(tariff.type) }}</span>
+          </div>
 
-  </section>
-
-
-  <section class="section-block streaming-section">
-
-    <div class="section-header">
-
-      <h2>Streaming Ek Paketler</h2>
-
-      <span class="count-badge">{{ getStreamingAddons().length }} paket</span>
-
-    </div>
-
-
-    <p class="section-desc">
-      Netflix, Disney+ ve diğer platform paketleri müşteri detayından eklenebilir.
-    </p>
-
-
-    <div class="cards">
-
-
-      <div
-        class="card addon-card"
-        *ngFor="let addon of getStreamingAddons()">
-
-
-        <div class="card-header">
-
-
-          <h2>
-            {{ addon.name }}
-          </h2>
-
-
-          <span class="type streaming">
-            {{ addon.type }}
-          </span>
-
-
+          <div class="info">
+            <p><b>Internet:</b> {{ tariff.dataGB }} GB</p>
+            <p><b>Dakika:</b> {{ tariff.minutes }} DK</p>
+            <p class="price">{{ tariff.price | money }} / ay</p>
+          </div>
         </div>
+      </div>
+    </section>
 
-
-
-        <div class="info">
-
-
-          <p class="description">
-            {{ addon.description || 'Streaming içerik paketi' }}
-          </p>
-
-
-
-          <p class="price">
-            {{ addon.price | money }} / ay
-          </p>
-
-
-
-        </div>
-
-
+    <section class="section-block streaming-section">
+      <div class="section-header">
+        <h2>Streaming Ek Paketler</h2>
+        <span class="count-badge">{{ getStreamingAddons().length }} paket</span>
       </div>
 
+      <p class="section-desc">
+        Netflix, Disney+, Amazon Prime ve diğer platform paketleri müşteri detayından eklenebilir.
+      </p>
 
-    </div>
+      <div class="cards">
+        <div class="card addon-card" *ngFor="let addon of getStreamingAddons()">
+          <div class="card-image-wrap addon-image-wrap">
+            <img
+              class="card-image addon-logo"
+              [src]="catalogImageUrl(addon.imageUrl, 'STREAMING')"
+              [alt]="addon.name"
+              loading="lazy"
+              (error)="onImageError($event, 'STREAMING')" />
+          </div>
 
-  </section>
+          <div class="card-header">
+            <h2>{{ addon.name }}</h2>
+            <span class="type streaming">{{ addon.type }}</span>
+          </div>
 
-
-  <section class="section-block" *ngIf="getOtherAddons().length > 0">
-
-    <div class="section-header">
-
-      <h2>Diğer Ek Paketler</h2>
-
-      <span class="count-badge">{{ getOtherAddons().length }} paket</span>
-
-    </div>
-
-
-    <div class="cards">
-
-
-      <div
-        class="card addon-card"
-        *ngFor="let addon of getOtherAddons()">
-
-
-        <div class="card-header">
-
-          <h2>{{ addon.name }}</h2>
-
-          <span class="type">{{ addon.type }}</span>
-
+          <div class="info">
+            <p class="description">
+              {{ addon.description || 'Streaming içerik paketi' }}
+            </p>
+            <p class="price">{{ addon.price | money }} / ay</p>
+          </div>
         </div>
+      </div>
+    </section>
 
-
-        <div class="info">
-
-          <p class="description">
-            {{ addon.description || 'Ek hizmet paketi' }}
-          </p>
-
-          <p class="price">
-            {{ addon.price | money }} / ay
-          </p>
-
-        </div>
-
-
+    <section class="section-block" *ngIf="getOtherAddons().length > 0">
+      <div class="section-header">
+        <h2>Diğer Ek Paketler</h2>
+        <span class="count-badge">{{ getOtherAddons().length }} paket</span>
       </div>
 
+      <div class="cards">
+        <div class="card addon-card" *ngFor="let addon of getOtherAddons()">
+          <div class="card-image-wrap addon-image-wrap">
+            <img
+              class="card-image addon-logo"
+              [src]="catalogImageUrl(addon.imageUrl, addon.type)"
+              [alt]="addon.name"
+              loading="lazy"
+              (error)="onImageError($event, addon.type)" />
+          </div>
 
-    </div>
+          <div class="card-header">
+            <h2>{{ addon.name }}</h2>
+            <span class="type">{{ addon.type }}</span>
+          </div>
 
-  </section>
+          <div class="info">
+            <p class="description">
+              {{ addon.description || 'Ek hizmet paketi' }}
+            </p>
+            <p class="price">{{ addon.price | money }} / ay</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
+    <section class="section-block device-section">
+      <div class="section-header">
+        <h2>Cihaz Mağazası</h2>
+        <span class="count-badge">{{ devices.length }} ürün</span>
+      </div>
+
+      <p class="section-desc">
+        Telefon, tablet, kulaklık, laptop ve masaüstü bilgisayar modelleri — Turkcell mağaza deneyimi gibi.
+      </p>
+
+      <div class="category-filter">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="selectedDeviceCategory === 'ALL'"
+          (click)="selectDeviceCategory('ALL')">
+          Tümü
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          *ngFor="let category of deviceCategories"
+          [class.active]="selectedDeviceCategory === category"
+          (click)="selectDeviceCategory(category)">
+          {{ categoryLabels[category] }}
+        </button>
+      </div>
+
+      <div class="cards">
+        <div class="card device-card" *ngFor="let device of getFilteredDevices()">
+          <div class="card-image-wrap device-image-wrap">
+            <img
+              class="card-image"
+              [src]="catalogImageUrl(device.imageUrl, device.category)"
+              [alt]="device.name"
+              loading="lazy"
+              (error)="onImageError($event, device.category)" />
+          </div>
+
+          <div class="card-header">
+            <div>
+              <p class="device-brand">{{ device.brand }}</p>
+              <h2>{{ device.name }}</h2>
+            </div>
+            <span class="type device-type">{{ categoryLabels[device.category] }}</span>
+          </div>
+
+          <div class="info">
+            <p class="description">
+              {{ device.description || 'Katalog cihazı' }}
+            </p>
+            <p class="stock" [class.low-stock]="(device.stock ?? 0) < 10">
+              Stok: {{ device.stock ?? 0 }} adet
+            </p>
+            <p class="price">{{ device.price | money }}</p>
+          </div>
+        </div>
+      </div>
+
+      <p *ngIf="getFilteredDevices().length === 0" class="empty-filter">
+        Bu kategoride ürün bulunamadı.
+      </p>
+    </section>
 
   </ng-container>
-
 
 </div>

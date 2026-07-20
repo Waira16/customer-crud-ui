@@ -12,4 +12,6 @@ export interface AddonPackage {
 
   active?: boolean;
 
+  imageUrl?: string;
+
 }
