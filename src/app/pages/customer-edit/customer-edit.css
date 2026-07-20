@@ -1,36 +1,143 @@
 .customer-edit-container {
-  padding: 24px;
-  display: flex;
-  justify-content: center;
+  padding: 24px 32px;
+  background: #f8fafc;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .edit-card {
   width: 100%;
-  max-width: 500px; /* Formun genişliği burada 500px ile sınırlandı */
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  max-width: none;
+  padding: 28px 32px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-spacer {
+  flex: 1 1 auto;
 }
 
 mat-card-title {
-  margin-bottom: 24px !important;
-  font-size: 22px;
-  font-weight: 500;
-  color: #333;
+  color: #1e293b !important;
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 !important;
 }
 
 .edit-form {
   display: flex;
   flex-direction: column;
-  gap: 8px; /* Alanlar arası boşluk */
+  gap: 24px;
+}
+
+.form-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(320px, 0.9fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.left-column,
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.form-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.side-panel {
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.section-title {
+  margin: 0 0 16px;
+  color: #1e293b;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.field-grid {
+  display: grid;
+  gap: 12px 16px;
+}
+
+.field-grid.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field-grid.one-col {
+  grid-template-columns: 1fr;
 }
 
 .full-width {
   width: 100%;
 }
 
+.field-grid mat-form-field,
+.side-panel mat-form-field {
+  width: 100%;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+}
+
 .spinner-container {
   display: flex;
   justify-content: center;
-  padding: 20px;
+  padding: 48px;
+}
+
+::ng-deep .mat-mdc-text-field-wrapper {
+  background: #ffffff !important;
+  border-radius: 12px;
+}
+
+::ng-deep .side-panel .mat-mdc-text-field-wrapper {
+  background: #f8fafc !important;
+}
+
+button[color="primary"] {
+  background: linear-gradient(135deg, #2563eb, #8b5cf6) !important;
+  color: white !important;
+  border-radius: 12px;
+  min-width: 120px;
+}
+
+@media (max-width: 960px) {
+  .customer-edit-container {
+    padding: 16px;
+  }
+
+  .edit-card {
+    padding: 20px;
+  }
+
+  .form-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .field-grid.two-col {
+    grid-template-columns: 1fr;
+  }
 }

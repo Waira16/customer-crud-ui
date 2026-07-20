@@ -15,7 +15,7 @@ export interface Tariff {
 
   price: number;
 
-  type: string;
+  type: 'FIBER' | 'DSL' | 'MOBILE';
 
 }
 
@@ -61,6 +61,7 @@ export class TariffService {
 
     this.http
       .get<Tariff[]>(this.apiUrl)
+
       .subscribe({
 
         next: (data) => {
@@ -101,11 +102,19 @@ export class TariffService {
 
 
 
+
   getTariffs(): Observable<Tariff[]> {
 
 
     return this.tariffs$;
 
+
+  }
+
+
+  fetchTariffs(): Observable<Tariff[]> {
+
+    return this.http.get<Tariff[]>(this.apiUrl);
 
   }
 

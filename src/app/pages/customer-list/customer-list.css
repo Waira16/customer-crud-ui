@@ -168,3 +168,30 @@ button[mat-icon-button]:hover {
   color: #2e7d32;
 
 }
+
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: bold;
+  display: inline-block;
+  min-width: 72px;
+  text-align: center;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #b7dfc2;
+}
+
+.status-badge.status-suspended {
+  background-color: #e2e8f0;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+tr.suspended-row {
+  opacity: 0.55;
+  background: #f8fafc !important;
+}
+
+tr.suspended-row:hover {
+  background: #f1f5f9 !important;
+}

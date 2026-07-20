@@ -1,28 +1,89 @@
-import { Tariff } from './tariff';
+import { Commitment } from './commitment';
+
+export interface CustomerTariff {
+
+  id:number;
+
+  tariff:any;
+
+  startDate:string;
+
+  active:boolean;
+
+}
+
+
+
+export interface CustomerAddon {
+
+  id:number;
+
+  addonPackage:any;
+
+  startDate:string;
+
+  active:boolean;
+
+}
+
 
 
 export interface Customer {
 
-  id: number;
 
-  firstName: string;
+  id:number;
 
-  lastName: string;
 
-  email: string;
+  firstName:string;
 
-  phone: string;
 
-  age: number;
+  lastName:string;
 
-  complaintCount: number;
 
-  hasLatePayments: boolean;
+  email:string;
 
-  churnRiskScore: number;
 
-  riskStatus: 'HIGH' | 'MEDIUM' | 'LOW';
+  phone:string;
 
-  tariff: Tariff;
+
+  age:number;
+
+
+  complaintCount:number;
+
+
+  hasLatePayments:boolean;
+
+
+  churnRiskScore:number;
+
+
+  riskStatus:'HIGH' | 'MEDIUM' | 'LOW';
+
+
+
+  paymentType:'PREPAID' | 'POSTPAID';
+
+
+  balance:number;
+
+
+  status:'ACTIVE' | 'SUSPENDED';
+
+
+  contractStartDate?:string;
+
+
+  contractDuration?:number;
+
+
+  commitment?: Commitment;
+
+
+  tariffs?:CustomerTariff[];
+
+
+  addons?:CustomerAddon[];
+
 
 }

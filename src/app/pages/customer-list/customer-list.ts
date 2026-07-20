@@ -20,6 +20,8 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 import { finalize } from 'rxjs/operators';
 
+import { MoneyPipe } from '../../pipes/money.pipe';
+
 
 
 export interface Customer {
@@ -37,6 +39,12 @@ export interface Customer {
   age: number;
 
   riskStatus: string;
+
+  paymentType?: 'PREPAID' | 'POSTPAID';
+
+  balance?: number;
+
+  status?: 'ACTIVE' | 'SUSPENDED';
 
 }
 
@@ -82,7 +90,8 @@ export interface Customer {
 
     MatSortModule,
 
-    MatPaginatorModule
+    MatPaginatorModule,
+    MoneyPipe
 
   ],
 
@@ -109,6 +118,12 @@ export class CustomerListComponent implements OnInit {
     'email',
 
     'phone',
+
+    'paymentType',
+
+    'balance',
+
+    'status',
 
     'riskStatus',
 
@@ -178,7 +193,52 @@ export class CustomerListComponent implements OnInit {
 
   ngOnInit(): void {
 
+    this.setupFilterPredicate();
     this.loadCustomers();
+
+  }
+
+
+  setupFilterPredicate(): void {
+
+    this.dataSource.filterPredicate = (data: Customer, filter: string) => {
+
+      const parsed = JSON.parse(filter || '{}') as {
+        search?: string;
+        risk?: string;
+      };
+
+      const search = (parsed.search || '').trim().toLowerCase();
+      const risk = parsed.risk || 'ALL';
+
+      const matchesSearch = !search || [
+        data.id?.toString(),
+        data.firstName,
+        data.lastName,
+        data.email,
+        data.phone,
+        data.riskStatus,
+        data.paymentType,
+        data.status
+      ].some(value =>
+        (value || '').toString().toLowerCase().includes(search)
+      );
+
+      const matchesRisk = risk === 'ALL' || data.riskStatus === risk;
+
+      return matchesSearch && matchesRisk;
+
+    };
+
+  }
+
+
+  applyFilters(): void {
+
+    this.dataSource.filter = JSON.stringify({
+      search: this.searchText,
+      risk: this.selectedRisk
+    });
 
   }
 
@@ -233,6 +293,8 @@ export class CustomerListComponent implements OnInit {
 
           this.dataSource.paginator=this.paginator;
 
+          this.applyFilters();
+
 
         });
 
@@ -270,16 +332,7 @@ export class CustomerListComponent implements OnInit {
 
   applyFilter():void{
 
-
-    this.dataSource.filter =
-
-      this.searchText
-
-      .trim()
-
-      .toLowerCase();
-
-
+    this.applyFilters();
 
   }
 
@@ -292,34 +345,7 @@ export class CustomerListComponent implements OnInit {
 
   filterRisk():void{
 
-
-    if(this.selectedRisk === 'ALL'){
-
-
-      this.dataSource.filter='';
-
-      return;
-
-
-    }
-
-
-
-    this.dataSource.filterPredicate =
-
-    (data:Customer,filter:string)=>{
-
-
-      return data.riskStatus === filter;
-
-
-    };
-
-
-
-    this.dataSource.filter=this.selectedRisk;
-
-
+    this.applyFilters();
 
   }
 
@@ -329,6 +355,12 @@ export class CustomerListComponent implements OnInit {
 
 
 
+
+  getStatusLabel(status?: string): string {
+
+    return status === 'SUSPENDED' ? 'Askıda' : 'Aktif';
+
+  }
 
   detailCustomer(id:number):void{
 
@@ -443,7 +475,7 @@ export class CustomerListComponent implements OnInit {
         a.href=url;
 
 
-        a.download='customers.xlsx';
+        a.download='telecom-crm-raporu.xlsx';
 
 
 

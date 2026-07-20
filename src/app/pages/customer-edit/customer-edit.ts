@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -11,32 +10,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
 
-
-export interface Customer {
-
-  id?: number;
-
-  firstName: string;
-
-  lastName: string;
-
-  email: string;
-
-  phone: string;
-
-  age?: number;
-
-  complaintCount?: number;
-
-  hasLatePayments?: boolean;
-
-  churnRiskScore?: number;
-
-  riskStatus?: string;
-
-}
+import { Customer } from '../../models/customer';
+import { CustomerService } from '../../services/customer.service';
+import { getEmailErrorMessage, isValidEmail } from '../../utils/email.util';
 
 
 
@@ -51,7 +29,6 @@ export interface Customer {
     CommonModule,
     FormsModule,
     RouterModule,
-    HttpClientModule,
 
     MatCardModule,
     MatFormFieldModule,
@@ -60,7 +37,7 @@ export interface Customer {
     MatProgressSpinnerModule,
     MatIconModule,
     MatSelectModule,
-    MatCheckboxModule
+    MatDividerModule
 
   ],
 
@@ -76,23 +53,21 @@ export class CustomerEditComponent implements OnInit {
 
   customer: Customer = {
 
+    id: 0,
     firstName: '',
-
     lastName: '',
-
     email: '',
-
     phone: '',
-
-    age: 0,
-
+    age: 18,
     complaintCount: 0,
-
     hasLatePayments: false,
-
     churnRiskScore: 0,
-
-    riskStatus: 'LOW'
+    riskStatus: 'LOW',
+    paymentType: 'POSTPAID',
+    balance: 0,
+    status: 'ACTIVE',
+    contractStartDate: '',
+    contractDuration: 12
 
   };
 
@@ -101,15 +76,13 @@ export class CustomerEditComponent implements OnInit {
 
   isSaving = false;
 
-
-  private apiUrl =
-    'http://localhost:8080/api/customers';
+  emailTouched = false;
 
 
 
   constructor(
 
-    private http: HttpClient,
+    private customerService: CustomerService,
 
     private router: Router,
 
@@ -128,7 +101,7 @@ export class CustomerEditComponent implements OnInit {
       this.route.snapshot.paramMap.get('id');
 
 
-    if(id){
+    if (id) {
 
       this.loadCustomer(Number(id));
 
@@ -146,109 +119,123 @@ export class CustomerEditComponent implements OnInit {
 
 
 
-  loadCustomer(id:number):void {
+  loadCustomer(id: number): void {
 
 
-    this.http.get<Customer>(
+    this.customerService.getCustomerById(id)
+      .subscribe({
 
-      `${this.apiUrl}/${id}`
+        next: (data) => {
 
-    )
-    .subscribe({
+          this.customer = {
+            ...this.customer,
+            ...data,
+            paymentType: data.paymentType || 'POSTPAID',
+            balance: data.balance ?? 0,
+            status: data.status || 'ACTIVE',
+            contractDuration: data.contractDuration ?? 12
+          };
 
-      next:(data)=>{
+          this.isLoading = false;
 
+          this.cdr.detectChanges();
 
-        this.customer = data;
+        },
 
+        error: (err) => {
 
-        this.isLoading = false;
+          console.error(err);
 
+          alert('Müşteri bilgisi alınamadı');
 
-        this.cdr.detectChanges();
+          this.isLoading = false;
 
+        }
 
-      },
-
-
-      error:(err)=>{
-
-
-        console.error(
-          err
-        );
-
-
-        alert(
-          'Müşteri bilgisi alınamadı'
-        );
-
-
-        this.isLoading=false;
-
-
-      }
-
-    });
-
+      });
 
   }
 
 
 
 
-
-  onSubmit():void {
-
-
-    this.isSaving=true;
+  onSubmit(): void {
 
 
-    this.http.put(
+    this.emailTouched = true;
 
-      `${this.apiUrl}/${this.customer.id}`,
+    if (!this.customer.id || !isValidEmail(this.customer.email)) {
+      return;
+    }
 
-      this.customer
+    this.isSaving = true;
 
-    )
-    .subscribe({
+    const payload: Customer = {
+      ...this.customer,
+      age: Number(this.customer.age) || 18,
+      complaintCount: Number(this.customer.complaintCount) || 0,
+      churnRiskScore: Number(this.customer.churnRiskScore) || 0,
+      balance: Number(this.customer.balance) || 0,
+      contractDuration: Number(this.customer.contractDuration) || 12
+    };
 
-      next:()=>{
+    this.customerService.updateCustomer(this.customer.id, payload)
+      .subscribe({
+
+        next: () => {
+
+          alert('Müşteri başarıyla güncellendi');
+
+          this.router.navigate(['/customers']);
+
+        },
+
+        error: (err) => {
+
+          console.error(err);
+
+          alert('Güncelleme başarısız');
+
+          this.isSaving = false;
+
+        }
+
+      });
+
+  }
 
 
-        alert(
-          'Müşteri başarıyla güncellendi'
-        );
+  showEmailError(): boolean {
+
+    return this.emailTouched && !isValidEmail(this.customer.email);
+
+  }
 
 
-        this.router.navigate([
-          '/customers'
-        ]);
+  getEmailError(): string {
+
+    return getEmailErrorMessage(this.customer.email);
+
+  }
 
 
-      },
+  onEmailBlur(): void {
+
+    this.emailTouched = true;
+
+  }
 
 
-      error:(err)=>{
+  onEmailInput(): void {
+
+    this.emailTouched = true;
+
+  }
 
 
-        console.error(
-          err
-        );
+  goBack(): void {
 
-
-        alert(
-          'Güncelleme başarısız'
-        );
-
-
-        this.isSaving=false;
-
-
-      }
-
-    });
-
+    this.router.navigate(['/customers']);
 
   }
 

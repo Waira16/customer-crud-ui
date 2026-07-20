@@ -1,5 +1,12 @@
-<mat-card *ngIf="customer">
+<mat-card *ngIf="customer" [class.suspended-card]="customer.status === 'SUSPENDED'">
+<div
+  class="customer-status"
+  [class.active-status]="customer.status === 'ACTIVE'"
+  [class.suspended-status]="customer.status === 'SUSPENDED'">
 
+  {{ customer.status }}
+
+</div>
 
   <mat-card-header>
 
@@ -9,97 +16,156 @@
 
   </mat-card-header>
 
+<div
+  *ngIf="customer.status === 'SUSPENDED'"
+  class="suspended-warning">
 
+  ⚠️ Bu müşteri askıya alınmıştır.
+  Ödeme yapıldıktan sonra hizmet aktif olacaktır.
+
+</div>
 
 
   <mat-card-content>
 
+<div class="top-section">
 
+  <!-- SOL -->
+  <div class="left-column">
 
-    <p>
-      <strong>Ad:</strong>
-      {{ customer.firstName }}
-    </p>
+    <!-- Burada mevcut müşteri bilgilerin kalacak -->
 
+    <p><strong>Ad:</strong> {{ customer.firstName }}</p>
 
+    <p><strong>Soyad:</strong> {{ customer.lastName }}</p>
 
-    <p>
-      <strong>Soyad:</strong>
-      {{ customer.lastName }}
-    </p>
+    <p><strong>Email:</strong> {{ customer.email }}</p>
 
+    <p><strong>Telefon:</strong> {{ customer.phone }}</p>
 
+    <p><strong>Yaş:</strong> {{ customer.age }}</p>
 
-    <p>
-      <strong>Email:</strong>
-      {{ customer.email }}
-    </p>
+    <p><strong>Şikayet Sayısı:</strong> {{ customer.complaintCount }}</p>
 
+    <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
 
-
-    <p>
-      <strong>Telefon:</strong>
-      {{ customer.phone }}
-    </p>
-
-
+    <p><strong>Churn Risk Skoru:</strong> {{ customer.churnRiskScore }}</p>
 
     <p>
-      <strong>Yaş:</strong>
-      {{ customer.age }}
-    </p>
-
-
-
-    <p>
-      <strong>Şikayet Sayısı:</strong>
-      {{ customer.complaintCount }}
-    </p>
-
-
-
-    <p>
-      <strong>Geç Ödeme:</strong>
-
-      {{ customer.hasLatePayments ? 'Var' : 'Yok' }}
-
-    </p>
-
-
-
-
-    <p>
-
-      <strong>Churn Risk Skoru:</strong>
-
-      {{ customer.churnRiskScore }}
-
-    </p>
-
-
-
-
-    <p>
-
       <strong>Risk Durumu:</strong>
-
 
       <span
         class="risk-badge"
         [ngStyle]="{
           'background-color': getRiskColor(customer.riskStatus),
-          'color':'white'
+          color: 'white'
         }">
 
         {{ customer.riskStatus }}
 
       </span>
 
-
     </p>
 
+  </div>
+
+  <!-- SAĞ -->
+  <div class="right-column">
+
+    <mat-card class="contract-card">
+
+      <mat-card-content>
+
+        <h3>📄 Taahhüt</h3>
+
+        <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
+
+        <p><strong>Süre:</strong> {{ getCommitmentDuration() }} Ay</p>
+
+        <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
+
+        <p><strong>Kalan:</strong> {{ getRemainingMonths() }} Ay</p>
+
+        <p *ngIf="commitment?.penaltyAmount && commitment!.penaltyAmount! > 0">
+          <strong>Bekleyen Cayma Bedeli:</strong>
+          {{ commitment!.penaltyAmount | money }}
+        </p>
+      </mat-card-content>
+
+    </mat-card>
+
+  </div>
+
+</div>
+
+    
+
+<!-- ÖDEME TİPİ VE BAKİYE -->
+
+<mat-card 
+  *ngIf="customer.paymentType === 'PREPAID'"
+  class="price-card">
+
+  <mat-card-content>
+
+    <div class="price-title">
+      Ön Ödemeli Bakiye
+    </div>
 
 
+    <div class="price-value">
+      {{ customer.balance | money }}
+    </div>
+
+
+    <div class="price-sub">
+      Mevcut bakiye
+    </div>
+
+
+    <mat-form-field appearance="outline" class="top-up-field">
+
+      <mat-label>Yüklenecek Tutar (₺)</mat-label>
+
+      <input
+        matInput
+        type="number"
+        min="1"
+        [(ngModel)]="topUpAmount"
+        placeholder="Örn: 500">
+
+    </mat-form-field>
+
+
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="addBalance()">
+
+      Bakiye Yükle
+
+    </button>
+
+
+  </mat-card-content>
+
+</mat-card>
+
+
+
+<mat-card *ngIf="customer.paymentType === 'POSTPAID'">
+
+  <mat-card-content>
+
+    <strong>
+      Ödeme Tipi:
+    </strong>
+
+    Faturalı (POSTPAID)
+
+  </mat-card-content>
+
+</mat-card>
 
     <mat-divider></mat-divider>
 
@@ -121,7 +187,7 @@
     </div>
 
     <div class="price-value">
-      {{ getTotalMonthlyPrice() }} ₺
+      {{ getTotalMonthlyPrice() | money }}
     </div>
 
     <div class="price-sub">
@@ -190,7 +256,7 @@
 
             <strong>Ücret:</strong>
 
-            {{ ct.tariff.price }} ₺
+            {{ ct.tariff.price | money }}
 
           </p>
 
@@ -223,11 +289,7 @@
 </p>
 
 
-<div class="tariff-actions">
 
-  butonlar burada
-
-</div>
 
 <div class="tariff-actions">
 
@@ -300,7 +362,282 @@
     <br>
 
 
+<!-- EK PAKETLER -->
 
+<mat-divider></mat-divider>
+
+<br>
+
+
+<h3>
+  Ek Paketler
+</h3>
+
+
+
+<div
+*ngIf="customer.addons && customer.addons.length > 0">
+
+
+
+<mat-card
+
+*ngFor="let ca of customer.addons"
+
+style="margin-bottom:15px;">
+
+
+
+<mat-card-content>
+
+
+<p>
+
+<strong>Paket:</strong>
+
+{{ ca.addonPackage.name }}
+
+</p>
+
+
+
+<p>
+
+<strong>Açıklama:</strong>
+
+{{ ca.addonPackage.description }}
+
+</p>
+
+
+
+<p>
+
+<strong>Ücret:</strong>
+
+{{ ca.addonPackage.price | money }}
+
+</p>
+
+
+
+<p>
+
+<strong>Başlangıç:</strong>
+
+{{ ca.startDate }}
+
+</p>
+
+
+
+
+<p>
+
+<strong>Durum:</strong>
+
+
+<span
+
+[class.active]="ca.active"
+
+[class.passive]="!ca.active">
+
+
+{{ ca.active ? 'Aktif' : 'Pasif' }}
+
+
+</span>
+
+
+</p>
+
+
+
+
+
+<div class="tariff-actions">
+
+
+
+<button
+
+*ngIf="ca.active"
+
+mat-raised-button
+
+color="warn"
+
+(click)="deactivateAddon(ca.id)">
+
+
+Pasif Yap
+
+
+</button>
+
+
+
+
+
+<button
+
+*ngIf="!ca.active"
+
+mat-raised-button
+
+color="primary"
+
+(click)="activateAddon(ca.id)">
+
+
+Aktif Et
+
+
+</button>
+
+
+
+
+
+<button
+
+mat-raised-button
+
+color="accent"
+
+(click)="deleteAddon(ca.id)">
+
+
+Sil
+
+
+</button>
+
+
+
+</div>
+
+
+
+
+</mat-card-content>
+
+
+</mat-card>
+
+
+
+</div>
+
+
+
+
+
+<p
+
+*ngIf="!customer.addons || customer.addons.length === 0">
+
+
+Ek paket bulunamadı.
+
+
+</p>
+
+
+
+
+
+
+<h3>
+
+Yeni Ek Paket Ekle
+
+</h3>
+
+
+
+
+
+<mat-form-field
+
+appearance="outline"
+
+style="width:100%;">
+
+
+
+<mat-label>
+
+Ek Paket Seç
+
+</mat-label>
+
+
+
+
+<mat-select
+
+[(ngModel)]="selectedAddonId">
+
+
+
+<mat-option
+
+*ngFor="let addon of addons"
+
+[value]="addon.id">
+
+
+
+{{ addon.name }}
+
+-
+
+{{ addon.price | money }}
+
+
+
+</mat-option>
+
+
+
+</mat-select>
+
+
+
+</mat-form-field>
+
+
+
+
+
+<button
+
+mat-raised-button
+
+color="primary"
+
+(click)="addAddon()">
+
+
+
+<mat-icon>
+
+add
+
+</mat-icon>
+
+
+Ek Paket Ekle
+
+
+</button>
+
+
+
+<br>
+<br>
 
 
     <!-- TARİFE EKLEME -->
@@ -308,7 +645,7 @@
 
     <h3>
 
-      Yeni Tarife Ekle
+      Tarife Değiştir
 
     </h3>
 
@@ -334,7 +671,8 @@
 
       <mat-select
 
-        [(ngModel)]="selectedTariffId">
+        [(ngModel)]="selectedTariffId"
+        (selectionChange)="onTariffSelectionChange()">
 
 
 
@@ -350,7 +688,7 @@
 
           -
 
-          {{ tariff.price }} ₺
+          {{ tariff.price | money }}
 
           -
 
@@ -369,6 +707,39 @@
     </mat-form-field>
 
 
+    <div
+      *ngIf="showPenaltyWarning && tariffPreview"
+      class="penalty-warning">
+
+      <strong>⚠️ Taahhüt Uyarısı</strong>
+      <p>
+        Bu işlemi yaparsanız faturanıza
+        <strong>{{ tariffPreview.penaltyAmount | number:'1.2-2' }} TL</strong>
+        cayma bedeli yansıtılacaktır.
+        (Kalan taahhüt: {{ tariffPreview.remainingMonths }} ay)
+      </p>
+      <p *ngIf="tariffPreview.proratedAmount">
+        Bu ay kıstelyevm tutarı:
+        <strong>{{ tariffPreview.proratedAmount | number:'1.2-2' }} TL</strong>
+      </p>
+      <p>Onaylıyor musunuz?</p>
+
+      <div class="penalty-actions">
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="confirmTariffChangeWithPenalty()">
+          Evet, Onaylıyorum
+        </button>
+
+        <button
+          mat-button
+          (click)="cancelTariffChange()">
+          İptal
+        </button>
+      </div>
+
+    </div>
 
 
 
@@ -379,6 +750,7 @@
       mat-raised-button
 
       color="primary"
+      *ngIf="!showPenaltyWarning"
 
       (click)="updateTariff()">
 
@@ -386,12 +758,12 @@
 
       <mat-icon>
 
-        add
+        swap_horiz
 
       </mat-icon>
 
 
-      Tarife Ekle
+      Tarife Değiştir
 
 
     </button>
@@ -423,189 +795,192 @@
     <!-- FATURALAR -->
 
 
+   <!-- FATURALAR -->
+
+
+<h3>
+  Faturalar
+</h3>
+
+<p
+  *ngIf="customer.paymentType === 'PREPAID'"
+  class="invoice-auto-note">
+
+  ℹ️ Bu müşteri <strong>ön ödemeli</strong>. Fatura oluşunca tutar bakiyeden otomatik düşülür;
+  siz manuel ödeme yapmadınız.
+
+</p>
+
+
+
+<div *ngIf="invoices.length > 0">
+
+
+  <mat-card
+    class="invoice-card"
+    *ngFor="let invoice of invoices">
+
+
+    <h2>
+      📄 Fatura
+    </h2>
+
+
+    <mat-divider></mat-divider>
+
+
+    <p>
+      <strong>Dönem:</strong>
+      {{ invoice.billingPeriod }}
+    </p>
+
+
+
+    <p>
+      <strong>Son Ödeme:</strong>
+      {{ invoice.dueDate }}
+    </p>
+
+
+
+    <p>
+  <strong>Durum:</strong>
+
+  <span
+    class="invoice-status"
+    [class.paid]="isInvoicePaid(invoice)"
+    [class.unpaid]="isInvoiceUnpaid(invoice)">
+
+    {{ getInvoiceStatusLabel(invoice) }}
+
+  </span>
+
+</p>
+
+<p *ngIf="isAutoPaid(invoice)" class="auto-payment-note">
+  Tutar, fatura oluşturulurken bakiyeden otomatik kesildi.
+</p>
+
+<p *ngIf="getInvoicePenalty(invoice) > 0">
+  <strong>Cayma Bedeli:</strong>
+  {{ getInvoicePenalty(invoice) | money }}
+</p>
+
+<p *ngIf="invoice.paymentDate">
+
+  <strong>Ödeme Tarihi:</strong>
+
+  {{ invoice.paymentDate }}
+
+</p>
+
+    <mat-divider></mat-divider>
+
+
+
     <h3>
-
-      Faturalar
-
+      📦 Fatura İçeriği
     </h3>
 
 
 
+    <div *ngIf="invoice.tariffs?.length">
 
+      <p>
+        <strong>Tarifeler:</strong>
+      </p>
 
 
-    <table
+      <ul>
 
-      *ngIf="invoices.length > 0"
+        <li *ngFor="let tariff of invoice.tariffs">
 
-      class="invoice-table">
+          {{ tariff }}
 
+        </li>
 
+      </ul>
 
-      <thead>
+    </div>
 
 
-        <tr>
 
+    <div *ngIf="invoice.addons?.length">
 
-          <th>
 
-            Dönem
+      <p>
+        <strong>Ek Paketler:</strong>
+      </p>
 
-          </th>
 
+      <ul>
 
+        <li *ngFor="let addon of invoice.addons">
 
-          <th>
+          {{ addon }}
 
-            Tutar
+        </li>
 
-          </th>
+      </ul>
 
 
+    </div>
 
-          <th>
 
-            Son Ödeme
 
-          </th>
+    <mat-divider></mat-divider>
 
 
 
-          <th>
+    <h2>
 
-            Durum
+      Toplam:
+      {{ getInvoiceAmount(invoice) | money }}
 
-          </th>
+    </h2>
 
 
 
-          <th>
+    <button
 
-            İşlem
+      mat-raised-button
 
-          </th>
+      color="primary"
 
+      *ngIf="isInvoiceUnpaid(invoice)"
 
-        </tr>
+      (click)="payInvoice(invoice)">
 
+      Öde
 
-      </thead>
+    </button>
 
 
 
+    <span
+      *ngIf="isInvoicePaid(invoice)"
+      class="paid-message"
+      [class.auto-paid]="isAutoPaid(invoice)">
 
+      ✅ {{ getInvoicePaidMessage(invoice) }}
 
-      <tbody>
+    </span>
 
 
 
-        <tr
+  </mat-card>
 
-        *ngFor="let invoice of invoices">
 
+</div>
 
 
-          <td>
 
-            {{ invoice.billingPeriod }}
 
-          </td>
+<p *ngIf="invoices.length === 0">
 
+  Bu müşteriye ait fatura bulunamadı.
 
-
-
-          <td>
-
-            {{ invoice.amount }} ₺
-
-          </td>
-
-
-
-
-          <td>
-
-            {{ invoice.dueDate }}
-
-          </td>
-
-
-
-
-          <td>
-
-            {{ invoice.status }}
-
-          </td>
-
-
-
-
-          <td>
-
-
-
-            <button
-
-              *ngIf="invoice.status === 'UNPAID'"
-
-              mat-raised-button
-
-              color="primary"
-
-              (click)="payInvoice(invoice.id)">
-
-
-
-              Öde
-
-
-
-            </button>
-
-
-
-            <span
-
-            *ngIf="invoice.status === 'PAID'">
-
-              Ödendi
-
-
-            </span>
-
-
-
-          </td>
-
-
-
-        </tr>
-
-
-
-      </tbody>
-
-
-
-    </table>
-
-
-
-
-
-
-    <p
-
-    *ngIf="invoices.length === 0">
-
-
-      Bu müşteriye ait fatura bulunamadı.
-
-
-    </p>
-
+</p>
 
 
 

@@ -386,6 +386,112 @@
 
 
 
+      <ng-container matColumnDef="paymentType">
+
+
+        <th
+          mat-header-cell
+          *matHeaderCellDef>
+
+
+          Ödeme Tipi
+
+
+        </th>
+
+
+
+        <td
+          mat-cell
+          *matCellDef="let element">
+
+
+          {{ element.paymentType === 'PREPAID' ? 'Ön Ödemeli' : 'Faturalı' }}
+
+
+        </td>
+
+
+      </ng-container>
+
+
+
+
+
+      <ng-container matColumnDef="balance">
+
+
+        <th
+          mat-header-cell
+          *matHeaderCellDef>
+
+
+          Bakiye
+
+
+        </th>
+
+
+
+        <td
+          mat-cell
+          *matCellDef="let element">
+
+
+          <span *ngIf="element.paymentType === 'PREPAID'">
+            {{ element.balance | money }}
+          </span>
+
+          <span *ngIf="element.paymentType !== 'PREPAID'">-</span>
+
+
+        </td>
+
+
+      </ng-container>
+
+
+
+
+
+      <ng-container matColumnDef="status">
+
+
+        <th
+          mat-header-cell
+          *matHeaderCellDef>
+
+
+          Durum
+
+
+        </th>
+
+
+
+        <td
+          mat-cell
+          *matCellDef="let element">
+
+
+          <span
+            class="status-badge"
+            [class.status-suspended]="element.status === 'SUSPENDED'">
+
+            {{ getStatusLabel(element.status) }}
+
+          </span>
+
+
+        </td>
+
+
+      </ng-container>
+
+
+
+
+
       <ng-container matColumnDef="riskStatus">
 
 
@@ -551,7 +657,8 @@
 
         mat-row
 
-        *matRowDef="let row; columns: displayedColumns;">
+        *matRowDef="let row; columns: displayedColumns;"
+        [class.suspended-row]="row.status === 'SUSPENDED'">
 
 
       </tr>
@@ -570,9 +677,9 @@
 
     <mat-paginator
 
+      [pageSize]="25"
 
-      [pageSizeOptions]="[5,10,25,50]"
-
+      [pageSizeOptions]="[10, 25, 50, 100]"
 
       showFirstLastButtons>
 

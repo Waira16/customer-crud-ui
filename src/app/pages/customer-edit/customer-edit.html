@@ -1,67 +1,210 @@
 <div class="customer-edit-container">
-  <mat-card class="edit-card">
-    <mat-card-title>Müşteri Düzenle</mat-card-title>
 
-    @if(isLoading){
+  <mat-card class="edit-card">
+
+    <mat-card-header class="page-header">
+
+      <mat-card-title>
+        Müşteri Düzenle
+      </mat-card-title>
+
+      <span class="header-spacer"></span>
+
+      <button mat-button type="button" (click)="goBack()" [disabled]="isSaving">
+        Listeye Dön
+      </button>
+
+    </mat-card-header>
+
+
+    @if (isLoading) {
+
       <div class="spinner-container">
-        <mat-spinner></mat-spinner>
+
+        <mat-spinner diameter="40"></mat-spinner>
+
       </div>
+
+
     } @else {
+
       <form (ngSubmit)="onSubmit()" #editForm="ngForm" class="edit-form">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Adı</mat-label>
-          <input matInput [(ngModel)]="customer.firstName" name="firstName">
-        </mat-form-field>
+        <div class="form-layout">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Soyadı</mat-label>
-          <input matInput [(ngModel)]="customer.lastName" name="lastName">
-        </mat-form-field>
+          <div class="left-column">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>E-posta</mat-label>
-          <input matInput [(ngModel)]="customer.email" name="email">
-        </mat-form-field>
+            <section class="form-section">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Telefon</mat-label>
-          <input matInput [(ngModel)]="customer.phone" name="phone">
-        </mat-form-field>
+              <h3 class="section-title">Kişisel Bilgiler</h3>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Yaş</mat-label>
-          <input matInput type="number" [(ngModel)]="customer.age" name="age">
-        </mat-form-field>
+              <div class="field-grid two-col">
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Şikayet Sayısı</mat-label>
-          <input matInput type="number" [(ngModel)]="customer.complaintCount" name="complaintCount">
-        </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Adı</mat-label>
+                  <input matInput [(ngModel)]="customer.firstName" name="firstName" required>
+                </mat-form-field>
 
-        <mat-checkbox [(ngModel)]="customer.hasLatePayments" name="hasLatePayments">
-          Geç ödeme var
-        </mat-checkbox>
+                <mat-form-field appearance="outline">
+                  <mat-label>Soyadı</mat-label>
+                  <input matInput [(ngModel)]="customer.lastName" name="lastName" required>
+                </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width" style="margin-top: 15px;">
-          <mat-label>Churn Risk Skoru</mat-label>
-          <input matInput type="number" [(ngModel)]="customer.churnRiskScore" name="churnRiskScore">
-        </mat-form-field>
+              </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Risk Durumu</mat-label>
-          <mat-select [(ngModel)]="customer.riskStatus" name="riskStatus">
-            <mat-option value="LOW">LOW</mat-option>
-            <mat-option value="MEDIUM">MEDIUM</mat-option>
-            <mat-option value="HIGH">HIGH</mat-option>
-          </mat-select>
-        </mat-form-field>
+              <div class="field-grid two-col">
 
-        <button mat-raised-button color="primary" type="submit" [disabled]="isSaving">
-          {{ isSaving ? 'Kaydediliyor...' : 'Güncelle' }}
-        </button>
+                <mat-form-field appearance="outline">
+                  <mat-label>E-posta</mat-label>
+                  <input
+                    matInput
+                    type="email"
+                    [(ngModel)]="customer.email"
+                    name="email"
+                    required
+                    (blur)="onEmailBlur()"
+                    (ngModelChange)="onEmailInput()">
+                  @if (showEmailError()) {
+                    <mat-error>{{ getEmailError() }}</mat-error>
+                  }
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Telefon</mat-label>
+                  <input matInput [(ngModel)]="customer.phone" name="phone">
+                </mat-form-field>
+
+              </div>
+
+              <div class="field-grid one-col">
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Yaş</mat-label>
+                  <input matInput type="number" min="18" [(ngModel)]="customer.age" name="age">
+                </mat-form-field>
+
+              </div>
+
+            </section>
+
+
+            <section class="form-section">
+
+              <h3 class="section-title">Risk Bilgileri</h3>
+
+              <div class="field-grid two-col">
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Şikayet Sayısı</mat-label>
+                  <input matInput type="number" min="0" [(ngModel)]="customer.complaintCount" name="complaintCount">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Churn Risk Skoru</mat-label>
+                  <input matInput type="number" min="0" [(ngModel)]="customer.churnRiskScore" name="churnRiskScore">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Geç Ödeme</mat-label>
+                  <mat-select [(ngModel)]="customer.hasLatePayments" name="hasLatePayments">
+                    <mat-option [value]="false">Hayır</mat-option>
+                    <mat-option [value]="true">Evet</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Risk Durumu</mat-label>
+                  <mat-select [(ngModel)]="customer.riskStatus" name="riskStatus">
+                    <mat-option value="LOW">LOW</mat-option>
+                    <mat-option value="MEDIUM">MEDIUM</mat-option>
+                    <mat-option value="HIGH">HIGH</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+              </div>
+
+            </section>
+
+          </div>
+
+
+          <div class="right-column">
+
+            <section class="form-section side-panel">
+
+              <h3 class="section-title">Ödeme ve Durum</h3>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Ödeme Tipi</mat-label>
+                <mat-select [(ngModel)]="customer.paymentType" name="paymentType">
+                  <mat-option value="POSTPAID">Faturalı (POSTPAID)</mat-option>
+                  <mat-option value="PREPAID">Ön Ödemeli (PREPAID)</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (customer.paymentType === 'PREPAID') {
+
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Bakiye (₺)</mat-label>
+                  <input matInput type="number" min="0" [(ngModel)]="customer.balance" name="balance">
+                </mat-form-field>
+
+              }
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Müşteri Durumu</mat-label>
+                <mat-select [(ngModel)]="customer.status" name="status">
+                  <mat-option value="ACTIVE">Aktif</mat-option>
+                  <mat-option value="SUSPENDED">Askıya Alınmış</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+            </section>
+
+
+            <section class="form-section side-panel">
+
+              <h3 class="section-title">Taahhüt</h3>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Başlangıç Tarihi</mat-label>
+                <input matInput type="date" [(ngModel)]="customer.contractStartDate" name="contractStartDate">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Süre (Ay)</mat-label>
+                <input matInput type="number" min="1" [(ngModel)]="customer.contractDuration" name="contractDuration">
+              </mat-form-field>
+
+            </section>
+
+          </div>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button mat-button type="button" (click)="goBack()" [disabled]="isSaving">
+            İptal
+          </button>
+
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="isSaving || editForm.invalid">
+
+            {{ isSaving ? 'Kaydediliyor...' : 'Güncelle' }}
+
+          </button>
+
+        </div>
 
       </form>
+
     }
+
   </mat-card>
+
 </div>

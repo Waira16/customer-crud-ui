@@ -8,6 +8,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { BaseChartDirective } from 'ng2-charts';
 
+import { MoneyPipe } from '../../pipes/money.pipe';
+import { roundMoney } from '../../utils/money.util';
+
 import {
   Chart,
   ArcElement,
@@ -46,7 +49,8 @@ Chart.register(
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    BaseChartDirective
+    BaseChartDirective,
+    MoneyPipe
 
   ],
 
@@ -371,17 +375,15 @@ export class DashboardComponent implements OnInit {
 
 
         this.expectedRevenue =
-        data.expectedRevenue || 0;
-
+        roundMoney(data.expectedRevenue);
 
 
         this.collectedRevenue =
-        data.collectedRevenue || 0;
-
+        roundMoney(data.collectedRevenue);
 
 
         this.pendingRevenue =
-        data.pendingRevenue || 0;
+        roundMoney(data.pendingRevenue);
 
 
 

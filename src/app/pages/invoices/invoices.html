@@ -1,9 +1,67 @@
 <div class="invoice-page">
 
 
-  <h1>
-    Invoices
-  </h1>
+  <div class="page-header">
+
+    <h1>
+      Faturalar
+    </h1>
+
+    <div class="generate-wrapper">
+
+      <button
+        class="generate-btn"
+        (click)="generateInvoices()"
+        [disabled]="isGenerating">
+
+        {{ isGenerating ? 'Oluşturuluyor...' : 'Fatura Oluştur' }}
+
+      </button>
+
+      <div class="generate-tooltip">
+        Bu buton, aktif tarifesi olan tüm müşteriler için <strong>bu ayın</strong> faturasını oluşturur.
+        Aynı ay içinde tekrar çalıştırılırsa yeni fatura eklenmez.
+        Prepaid müşterilerde bakiye yeterliyse fatura otomatik <strong>Ödendi</strong> olur.
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    *ngIf="feedbackMessage"
+    class="feedback"
+    [class.feedback-success]="feedbackType === 'success'"
+    [class.feedback-info]="feedbackType === 'info'"
+    [class.feedback-error]="feedbackType === 'error'">
+
+    {{ feedbackMessage }}
+
+    <span *ngIf="hasGenerateDetails()">
+      (Dönem: {{ lastGenerateResult!.billingPeriod }},
+      yeni: {{ lastGenerateResult!.createdCount }},
+      zaten vardı: {{ lastGenerateResult!.skippedAlreadyBilledCount }})
+    </span>
+
+  </div>
+
+
+  <div class="summary-row">
+
+    <span class="summary-chip paid-chip">
+      {{ getPaidCount() }} ödendi
+    </span>
+
+    <span class="summary-chip unpaid-chip">
+      {{ getUnpaidCount() }} bekliyor
+    </span>
+
+    <span class="summary-note">
+      Cayma bedeli sadece tarife düşürülen müşterilerde görünür.
+    </span>
+
+  </div>
 
 
 
@@ -13,7 +71,7 @@
     <div class="card total">
 
       <h3>
-        Total Revenue
+        Toplam Tutar
       </h3>
 
       <p>
@@ -27,7 +85,7 @@
     <div class="card paid-card">
 
       <h3>
-        Paid
+        Ödenen
       </h3>
 
       <p>
@@ -42,7 +100,7 @@
     <div class="card unpaid-card">
 
       <h3>
-        Unpaid
+        Bekleyen
       </h3>
 
       <p>
@@ -62,7 +120,7 @@
 
 
     <label>
-      Payment Status:
+      Ödeme Durumu:
     </label>
 
 
@@ -72,17 +130,17 @@
 
 
       <option value="ALL">
-        All
+        Tümü
       </option>
 
 
       <option value="PAID">
-        Paid
+        Ödendi
       </option>
 
 
       <option value="UNPAID">
-        Unpaid
+        Ödenmedi
       </option>
 
 
@@ -113,32 +171,40 @@
 
 
 <th>
-  Customer
+  Müşteri
+</th>
+
+<th>
+  Tip
 </th>
 
 
 <th>
-  Amount
+  Tutar
+</th>
+
+<th>
+  Cayma Bedeli
 </th>
 
 
           <th>
-            Due Date
+            Son Ödeme
           </th>
 
 
           <th>
-            Billing Period
+            Dönem
           </th>
 
 
           <th>
-            Status
+            Durum
           </th>
 
 
           <th>
-            Action
+            İşlem
           </th>
 
 
@@ -153,75 +219,67 @@
       <tbody>
 
 
-        <tr *ngFor="let invoice of filteredInvoices">
+        <tr
+          *ngFor="let invoice of filteredInvoices"
+          class="invoice-data-row"
+          [class.invoice-data-row--clickable]="invoice.customerId"
+          (click)="invoice.customerId && goToCustomerDetail(invoice)">
 
 
-          <td>
+          <td class="invoice-id-cell" (click)="$event.stopPropagation()">
             #{{invoice.id}}
           </td>
 
-<td>
-  {{invoice.customerName}}
-</td>
+          <td class="invoice-detail-cell">{{ invoice.customerName }}</td>
 
-          <td>
-            {{formatMoney(invoice.amount)}}
-          </td>
+          <td class="invoice-detail-cell">{{ getPaymentTypeLabel(invoice) }}</td>
 
+          <td class="invoice-detail-cell">{{ formatMoney(getAmount(invoice)) }}</td>
 
-
-          <td>
-            {{invoice.dueDate}}
-          </td>
-
-
-
-          <td>
-            {{invoice.billingPeriod}}
-          </td>
-
-
-
-
-          <td>
-
-
-            <span
-            [class.paid]="invoice.status === 'PAID'"
-            [class.unpaid]="invoice.status === 'UNPAID'">
-
-
-              {{invoice.status}}
-
-
+          <td class="invoice-detail-cell">
+            <span [class.penalty-value]="getPenalty(invoice) > 0">
+              {{ getPenalty(invoice) > 0 ? formatMoney(getPenalty(invoice)) : '-' }}
             </span>
+          </td>
 
+          <td class="invoice-detail-cell">{{invoice.dueDate}}</td>
 
+          <td class="invoice-detail-cell">{{invoice.billingPeriod}}</td>
+
+          <td class="invoice-detail-cell">
+            <span
+            class="status-badge"
+            [class.paid]="isPaid(invoice)"
+            [class.unpaid]="isUnpaid(invoice)">
+              {{ getStatusLabel(invoice.status) }}
+            </span>
           </td>
 
 
 
 
-          <td>
+          <td class="invoice-action-cell" (click)="$event.stopPropagation()">
 
 
             <button
-            *ngIf="invoice.status === 'UNPAID'"
-            (click)="payInvoice(invoice.id)">
+            class="pay-btn"
+            *ngIf="isUnpaid(invoice)"
+            (click)="payInvoice(invoice)">
 
 
-              Pay
+              Öde
 
 
             </button>
 
 
             <span
-            *ngIf="invoice.status === 'PAID'"
-            class="completed">
+            *ngIf="isPaid(invoice)"
+            class="completed"
+            [class.prepaid-paid]="invoice.paymentType === 'PREPAID'">
 
 
-              Completed
+              {{ getActionLabel(invoice) }}
 
 
             </span>
@@ -230,6 +288,15 @@
           </td>
 
 
+
+        </tr>
+
+
+        <tr *ngIf="filteredInvoices.length === 0">
+
+          <td colspan="9" class="empty-row">
+            Bu filtreye uygun fatura bulunamadı.
+          </td>
 
         </tr>
 

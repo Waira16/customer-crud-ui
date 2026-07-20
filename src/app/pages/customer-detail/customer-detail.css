@@ -26,7 +26,27 @@ mat-card {
 }
 
 
+.top-section{
+    display:flex;
+    gap:30px;
+    align-items:flex-start;
+    margin-bottom:30px;
+}
 
+.left-column{
+    flex:2;
+}
+
+.right-column{
+    flex:1;
+    min-width:300px;
+}
+
+.contract-card{
+    position:sticky;
+    top:20px;
+    border-radius:16px;
+}
 
 
 mat-card-title {
@@ -230,4 +250,117 @@ button {
 
   width:100%;
 
+}
+.invoice-status {
+
+  padding: 6px 12px;
+
+  border-radius: 20px;
+
+  font-weight: bold;
+
+}
+
+
+.invoice-status.paid {
+
+  background: #4caf50;
+
+  color:white;
+
+}
+
+
+
+.invoice-status.unpaid {
+
+  background:#f44336;
+
+  color:white;
+
+}
+
+.invoice-auto-note {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.auto-payment-note {
+  color: #2563eb;
+  font-size: 14px;
+  margin-top: -4px;
+}
+
+.paid-message {
+  color: #16a34a;
+  font-weight: bold;
+}
+
+.paid-message.auto-paid {
+  color: #2563eb;
+}
+.customer-status{
+  display:inline-block;
+  padding:8px 16px;
+  border-radius:20px;
+  font-weight:bold;
+  margin-bottom:15px;
+}
+
+
+.active-status{
+  background:#d4edda;
+  color:#155724;
+}
+
+
+.suspended-status{
+  background:#f8d7da;
+  color:#721c24;
+}
+.suspended-card{
+
+  opacity:0.6;
+
+}
+
+
+.suspended-warning{
+
+  background:#f8d7da;
+  color:#721c24;
+  padding:12px;
+  border-radius:8px;
+  font-weight:bold;
+  margin-bottom:15px;
+
+}
+
+.penalty-warning{
+  background:#fff3cd;
+  color:#856404;
+  border:1px solid #ffeeba;
+  padding:16px;
+  border-radius:8px;
+  margin:16px 0;
+}
+
+.penalty-warning p{
+  margin:8px 0;
+}
+
+.penalty-actions{
+  display:flex;
+  gap:12px;
+  margin-top:12px;
+}
+
+.top-up-field{
+  width:100%;
+  margin-top:12px;
 }

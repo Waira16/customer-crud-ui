@@ -1,0 +1,121 @@
+.payment-dialog {
+  width: min(100%, 480px);
+  padding: 8px 4px 4px;
+}
+
+.dialog-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #1976d2, #42a5f5);
+  color: #fff;
+}
+
+.dialog-header h2 {
+  margin: 0 0 4px;
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.dialog-header p {
+  margin: 0;
+  color: #5f6368;
+  font-size: 0.95rem;
+}
+
+.amount-line {
+  margin-top: 8px !important;
+  color: #1a237e !important;
+}
+
+.card-preview {
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+  color: #fff;
+  background: linear-gradient(135deg, #283593 0%, #512da8 55%, #7b1fa2 100%);
+  box-shadow: 0 14px 30px rgba(40, 53, 147, 0.25);
+}
+
+.card-chip {
+  width: 42px;
+  height: 30px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #ffd54f, #ffb300);
+}
+
+.card-number-preview {
+  font-size: 1.2rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+  font-family: 'Courier New', monospace;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  opacity: 0.92;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field-error {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin: -4px 0 8px 4px;
+}
+
+.secure-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 20px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f3f6fb;
+  color: #546e7a;
+  font-size: 0.85rem;
+}
+
+.secure-note mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 520px) {
+  .row-fields {
+    grid-template-columns: 1fr;
+  }
+}

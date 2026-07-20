@@ -2,71 +2,80 @@
 
 
   <h1>
-    Tariffs
+    Tarifeler ve Ek Paketler
   </h1>
 
+  <div *ngIf="isLoading" class="loading-box">
+    Tarifeler yukleniyor...
+  </div>
 
-  <h2>
-    TARİFE SAYISI:
-    {{tariffs.length}}
-  </h2>
+  <div *ngIf="!isLoading && loadError" class="error-box">
+    {{ loadError }}
+  </div>
 
-
-
-  <div class="cards">
-
-
-    <div
-      class="card"
-      *ngFor="let tariff of tariffs">
+  <ng-container *ngIf="!isLoading && !loadError">
 
 
-      <div class="card-header">
+  <section class="section-block">
+
+    <div class="section-header">
+
+      <h2>İnternet & Mobil Tarifeler</h2>
+
+      <span class="count-badge">{{ tariffs.length }} tarife</span>
+
+    </div>
 
 
-        <h2>
-          {{tariff.name}}
-        </h2>
+    <div class="cards">
 
 
-        <span class="type">
-          {{tariff.type}}
-        </span>
+      <div
+        class="card tariff-card"
+        *ngFor="let tariff of tariffs">
 
 
-      </div>
+        <div class="card-header">
 
 
-
-      <div class="info">
-
-
-        <p>
-          <b>
-            Internet:
-          </b>
-
-          {{tariff.dataGB}} GB
-        </p>
+          <h2>
+            {{tariff.name}}
+          </h2>
 
 
+          <span class="type">
+            {{tariff.type}}
+          </span>
 
-        <p>
-          <b>
-            Minutes:
-          </b>
 
-          {{tariff.minutes}} DK
-        </p>
+        </div>
 
 
 
-        <p class="price">
+        <div class="info">
 
-          {{tariff.price | number:'1.2-2'}} ₺
 
-        </p>
+          <p>
+            <b>Internet:</b>
+            {{tariff.dataGB}} GB
+          </p>
 
+
+
+          <p>
+            <b>Dakika:</b>
+            {{tariff.minutes}} DK
+          </p>
+
+
+
+          <p class="price">
+            {{ tariff.price | money }} / ay
+          </p>
+
+
+
+        </div>
 
 
       </div>
@@ -74,8 +83,126 @@
 
     </div>
 
+  </section>
 
-  </div>
+
+  <section class="section-block streaming-section">
+
+    <div class="section-header">
+
+      <h2>Streaming Ek Paketler</h2>
+
+      <span class="count-badge">{{ getStreamingAddons().length }} paket</span>
+
+    </div>
+
+
+    <p class="section-desc">
+      Netflix, Disney+ ve diğer platform paketleri müşteri detayından eklenebilir.
+    </p>
+
+
+    <div class="cards">
+
+
+      <div
+        class="card addon-card"
+        *ngFor="let addon of getStreamingAddons()">
+
+
+        <div class="card-header">
+
+
+          <h2>
+            {{ addon.name }}
+          </h2>
+
+
+          <span class="type streaming">
+            {{ addon.type }}
+          </span>
+
+
+        </div>
+
+
+
+        <div class="info">
+
+
+          <p class="description">
+            {{ addon.description || 'Streaming içerik paketi' }}
+          </p>
+
+
+
+          <p class="price">
+            {{ addon.price | money }} / ay
+          </p>
+
+
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+  <section class="section-block" *ngIf="getOtherAddons().length > 0">
+
+    <div class="section-header">
+
+      <h2>Diğer Ek Paketler</h2>
+
+      <span class="count-badge">{{ getOtherAddons().length }} paket</span>
+
+    </div>
+
+
+    <div class="cards">
+
+
+      <div
+        class="card addon-card"
+        *ngFor="let addon of getOtherAddons()">
+
+
+        <div class="card-header">
+
+          <h2>{{ addon.name }}</h2>
+
+          <span class="type">{{ addon.type }}</span>
+
+        </div>
+
+
+        <div class="info">
+
+          <p class="description">
+            {{ addon.description || 'Ek hizmet paketi' }}
+          </p>
+
+          <p class="price">
+            {{ addon.price | money }} / ay
+          </p>
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+  </section>
+
+
+  </ng-container>
 
 
 </div>
