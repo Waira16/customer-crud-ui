@@ -31,7 +31,7 @@
         inputmode="numeric"
         autocomplete="cc-number"
         maxlength="23"
-        placeholder="4532 1488 0343 6467"
+        placeholder="4242 4242 4242 4242"
         [ngModel]="cardNumber"
         (ngModelChange)="onCardNumberInput($event)"
         (blur)="cardTouched = true">
@@ -87,6 +87,13 @@
 
   <div class="dialog-actions">
     <button mat-button type="button" (click)="cancel()">İptal</button>
+    <button
+      mat-stroked-button
+      color="primary"
+      type="button"
+      (click)="payDirect()">
+      Öde
+    </button>
     <button
       mat-raised-button
       color="primary"

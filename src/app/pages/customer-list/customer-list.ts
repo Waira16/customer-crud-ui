@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 
 import { FormsModule } from '@angular/forms';
@@ -19,8 +18,14 @@ import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 
 import { finalize } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 
 import { MoneyPipe } from '../../pipes/money.pipe';
+import { NotificationService } from '../../services/notification.service';
+import { HasRoleDirective } from '../../directives/has-role.directive';
+import { CustomerService } from '../../services/customer.service';
+import { InvoiceService } from '../../services/invoice.service';
+import { Invoice } from '../../models/invoice';
 
 
 
@@ -65,8 +70,6 @@ export interface Customer {
 
     RouterModule,
 
-    HttpClientModule,
-
     FormsModule,
 
 
@@ -91,7 +94,8 @@ export interface Customer {
     MatSortModule,
 
     MatPaginatorModule,
-    MoneyPipe
+    MoneyPipe,
+    HasRoleDirective
 
   ],
 
@@ -150,6 +154,12 @@ export class CustomerListComponent implements OnInit {
 
   selectedRisk = 'ALL';
 
+  selectedPaymentType = 'ALL';
+
+  selectedInvoiceStatus = 'ALL';
+
+  private invoices: Invoice[] = [];
+
 
 
 
@@ -166,23 +176,17 @@ export class CustomerListComponent implements OnInit {
   paginator!: MatPaginator;
 
 
-
-
-
-  private apiUrl =
-    'http://localhost:8080/api/customers';
-
-
-
-
-
   constructor(
 
-    private http: HttpClient,
+    private customerService: CustomerService,
+
+    private invoiceService: InvoiceService,
 
     private router: Router,
 
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+
+    private notification: NotificationService
 
   ) {}
 
@@ -206,10 +210,14 @@ export class CustomerListComponent implements OnInit {
       const parsed = JSON.parse(filter || '{}') as {
         search?: string;
         risk?: string;
+        paymentType?: string;
+        invoiceStatus?: string;
       };
 
       const search = (parsed.search || '').trim().toLowerCase();
       const risk = parsed.risk || 'ALL';
+      const paymentType = parsed.paymentType || 'ALL';
+      const invoiceStatus = parsed.invoiceStatus || 'ALL';
 
       const matchesSearch = !search || [
         data.id?.toString(),
@@ -226,7 +234,22 @@ export class CustomerListComponent implements OnInit {
 
       const matchesRisk = risk === 'ALL' || data.riskStatus === risk;
 
-      return matchesSearch && matchesRisk;
+      const matchesPaymentType =
+        paymentType === 'ALL' || data.paymentType === paymentType;
+
+      const hasUnpaidInvoice = this.invoices.some(
+        invoice => invoice.customerId === data.id && invoice.status === 'UNPAID'
+      );
+
+      const matchesInvoiceStatus =
+        invoiceStatus === 'ALL'
+        || (invoiceStatus === 'UNPAID' && hasUnpaidInvoice)
+        || (invoiceStatus === 'PAID' && !hasUnpaidInvoice);
+
+      return matchesSearch
+        && matchesRisk
+        && matchesPaymentType
+        && matchesInvoiceStatus;
 
     };
 
@@ -237,7 +260,9 @@ export class CustomerListComponent implements OnInit {
 
     this.dataSource.filter = JSON.stringify({
       search: this.searchText,
-      risk: this.selectedRisk
+      risk: this.selectedRisk,
+      paymentType: this.selectedPaymentType,
+      invoiceStatus: this.selectedInvoiceStatus
     });
 
   }
@@ -255,69 +280,35 @@ export class CustomerListComponent implements OnInit {
 
 
 
-    this.http.get<Customer[]>(this.apiUrl)
-
-
+    forkJoin({
+      customers: this.customerService.getCustomers(),
+      invoices: this.invoiceService.getInvoices()
+    })
     .pipe(
-
       finalize(()=>{
-
-
         this.isLoading=false;
-
         this.cdr.detectChanges();
-
-
       })
-
-
     )
-
-
-
     .subscribe({
-
-
-      next:(data)=>{
-
-
-        this.dataSource.data=data;
-
-
-
+      next: ({ customers, invoices }) => {
+        this.invoices = invoices ?? [];
+        this.dataSource.data = customers ?? [];
         setTimeout(()=>{
-
-
           this.dataSource.sort=this.sort;
-
-
           this.dataSource.paginator=this.paginator;
-
           this.applyFilters();
-
-
         });
-
-
       },
-
-
-
       error:(err)=>{
-
-
         console.error(
-
           "Müşteriler alınamadı:",
-
           err
-
         );
-
-
+        this.notification.error(
+          this.notification.extractError(err, 'Müşteri listesi yüklenemedi.')
+        );
       }
-
-
     });
 
 
@@ -349,6 +340,14 @@ export class CustomerListComponent implements OnInit {
 
   }
 
+  filterPaymentType(): void {
+    this.applyFilters();
+  }
+
+  filterInvoiceStatus(): void {
+    this.applyFilters();
+  }
+
 
 
 
@@ -360,6 +359,19 @@ export class CustomerListComponent implements OnInit {
 
     return status === 'SUSPENDED' ? 'Askıda' : 'Aktif';
 
+  }
+
+  getRiskLabel(status?: string): string {
+    if (status === 'HIGH') {
+      return 'Yüksek';
+    }
+    if (status === 'MEDIUM') {
+      return 'Orta';
+    }
+    if (status === 'LOW') {
+      return 'Düşük';
+    }
+    return status ?? '-';
   }
 
   detailCustomer(id:number):void{
@@ -403,31 +415,35 @@ export class CustomerListComponent implements OnInit {
   deleteCustomer(id:number):void{
 
 
-    if(confirm("Silmek istediğine emin misin?")){
+    this.notification.confirm(
+      'Silmek istediğine emin misin?',
+      'Müşteri Sil',
+      'Sil',
+      'Vazgeç',
+      true
+    ).subscribe((confirmed) => {
+
+    if(!confirmed){
+      return;
+    }
 
 
-      this.http.delete(
+      this.customerService.deleteCustomer(id)
 
-        `${this.apiUrl}/${id}`,
-
-        {
-
-          responseType:'text'
-
+      .subscribe({
+        next: () => {
+          this.notification.success('Müşteri silindi.');
+          this.loadCustomers();
+        },
+        error: (err: unknown) => {
+          this.notification.error(
+            this.notification.extractError(err, 'Müşteri silinemedi.')
+          );
         }
-
-      )
-
-      .subscribe(()=>{
-
-
-        this.loadCustomers();
-
-
       });
 
 
-    }
+    });
 
 
 
@@ -441,17 +457,12 @@ export class CustomerListComponent implements OnInit {
   exportExcel():void{
 
 
-    this.http.get(
-
-      `${this.apiUrl}/export/excel`,
-
-      {
-
-        responseType:'blob'
-
-      }
-
-    )
+    this.customerService.exportExcel({
+      search: this.searchText,
+      risk: this.selectedRisk,
+      paymentType: this.selectedPaymentType,
+      invoiceStatus: this.selectedInvoiceStatus
+    })
 
 
     .subscribe({
@@ -493,22 +504,16 @@ export class CustomerListComponent implements OnInit {
 
 
 
+        this.notification.success('Excel raporu indirildi.');
       },
-
-
-
       error:(err)=>{
-
-
         console.error(
-
           "Excel indirilemedi:",
-
           err
-
         );
-
-
+        this.notification.error(
+          this.notification.extractError(err, 'Excel raporu indirilemedi.')
+        );
       }
 
 

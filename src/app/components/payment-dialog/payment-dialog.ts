@@ -14,6 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { PaymentRequest } from '../../models/payment-request';
 import {
+  DEMO_PAYMENT_CARD,
   formatCardNumber,
   formatExpiryDate,
   isValidCvv,
@@ -27,6 +28,14 @@ export interface PaymentDialogData {
   title: string;
   subtitle?: string;
   amount?: number;
+}
+
+export function getDemoPaymentRequest(): PaymentRequest {
+  return {
+    cardNumber: stripCardDigits(DEMO_PAYMENT_CARD.number),
+    expiryDate: DEMO_PAYMENT_CARD.expiry,
+    cvv: DEMO_PAYMENT_CARD.cvv
+  };
 }
 
 @Component({
@@ -114,6 +123,10 @@ export class PaymentDialogComponent {
 
   cancel(): void {
     this.dialogRef.close();
+  }
+
+  payDirect(): void {
+    this.dialogRef.close(getDemoPaymentRequest());
   }
 
   pay(): void {

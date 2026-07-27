@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { AddonPackage } from '../models/addon-package';
+import { environment } from '../../environments/environment';
 
 
 
@@ -12,7 +13,7 @@ import { AddonPackage } from '../models/addon-package';
 export class AddonService {
 
 
-  private apiUrl = 'http://localhost:8080/api/addons';
+  private apiUrl = `${environment.apiBaseUrl}/api/addons`;
 
   private addonSubject = new BehaviorSubject<AddonPackage[]>([]);
 

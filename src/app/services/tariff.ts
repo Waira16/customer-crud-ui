@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 
 export interface Tariff {
@@ -15,7 +16,7 @@ export interface Tariff {
 
   price: number;
 
-  type: 'FIBER' | 'DSL' | 'MOBILE';
+  type: 'FIBER' | 'DSL' | 'MOBILE' | 'TV' | 'DIGITAL_SERVICE';
 
   imageUrl?: string;
 
@@ -31,8 +32,7 @@ export interface Tariff {
 export class TariffService {
 
 
-  private apiUrl =
-    'http://localhost:8080/api/tariffs';
+  private apiUrl = `${environment.apiBaseUrl}/api/tariffs`;
 
 
 
@@ -120,6 +120,16 @@ export class TariffService {
 
   }
 
+  createTariff(tariff: Partial<Tariff>): Observable<Tariff> {
+    return this.http.post<Tariff>(this.apiUrl, tariff);
+  }
 
+  updateTariff(id: number, tariff: Partial<Tariff>): Observable<Tariff> {
+    return this.http.put<Tariff>(`${this.apiUrl}/${id}`, tariff);
+  }
+
+  deleteTariff(id: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
+  }
 
 }

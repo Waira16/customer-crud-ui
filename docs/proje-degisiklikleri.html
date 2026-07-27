@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telekom CRM — Proje Değişiklikleri Raporu</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e40af, #2563eb);
+      color: #fff;
+      padding: 40px 20px;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 1.9rem;
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.92;
+      max-width: 720px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .meta span {
+      background: rgba(255,255,255,0.15);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+    }
+
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px 26px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      color: #0f172a;
+      font-size: 1.25rem;
+      border-left: 4px solid var(--primary);
+      padding-left: 12px;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      font-size: 1rem;
+      color: #334155;
+    }
+
+    p { margin: 0 0 12px; }
+
+    ul {
+      margin: 0 0 12px;
+      padding-left: 22px;
+    }
+
+    li { margin-bottom: 6px; }
+
+    .badge {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .badge.backend { background: #dcfce7; color: #166534; }
+    .badge.frontend { background: #fef3c7; color: #92400e; }
+
+    code, .file {
+      background: var(--code-bg);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-family: Consolas, monospace;
+      font-size: 0.9em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background: #eef2ff;
+      font-weight: 700;
+    }
+
+    .toc a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .toc a:hover { text-decoration: underline; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container" style="padding-top:0;padding-bottom:0;">
+    <h1>Telekom CRM — Yapılan Geliştirmeler</h1>
+    <p>
+      Bu doküman, <strong>customer-crud-api</strong> (Spring Boot) ve
+      <strong>customer-crud-ui</strong> (Angular) projelerinde yapılan tüm önemli
+      değişiklikleri staj/defter raporu formatında açıklar.
+    </p>
+    <div class="meta">
+      <span>Stack: Spring Boot + Angular</span>
+      <span>Alan: Fatura, Ödeme, Taahhüt, CRM</span>
+      <span>Tarih: Temmuz 2026</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <section class="toc">
+    <h2>İçindekiler</h2>
+    <ol>
+      <li><a href="#luhn">Luhn Algoritması ile Sanal POS Ödeme</a></li>
+      <li><a href="#excel">Excel Raporu İyileştirmesi</a></li>
+      <li><a href="#email">E-posta Doğrulama</a></li>
+      <li><a href="#invoice-nav">Fatura Listesinden Müşteri Detayına Geçiş</a></li>
+      <li><a href="#tariffs">Tarifeler Sayfası Yükleme Düzeltmesi</a></li>
+      <li><a href="#penalty">Cayma Bedelinin Faturaya Yansıması</a></li>
+      <li><a href="#prepaid-pay">Ön Ödemeli / Faturalı Ödeme Ayrımı</a></li>
+      <li><a href="#suspend">Ödeme Gecikmesi ile Askıya Alma</a></li>
+      <li><a href="#money">Para ve Bakiye Formatı (2 Basamak)</a></li>
+      <li><a href="#sort">Fatura Listesi Sıralama</a></li>
+    </ol>
+  </section>
+
+  <!-- 1 -->
+  <section id="luhn">
+    <h2>1. Luhn Algoritması ile Sanal POS Ödeme</h2>
+    <p>
+      <span class="badge backend">Backend</span>
+      <span class="badge frontend">Frontend</span>
+    </p>
+    <h3>Amaç</h3>
+    <p>
+      Fatura ödeme ve bakiye yükleme işlemlerine gerçekçi bir kredi kartı adımı eklemek.
+      Kart numarası dünya standardı olan <strong>Luhn (mod 10)</strong> algoritması ile doğrulanır.
+    </p>
+    <h3>Backend</h3>
+    <ul>
+      <li><span class="file">LuhnValidator.java</span> — kart numarası matematiksel kontrol</li>
+      <li><span class="file">CreditCardValidationService.java</span> — Luhn + SKT + CVV doğrulama</li>
+      <li><span class="file">PaymentRequestDTO.java</span> — kartNo, expiryDate, cvv</li>
+      <li><code>POST /api/invoices/{id}/pay</code> — faturalı müşteri fatura ödemesi</li>
+      <li><code>POST /api/customers/{id}/balance/top-up</code> — bakiye yükleme (kart ile)</li>
+    </ul>
+    <h3>Frontend</h3>
+    <ul>
+      <li><span class="file">payment-dialog/</span> — Material Dialog ile kredi kartı pop-up</li>
+      <li><span class="file">luhn.util.ts</span> — anlık kart numarası doğrulama</li>
+      <li>Faturalar ve müşteri detay sayfalarında <strong>Öde</strong> butonu pop-up açar</li>
+      <li>Geçersiz kart numarasında kırmızı uyarı anında gösterilir</li>
+    </ul>
+    <h3>Test kartı</h3>
+    <p><code>4532 1488 0343 6467</code> · SKT: <code>12/28</code> · CVV: <code>123</code></p>
+  </section>
+
+  <!-- 2 -->
+  <section id="excel">
+    <h2>2. Excel Raporu İyileştirmesi</h2>
+    <p><span class="badge backend">Backend</span></p>
+    <h3>Önceki durum</h3>
+    <p>Tek sayfa, 5 sütun, sabit "CUSTOMER" segmenti — rapor çok boştu.</p>
+    <h3>Yeni durum — 4 sayfa</h3>
+    <table>
+      <tr><th>Sayfa</th><th>İçerik</th></tr>
+      <tr><td>Özet</td><td>Toplam müşteri, aktif/askıda, prepaid/postpaid, fatura tutarları</td></tr>
+      <tr><td>Müşteriler</td><td>21 sütun: bakiye, taahhüt, risk, tarife, fatura durumu…</td></tr>
+      <tr><td>Faturalar</td><td>Tüm faturalar, cayma bedeli, ödeme durumu</td></tr>
+      <tr><td>Abonelikler</td><td>Tarife ve ek paketler satır satır</td></tr>
+    </table>
+    <p>Dosya adı: <code>telecom-crm-raporu.xlsx</code></p>
+    <p>Ana dosya: <span class="file">ExcelExportService.java</span></p>
+  </section>
+
+  <!-- 3 -->
+  <section id="email">
+    <h2>3. E-posta Doğrulama</h2>
+    <p><span class="badge frontend">Frontend</span></p>
+    <p>
+      Müşteri ekleme ve düzenleme formlarında e-posta alanı gerçek format kontrolü yapar.
+      <span class="file">@</span> yoksa, domain eksikse veya format hatalıysa kırmızı <code>mat-error</code> uyarısı gösterilir.
+    </p>
+    <ul>
+      <li><span class="file">email.util.ts</span> — <code>isValidEmail()</code>, <code>getEmailErrorMessage()</code></li>
+      <li><span class="file">add-customer.html / .ts</span></li>
+      <li><span class="file">customer-edit.html / .ts</span></li>
+    </ul>
+    <p>Örnek geçerli format: <code>hakan@ornek.com</code></p>
+  </section>
+
+  <!-- 4 -->
+  <section id="invoice-nav">
+    <h2>4. Fatura Listesinden Müşteri Detayına Geçiş</h2>
+    <p>
+      <span class="badge backend">Backend</span>
+      <span class="badge frontend">Frontend</span>
+    </p>
+    <h3>Backend</h3>
+    <p><span class="file">InvoiceResponseDTO</span> içine <code>customerId</code> alanı eklendi.</p>
+    <h3>Frontend — invoices sayfası</h3>
+    <ul>
+      <li>Fatura satırında müşteri adından durum sütununa kadar tıklanabilir alan</li>
+      <li>Tıklanınca <code>/customer-detail/{id}</code> sayfasına yönlendirme</li>
+      <li>ID ve İşlem sütunları tıklamadan hariç (Öde butonu ayrı çalışır)</li>
+      <li>Hover: tüm satır açık gri arka plan</li>
+      <li>Göz ikonu ve mavi link kaldırıldı — sade, temiz görünüm</li>
+    </ul>
+    <p>Ana dosyalar: <span class="file">invoices.html</span>, <span class="file">invoices.ts</span>, <span class="file">invoices.css</span></p>
+  </section>
+
+  <!-- 5 -->
+  <section id="tariffs">
+    <h2>5. Tarifeler Sayfası Yükleme Düzeltmesi</h2>
+    <p><span class="badge frontend">Frontend</span></p>
+    <h3>Sorun</h3>
+    <p>Sayfa bazen boş geliyordu; gir-çık yapınca düzeliyordu. Sebep: <code>BehaviorSubject</code> ile zamanlama/change detection sorunu.</p>
+    <h3>Çözüm</h3>
+    <ul>
+      <li>Her sayfa açılışında <code>forkJoin</code> ile tarife + ek paket doğrudan HTTP'ten çekilir</li>
+      <li><code>ChangeDetectorRef.detectChanges()</code> ile UI güncellenir</li>
+      <li>Yükleme ve hata mesajları eklendi</li>
+    </ul>
+    <p>Ana dosyalar: <span class="file">tariffs.ts</span>, <span class="file">tariff.ts</span>, <span class="file">addon.service.ts</span></p>
+  </section>
+
+  <!-- 6 -->
+  <section id="penalty">
+    <h2>6. Cayma Bedelinin Faturaya Yansıması</h2>
+    <p><span class="badge backend">Backend</span></p>
+    <h3>Sorun</h3>
+    <p>
+      Tarife düşürüldüğünde cayma bedeli taahhüt kaydına yazılıyordu (detayda "Bekleyen Cayma Bedeli")
+      ama fatura listesinde görünmüyordu — çünkü o ay faturası zaten oluşturulmuştu.
+    </p>
+    <h3>Çözüm</h3>
+    <ul>
+      <li><span class="file">applyPendingPenaltyForCustomer()</span> — bekleyen caymayı mevcut ay faturasına ekler</li>
+      <li>Tarife değişince otomatik uygulanır</li>
+      <li>"Fatura Oluştur" butonuna basınca da kontrol edilir</li>
+      <li>Faturada <code>penaltyFee</code> alanı ve toplam tutar güncellenir</li>
+    </ul>
+  </section>
+
+  <!-- 7 -->
+  <section id="prepaid-pay">
+    <h2>7. Ön Ödemeli / Faturalı Ödeme Ayrımı</h2>
+    <p>
+      <span class="badge backend">Backend</span>
+      <span class="badge frontend">Frontend</span>
+    </p>
+    <table>
+      <tr><th>Müşteri tipi</th><th>Öde butonu davranışı</th></tr>
+      <tr><td>Ön ödemeli (PREPAID)</td><td>Kart pop-up açılmaz; tutar bakiyeden kesilir</td></tr>
+      <tr><td>Faturalı (POSTPAID)</td><td>Kredi kartı pop-up açılır; Luhn + SKT + CVV kontrolü</td></tr>
+    </table>
+    <p>Bakiye yetersizse: <em>"Yetersiz bakiye. Lütfen bakiye yükleyin."</em></p>
+    <p>Ana dosya: <span class="file">InvoiceServiceImpl.payInvoice()</span></p>
+  </section>
+
+  <!-- 8 -->
+  <section id="suspend">
+    <h2>8. Ödeme Gecikmesi ile Askıya Alma</h2>
+    <p><span class="badge backend">Backend</span></p>
+    <h3>İş kuralı</h3>
+    <ul>
+      <li>Son ödeme tarihinden <strong>7 gün</strong> sonra hâlâ ödenmemiş fatura → müşteri <code>SUSPENDED</code></li>
+      <li>Tüm faturalar ödenince → müşteri tekrar <code>ACTIVE</code></li>
+      <li>Ön ödemeli: bakiye yetmezse fatura oluşunca hemen askıya alınır (zaten vardı)</li>
+    </ul>
+    <h3>Ne zaman çalışır?</h3>
+    <ul>
+      <li>Her gece 02:00 — scheduler</li>
+      <li>Fatura oluştur butonu</li>
+      <li>Faturalar sayfası açılınca</li>
+    </ul>
+    <p>Ayar: <code>billing.payment-grace-days=7</code> (application.properties)</p>
+    <p>Ana dosya: <span class="file">PaymentSuspensionService.java</span></p>
+  </section>
+
+  <!-- 9 -->
+  <section id="money">
+    <h2>9. Para ve Bakiye Formatı (2 Basamak — Kuruş)</h2>
+    <p>
+      <span class="badge backend">Backend</span>
+      <span class="badge frontend">Frontend</span>
+    </p>
+    <h3>Sorun</h3>
+    <p>Float hesaplama yüzünden bakiye <code>1702.1518</code> gibi görünüyordu.</p>
+    <h3>Çözüm</h3>
+    <ul>
+      <li>Backend: <span class="file">MoneyUtils.java</span> — <code>Customer.setBalance()</code> otomatik 2 haneye yuvarlar</li>
+      <li>Frontend: <span class="file">money.util.ts</span> + <span class="file">MoneyPipe</span> — <code>1.702,15 ₺</code> formatı</li>
+      <li>Müşteri listesi, detay, faturalar, dashboard, tarifeler — tüm para alanları güncellendi</li>
+    </ul>
+  </section>
+
+  <!-- 10 -->
+  <section id="sort">
+    <h2>10. Fatura Listesi Sıralama</h2>
+    <p>
+      <span class="badge backend">Backend</span>
+      <span class="badge frontend">Frontend</span>
+    </p>
+    <p>
+      Faturalar artık <strong>ID'ye göre azalan</strong> sırada (en yeni en üstte).
+      Güncelleme yapınca fatura alta kaymaz; sıra sabit kalır.
+    </p>
+    <ul>
+      <li><code>findAllByOrderByIdDesc()</code></li>
+      <li>Frontend'de <code>sortInvoicesByIdDesc()</code></li>
+    </ul>
+  </section>
+
+  <!-- Özet tablo -->
+  <section>
+    <h2>Özet — Değişen Dosyalar</h2>
+    <table>
+      <tr><th>Alan</th><th>Önemli Dosyalar</th></tr>
+      <tr>
+        <td>Backend</td>
+        <td>
+          InvoiceServiceImpl, CustomerServiceImpl, PaymentSuspensionService,
+          ExcelExportService, LuhnValidator, CreditCardValidationService,
+          MoneyUtils, InvoiceRepository, InvoiceResponseDTO
+        </td>
+      </tr>
+      <tr>
+        <td>Frontend</td>
+        <td>
+          invoices/, customer-detail/, customer-list/, payment-dialog/,
+          add-customer/, customer-edit/, tariffs/, dashboard/,
+          money.util.ts, MoneyPipe, email.util.ts, luhn.util.ts
+        </td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>Staj Defteri İçin Kısa Özet (Kopyala-Yapıştır)</h2>
+    <p>
+      Telekom CRM projesinde fatura yönetimi, ödeme simülasyonu ve müşteri yaşam döngüsü geliştirildi.
+      Luhn algoritması ile sanal POS entegrasyonu yapıldı; ön ödemeli ve faturalı müşteriler için farklı
+      ödeme akışları tanımlandı. Cayma bedeli faturaya yansıtıldı; geciken ödemelerde otomatik askıya alma
+      sistemi kuruldu. Excel raporu çok sayfalı hale getirildi; e-posta doğrulama, para formatı ve kullanıcı
+      arayüzü iyileştirmeleri tamamlandı. Backend Spring Boot, frontend Angular Material ile geliştirildi.
+    </p>
+  </section>
+
+  <footer>
+    customer-crud-api + customer-crud-ui · Telekom CRM Staj Raporu
+  </footer>
+
+</div>
+
+</body>
+</html>

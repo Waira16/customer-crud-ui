@@ -1,35 +1,25 @@
-<mat-sidenav-container class="sidenav-container">
-
+<mat-sidenav-container class="sidenav-container" [class.public-mode]="!showLayout">
 
   <mat-sidenav
+    *ngIf="showLayout"
     mode="side"
     opened
     class="sidebar-width">
 
-
     <app-sidebar></app-sidebar>
-
 
   </mat-sidenav>
 
+  <mat-sidenav-content [class.public-content]="!showLayout">
 
+    <app-navbar *ngIf="showLayout"></app-navbar>
 
-  <mat-sidenav-content>
-
-
-    <app-navbar></app-navbar>
-
-
-    <div class="content-wrapper">
-
+    <div class="content-wrapper" [class.public-shell]="!showLayout">
 
       <router-outlet></router-outlet>
 
-
     </div>
 
-
   </mat-sidenav-content>
-
 
 </mat-sidenav-container>

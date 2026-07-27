@@ -1,0 +1,42 @@
+.confirm-dialog {
+  padding: 8px 4px 4px;
+}
+
+.confirm-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.confirm-header mat-icon {
+  color: #2563eb;
+  font-size: 28px;
+  width: 28px;
+  height: 28px;
+}
+
+.confirm-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #0f172a;
+}
+
+.confirm-message {
+  margin: 0 0 24px;
+  color: #475569;
+  line-height: 1.55;
+  font-size: 15px;
+  white-space: pre-line;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.destructive-btn {
+  background: #dc2626 !important;
+  color: #fff !important;
+}

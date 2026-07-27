@@ -2,8 +2,55 @@
 
   <h1>Tarifeler, Ek Paketler ve Cihaz Mağazası</h1>
 
+  <div class="agent-cart-panel" *ngIf="showCartActions()">
+    <div class="cart-header">
+      <h2>
+        <mat-icon>shopping_cart</mat-icon>
+        Sepetim
+      </h2>
+      <span class="cart-total">{{ getCartTotal() | money }}</span>
+    </div>
+
+    <p class="cart-hint" *ngIf="!hasSelectedProfile">
+      Sepet kullanmak için sol menüden profilinizi seçin.
+    </p>
+
+    <div class="cart-items" *ngIf="cartItems.length > 0">
+      <div class="cart-item" *ngFor="let item of cartItems">
+        <div>
+          <span class="cart-item-type">{{ cartItemLabel(item.type) }}</span>
+          <strong>{{ item.name }}</strong>
+        </div>
+        <div class="cart-item-actions">
+          <span>{{ item.price | money }}</span>
+          <button
+            mat-icon-button
+            type="button"
+            (click)="removeFromCart(item)"
+            aria-label="Sepetten çıkar">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p class="cart-empty" *ngIf="cartItems.length === 0 && hasSelectedProfile">
+      Sepetiniz boş. Ek paket ve cihaz ekleyebilirsiniz.
+    </p>
+
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      class="checkout-btn"
+      [disabled]="cartItems.length === 0 || !hasSelectedProfile || isCheckingOut"
+      (click)="checkout()">
+      {{ isCheckingOut ? 'Ödeme işleniyor...' : 'Sepeti Onayla ve Öde' }}
+    </button>
+  </div>
+
   <div *ngIf="isLoading" class="loading-box">
-    Katalog yukleniyor...
+    Katalog yükleniyor...
   </div>
 
   <div *ngIf="!isLoading && loadError" class="error-box">
@@ -15,7 +62,18 @@
     <section class="section-block">
       <div class="section-header">
         <h2>İnternet & Mobil Tarifeler</h2>
-        <span class="count-badge">{{ tariffs.length }} tarife</span>
+        <div class="section-header-actions">
+          <span class="count-badge">{{ tariffs.length }} tarife</span>
+          <button
+            *appHasRole="'ROLE_ADMIN'"
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="openCreateTariffDialog()">
+            <mat-icon>add</mat-icon>
+            Yeni Tarife Ekle
+          </button>
+        </div>
       </div>
 
       <div class="cards">
@@ -35,9 +93,35 @@
           </div>
 
           <div class="info">
-            <p><b>Internet:</b> {{ tariff.dataGB }} GB</p>
+            <p><b>İnternet:</b> {{ tariff.dataGB }} GB</p>
             <p><b>Dakika:</b> {{ tariff.minutes }} DK</p>
             <p class="price">{{ tariff.price | money }} / ay</p>
+            <div class="card-actions">
+              <button
+                *ngIf="showTariffProfileActions()"
+                mat-stroked-button
+                type="button"
+                class="add-cart-btn"
+                [disabled]="isTariffActionDisabled(tariff)"
+                (click)="handleTariffAction(tariff)">
+                {{ applyingTariffId === tariff.id ? 'İşleniyor...' : getTariffActionLabel(tariff) }}
+              </button>
+              <ng-container *appHasRole="'ROLE_ADMIN'">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="openEditTariffDialog(tariff)">
+                  Düzenle
+                </button>
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  type="button"
+                  (click)="deleteCatalogTariff(tariff)">
+                  Sil
+                </button>
+              </ng-container>
+            </div>
           </div>
         </div>
       </div>
@@ -45,12 +129,12 @@
 
     <section class="section-block streaming-section">
       <div class="section-header">
-        <h2>Streaming Ek Paketler</h2>
+        <h2>Yayın Ek Paketleri</h2>
         <span class="count-badge">{{ getStreamingAddons().length }} paket</span>
       </div>
 
       <p class="section-desc">
-        Netflix, Disney+, Amazon Prime ve diğer platform paketleri müşteri detayından eklenebilir.
+        Netflix, Disney+, Amazon Prime ve diğer platform paketleri sepete eklenip ödeme sonrası hesabınıza yüklenir.
       </p>
 
       <div class="cards">
@@ -58,10 +142,10 @@
           <div class="card-image-wrap addon-image-wrap">
             <img
               class="card-image addon-logo"
-              [src]="catalogImageUrl(addon.imageUrl, 'STREAMING')"
+              [src]="catalogImageUrl(addon.imageUrl, 'STREAMING', addon.name)"
               [alt]="addon.name"
               loading="lazy"
-              (error)="onImageError($event, 'STREAMING')" />
+              (error)="onImageError($event, 'STREAMING', addon.name)" />
           </div>
 
           <div class="card-header">
@@ -71,9 +155,18 @@
 
           <div class="info">
             <p class="description">
-              {{ addon.description || 'Streaming içerik paketi' }}
+              {{ addon.description || 'Yayın içerik paketi' }}
             </p>
             <p class="price">{{ addon.price | money }} / ay</p>
+            <button
+              *ngIf="showCartActions()"
+              mat-stroked-button
+              type="button"
+              class="add-cart-btn"
+              [disabled]="isInCart('ADDON', addon.id)"
+              (click)="addAddonToCart(addon)">
+              {{ isInCart('ADDON', addon.id) ? 'Sepette' : 'Sepete Ekle' }}
+            </button>
           </div>
         </div>
       </div>
@@ -90,10 +183,10 @@
           <div class="card-image-wrap addon-image-wrap">
             <img
               class="card-image addon-logo"
-              [src]="catalogImageUrl(addon.imageUrl, addon.type)"
+              [src]="catalogImageUrl(addon.imageUrl, addon.type, addon.name)"
               [alt]="addon.name"
               loading="lazy"
-              (error)="onImageError($event, addon.type)" />
+              (error)="onImageError($event, addon.type, addon.name)" />
           </div>
 
           <div class="card-header">
@@ -106,6 +199,15 @@
               {{ addon.description || 'Ek hizmet paketi' }}
             </p>
             <p class="price">{{ addon.price | money }} / ay</p>
+            <button
+              *ngIf="showCartActions()"
+              mat-stroked-button
+              type="button"
+              class="add-cart-btn"
+              [disabled]="isInCart('ADDON', addon.id)"
+              (click)="addAddonToCart(addon)">
+              {{ isInCart('ADDON', addon.id) ? 'Sepette' : 'Sepete Ekle' }}
+            </button>
           </div>
         </div>
       </div>
@@ -118,7 +220,7 @@
       </div>
 
       <p class="section-desc">
-        Telefon, tablet, kulaklık, laptop ve masaüstü bilgisayar modelleri — Turkcell mağaza deneyimi gibi.
+        Telefon, tablet, kulaklık, laptop ve masaüstü bilgisayar modelleri — ödeme sonrası siparişiniz işleme alınır.
       </p>
 
       <div class="category-filter">
@@ -145,10 +247,10 @@
           <div class="card-image-wrap device-image-wrap">
             <img
               class="card-image"
-              [src]="catalogImageUrl(device.imageUrl, device.category)"
+              [src]="catalogImageUrl(device.imageUrl, device.category, device.name)"
               [alt]="device.name"
               loading="lazy"
-              (error)="onImageError($event, device.category)" />
+              (error)="onImageError($event, device.category, device.name)" />
           </div>
 
           <div class="card-header">
@@ -167,6 +269,15 @@
               Stok: {{ device.stock ?? 0 }} adet
             </p>
             <p class="price">{{ device.price | money }}</p>
+            <button
+              *ngIf="showCartActions()"
+              mat-stroked-button
+              type="button"
+              class="add-cart-btn"
+              [disabled]="isInCart('DEVICE', device.id) || (device.stock ?? 0) <= 0"
+              (click)="addDeviceToCart(device)">
+              {{ isInCart('DEVICE', device.id) ? 'Sepette' : 'Sepete Ekle' }}
+            </button>
           </div>
         </div>
       </div>

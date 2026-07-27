@@ -213,6 +213,14 @@ h1 {
 
   color:#334155;
 
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  flex-wrap:wrap;
+
 }
 
 .filter-box label {
@@ -314,11 +322,11 @@ tbody tr {
   cursor: pointer;
 }
 
-.invoice-data-row--clickable td {
+.invoice-data-row--clickable td:not(.risk-indicator-cell) {
   background: #fff;
 }
 
-.invoice-data-row--clickable:hover td {
+.invoice-data-row--clickable:hover td:not(.risk-indicator-cell) {
   background: #f1f5f9;
 }
 
@@ -463,4 +471,54 @@ tbody tr {
   text-align: center;
   color: #64748b;
   padding: 24px !important;
+}
+
+.risk-indicator-header,
+.risk-indicator-cell {
+  width: 0.6cm;
+  min-width: 0.6cm;
+  max-width: 0.6cm;
+  padding: 0;
+  border: none;
+}
+
+.risk-indicator-header {
+  background: #eef2ff;
+  border-top-right-radius: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: inset 0 -1px 0 rgba(226, 232, 240, 0.6);
+}
+
+.risk-indicator-cell.risk-low {
+  background: linear-gradient(
+    to right,
+    rgba(0, 230, 118, 0.12) 0%,
+    rgba(0, 230, 118, 0.45) 35%,
+    #00e676 72%,
+    #00c853 100%
+  );
+}
+
+.risk-indicator-cell.risk-medium {
+  background: linear-gradient(
+    to right,
+    rgba(255, 234, 0, 0.12) 0%,
+    rgba(255, 193, 7, 0.5) 35%,
+    #ffea00 72%,
+    #ffc107 100%
+  );
+}
+
+.risk-indicator-cell.risk-high {
+  background: linear-gradient(
+    to right,
+    rgba(255, 23, 68, 0.12) 0%,
+    rgba(255, 23, 68, 0.48) 35%,
+    #ff1744 72%,
+    #d50000 100%
+  );
+}
+
+.invoice-data-row td.risk-indicator-cell {
+  background-clip: padding-box;
 }

@@ -13,43 +13,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { getEmailErrorMessage, isValidEmail } from '../../utils/email.util';
-
-
-
-export interface Customer {
-
-  id?: number;
-
-  firstName: string;
-
-  lastName: string;
-
-  email: string;
-
-  phone: string;
-
-  age?: number;
-
-  complaintCount?: number;
-
-  hasLatePayments?: boolean;
-
-  churnRiskScore?: number;
-
-  riskStatus?: string;
-
-
-  paymentType?: 'PREPAID' | 'POSTPAID';
-
-  balance?: number;
-
-  status?: 'ACTIVE' | 'SUSPENDED';
-
-  contractStartDate?: string;
-
-  contractDuration?: number;
-
-}
+import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { AgentContextService } from '../../services/agent-context.service';
+import { Customer as CustomerModel } from '../../models/customer';
+import { environment } from '../../../environments/environment';
 
 
 
@@ -93,8 +61,9 @@ export interface Customer {
 export class AddCustomerComponent implements OnInit {
 
 
-  customer: Customer = {
+  customer: CustomerModel = {
 
+    id: 0,
 
     firstName: '',
 
@@ -140,8 +109,7 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-  private apiUrl =
-    'http://localhost:8080/api/customers';
+  private apiUrl = `${environment.apiBaseUrl}/api/customers`;
 
 
 
@@ -152,7 +120,13 @@ export class AddCustomerComponent implements OnInit {
 
     private router: Router,
 
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+
+    private notification: NotificationService,
+
+    private authService: AuthService,
+
+    private agentContext: AgentContextService
 
   ) {}
 
@@ -174,7 +148,7 @@ export class AddCustomerComponent implements OnInit {
       this.isEditMode = true;
 
 
-      this.loadCustomerById(
+      this.loadCustomerModelById(
         Number(id)
       );
 
@@ -188,14 +162,14 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-  loadCustomerById(id:number):void{
+  loadCustomerModelById(id:number):void{
 
 
     this.isLoading = true;
 
 
 
-    this.http.get<Customer>(
+    this.http.get<CustomerModel>(
 
       `${this.apiUrl}/${id}`
 
@@ -257,9 +231,9 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-    const payload:Customer = {
+    const payload: CustomerModel = {
 
-
+      id: this.customer.id || 0,
 
       firstName:
       this.customer.firstName.trim(),
@@ -296,7 +270,11 @@ export class AddCustomerComponent implements OnInit {
       hasLatePayments:
       this.customer.hasLatePayments || false,
 
+      churnRiskScore:
+      this.customer.churnRiskScore || 0,
 
+      riskStatus:
+      this.customer.riskStatus || 'LOW',
 
       paymentType:
       this.customer.paymentType || 'POSTPAID',
@@ -335,7 +313,7 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-      this.http.put<Customer>(
+      this.http.put<CustomerModel>(
 
         `${this.apiUrl}/${this.customer.id}`,
 
@@ -346,9 +324,9 @@ export class AddCustomerComponent implements OnInit {
       .subscribe({
 
 
-        next:()=>{
+        next:(created)=>{
 
-          this.handleSuccess();
+          this.handleSuccess(created);
 
         },
 
@@ -370,7 +348,7 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-      this.http.post<Customer>(
+      this.http.post<CustomerModel>(
 
         this.apiUrl,
 
@@ -381,11 +359,9 @@ export class AddCustomerComponent implements OnInit {
       .subscribe({
 
 
-        next:()=>{
+        next:(created)=>{
 
-
-          this.handleSuccess();
-
+          this.handleSuccess(created);
 
         },
 
@@ -416,7 +392,7 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-  private handleSuccess():void{
+  private handleSuccess(created?: CustomerModel):void{
 
 
     this.isLoading=false;
@@ -426,11 +402,16 @@ export class AddCustomerComponent implements OnInit {
       'KAYIT BAŞARILI'
     );
 
+    this.notification.success('Müşteri başarıyla kaydedildi.');
+
+    if (this.authService.isAgent() && created) {
+      this.agentContext.setSelectedCustomer(created);
+      this.router.navigate(['/portal']);
+      return;
+    }
 
     this.router.navigate([
-
       '/customers'
-
     ]);
 
 
@@ -482,14 +463,8 @@ export class AddCustomerComponent implements OnInit {
 
     this.isLoading=false;
 
-
-
-    alert(
-
-      'HATA:\n' +
-
-      JSON.stringify(err.error)
-
+    this.notification.error(
+      this.notification.extractError(err, 'Müşteri kaydedilemedi.')
     );
 
 

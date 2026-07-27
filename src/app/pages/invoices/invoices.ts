@@ -2,17 +2,16 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
 
 import { Invoice } from '../../models/invoice';
 import { InvoiceGenerateResult } from '../../models/invoice-generate-result';
-import { PaymentRequest } from '../../models/payment-request';
 import { InvoiceService } from '../../services/invoice.service';
-import {
-  PaymentDialogComponent,
-  PaymentDialogData
-} from '../../components/payment-dialog/payment-dialog';
 import { formatMoney as formatMoneyUtil } from '../../utils/money.util';
+import { HasRoleDirective } from '../../directives/has-role.directive';
+import { AuthService } from '../../services/auth.service';
+import { AgentContextService } from '../../services/agent-context.service';
+import { CustomerService } from '../../services/customer.service';
+import { PaymentFlowService } from '../../services/payment-flow.service';
 
 
 
@@ -22,7 +21,8 @@ import { formatMoney as formatMoneyUtil } from '../../utils/money.util';
   imports: [
     CommonModule,
     FormsModule,
-    RouterModule
+    RouterModule,
+    HasRoleDirective
   ],
   templateUrl: './invoices.html',
   styleUrl: './invoices.css',
@@ -37,6 +37,8 @@ export class InvoicesComponent implements OnInit {
 
   selectedStatus: string = 'ALL';
 
+  selectedPaymentType: 'ALL' | 'PREPAID' | 'POSTPAID' = 'ALL';
+
   isGenerating = false;
 
   feedbackMessage = '';
@@ -50,9 +52,12 @@ export class InvoicesComponent implements OnInit {
 
   constructor(
     private invoiceService: InvoiceService,
-    private dialog: MatDialog,
+    private paymentFlow: PaymentFlowService,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    public authService: AuthService,
+    private agentContext: AgentContextService,
+    private customerService: CustomerService
   ) {}
 
 
@@ -132,16 +137,21 @@ export class InvoicesComponent implements OnInit {
 
   filterInvoices() {
 
-    if (this.selectedStatus === 'ALL') {
-      this.filteredInvoices = this.sortInvoicesByIdDesc([...this.invoices]);
-      return;
+    let list = [...this.invoices];
+
+    if (this.selectedStatus !== 'ALL') {
+      list = list.filter(invoice =>
+        invoice.status === this.selectedStatus
+      );
     }
 
-    this.filteredInvoices = this.sortInvoicesByIdDesc(
-      this.invoices.filter(invoice =>
-        invoice.status === this.selectedStatus
-      )
-    );
+    if (this.selectedPaymentType !== 'ALL') {
+      list = list.filter(invoice =>
+        invoice.paymentType === this.selectedPaymentType
+      );
+    }
+
+    this.filteredInvoices = this.sortInvoicesByIdDesc(list);
   }
 
 
@@ -162,21 +172,11 @@ export class InvoicesComponent implements OnInit {
       return;
     }
 
-    const dialogRef = this.dialog.open<
-      PaymentDialogComponent,
-      PaymentDialogData,
-      PaymentRequest
-    >(PaymentDialogComponent, {
-      width: '520px',
-      disableClose: true,
-      data: {
-        title: 'Kredi Kartı ile Ödeme',
-        subtitle: `Fatura #${invoice.id}`,
-        amount: this.getAmount(invoice)
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((payment) => {
+    this.paymentFlow.requestPayment({
+      title: 'Kredi Kartı ile Ödeme',
+      subtitle: `Fatura #${invoice.id}`,
+      amount: this.getAmount(invoice)
+    }).subscribe((payment) => {
       if (!payment) {
         return;
       }
@@ -302,6 +302,18 @@ export class InvoicesComponent implements OnInit {
 
   }
 
+  getRiskLevel(invoice: Invoice): 'LOW' | 'MEDIUM' | 'HIGH' {
+    const status = (invoice.riskStatus ?? 'LOW').toUpperCase();
+
+    if (status === 'HIGH') {
+      return 'HIGH';
+    }
+    if (status === 'MEDIUM') {
+      return 'MEDIUM';
+    }
+    return 'LOW';
+  }
+
 
   getActionLabel(invoice: Invoice): string {
 
@@ -361,8 +373,20 @@ export class InvoicesComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/customer-detail', invoice.customerId]);
+    if (this.authService.isAdmin()) {
+      this.router.navigate(['/customer-detail', invoice.customerId]);
+      return;
+    }
 
+    this.customerService.getCustomerById(invoice.customerId).subscribe({
+      next: (customer) => {
+        this.agentContext.setSelectedCustomer(customer);
+        this.router.navigate(['/portal']);
+      },
+      error: () => {
+        this.showFeedback('Müşteri profili yüklenemedi.', 'error');
+      }
+    });
   }
 
 

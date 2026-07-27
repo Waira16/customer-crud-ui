@@ -5,7 +5,7 @@
 
 
     <mat-card-title>
-      Customers
+      Müşteriler
     </mat-card-title>
 
 
@@ -16,6 +16,7 @@
     <button
       mat-raised-button
       color="primary"
+      *appHasRole="'ROLE_ADMIN'"
       (click)="exportExcel()">
 
 
@@ -24,7 +25,7 @@
       </mat-icon>
 
 
-      Export Excel
+      Excel İndir
 
 
     </button>
@@ -49,7 +50,7 @@
 
 
         <mat-label>
-          Search Customer
+          Müşteri Ara
         </mat-label>
 
 
@@ -74,7 +75,7 @@
 
 
         <mat-label>
-          Risk Filter
+          Risk Filtresi
         </mat-label>
 
 
@@ -88,31 +89,63 @@
 
 
           <mat-option value="ALL">
-            All
+            Tümü
           </mat-option>
 
 
 
           <mat-option value="HIGH">
-            HIGH
+            Yüksek
           </mat-option>
 
 
 
           <mat-option value="MEDIUM">
-            MEDIUM
+            Orta
           </mat-option>
 
 
 
           <mat-option value="LOW">
-            LOW
+            Düşük
           </mat-option>
 
 
 
         </mat-select>
 
+
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+
+        <mat-label>
+          Ödeme Tipi
+        </mat-label>
+
+        <mat-select
+          [(ngModel)]="selectedPaymentType"
+          (selectionChange)="filterPaymentType()">
+          <mat-option value="ALL">Tümü</mat-option>
+          <mat-option value="PREPAID">Ön Ödemeli</mat-option>
+          <mat-option value="POSTPAID">Faturalı</mat-option>
+        </mat-select>
+
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+
+        <mat-label>
+          Ödeme Durumu
+        </mat-label>
+
+        <mat-select
+          [(ngModel)]="selectedInvoiceStatus"
+          (selectionChange)="filterInvoiceStatus()">
+          <mat-option value="ALL">Tümü</mat-option>
+          <mat-option value="UNPAID">Ödemesi Bekleyen</mat-option>
+          <mat-option value="PAID">Ödemesi Tamam</mat-option>
+        </mat-select>
 
       </mat-form-field>
 
@@ -534,7 +567,7 @@
 
 
 
-            {{element.riskStatus}}
+            {{ getRiskLabel(element.riskStatus) }}
 
 
 
@@ -585,6 +618,8 @@
 
             color="primary"
 
+            *appHasRole="'ROLE_ADMIN'"
+
             (click)="editCustomer(element.id)">
 
 
@@ -610,6 +645,8 @@
             mat-icon-button
 
             color="warn"
+
+            *appHasRole="'ROLE_ADMIN'"
 
             (click)="deleteCustomer(element.id)">
 

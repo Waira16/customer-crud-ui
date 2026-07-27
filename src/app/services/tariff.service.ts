@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 
 export interface Tariff {
@@ -32,8 +33,7 @@ export interface Tariff {
 export class TariffService {
 
 
-  private apiUrl =
-  'http://localhost:8080/api/tariffs';
+  private apiUrl = `${environment.apiBaseUrl}/api/tariffs`;
 
 
 

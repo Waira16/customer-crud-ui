@@ -100,7 +100,7 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
-                  <mat-label>Churn Risk Skoru</mat-label>
+                  <mat-label>Kayıp Risk Skoru</mat-label>
                   <input matInput type="number" min="0" [(ngModel)]="customer.churnRiskScore" name="churnRiskScore">
                 </mat-form-field>
 
@@ -115,9 +115,9 @@
                 <mat-form-field appearance="outline">
                   <mat-label>Risk Durumu</mat-label>
                   <mat-select [(ngModel)]="customer.riskStatus" name="riskStatus">
-                    <mat-option value="LOW">LOW</mat-option>
-                    <mat-option value="MEDIUM">MEDIUM</mat-option>
-                    <mat-option value="HIGH">HIGH</mat-option>
+                    <mat-option value="LOW">Düşük</mat-option>
+                    <mat-option value="MEDIUM">Orta</mat-option>
+                    <mat-option value="HIGH">Yüksek</mat-option>
                   </mat-select>
                 </mat-form-field>
 
@@ -157,23 +157,6 @@
                   <mat-option value="ACTIVE">Aktif</mat-option>
                   <mat-option value="SUSPENDED">Askıya Alınmış</mat-option>
                 </mat-select>
-              </mat-form-field>
-
-            </section>
-
-
-            <section class="form-section side-panel">
-
-              <h3 class="section-title">Taahhüt</h3>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Başlangıç Tarihi</mat-label>
-                <input matInput type="date" [(ngModel)]="customer.contractStartDate" name="contractStartDate">
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Süre (Ay)</mat-label>
-                <input matInput type="number" min="1" [(ngModel)]="customer.contractDuration" name="contractDuration">
               </mat-form-field>
 
             </section>

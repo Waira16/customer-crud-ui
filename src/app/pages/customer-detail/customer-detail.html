@@ -49,7 +49,7 @@
 
     <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
 
-    <p><strong>Churn Risk Skoru:</strong> {{ customer.churnRiskScore }}</p>
+    <p><strong>Kayıp Risk Skoru:</strong> {{ customer.churnRiskScore }}</p>
 
     <p>
       <strong>Risk Durumu:</strong>
@@ -61,7 +61,7 @@
           color: 'white'
         }">
 
-        {{ customer.riskStatus }}
+        {{ getRiskStatusLabel(customer.riskStatus) }}
 
       </span>
 
@@ -291,7 +291,7 @@
 
 
 
-<div class="tariff-actions">
+<div class="tariff-actions" *appHasRole="'ROLE_ADMIN'">
 
   <button
     *ngIf="ct.active"
@@ -460,6 +460,10 @@ style="margin-bottom:15px;">
 
 
 
+<div *appHasRole="'ROLE_ADMIN'">
+
+
+
 <button
 
 *ngIf="ca.active"
@@ -520,6 +524,10 @@ Sil
 
 
 
+</div>
+
+
+
 
 </mat-card-content>
 
@@ -548,6 +556,8 @@ Ek paket bulunamadı.
 
 
 
+
+<ng-container *appHasRole="'ROLE_ADMIN'">
 
 <h3>
 
@@ -712,17 +722,20 @@ Ek Paket Ekle
       class="penalty-warning">
 
       <strong>⚠️ Taahhüt Uyarısı</strong>
-      <p>
+      <p *ngIf="isTariffDowngrade(tariffPreview)">
+        Yüksek tarifeden düşük tarifeye geçiyorsunuz.
+      </p>
+      <p *ngIf="tariffPreview.penaltyAmount > 0">
         Bu işlemi yaparsanız faturanıza
         <strong>{{ tariffPreview.penaltyAmount | number:'1.2-2' }} TL</strong>
         cayma bedeli yansıtılacaktır.
         (Kalan taahhüt: {{ tariffPreview.remainingMonths }} ay)
       </p>
-      <p *ngIf="tariffPreview.proratedAmount">
+      <p *ngIf="tariffPreview.proratedAmount > 0">
         Bu ay kıstelyevm tutarı:
         <strong>{{ tariffPreview.proratedAmount | number:'1.2-2' }} TL</strong>
       </p>
-      <p>Onaylıyor musunuz?</p>
+      <p>Emin misiniz? Onaylıyor musunuz?</p>
 
       <div class="penalty-actions">
         <button
@@ -768,7 +781,7 @@ Ek Paket Ekle
 
     </button>
 
-
+</ng-container>
 
 
 
@@ -996,12 +1009,36 @@ Ek Paket Ekle
 
 
 
-<mat-card *ngIf="!customer">
+<mat-card *ngIf="isLoading">
 
 
   <mat-card-content>
 
     Müşteri yükleniyor...
+
+  </mat-card-content>
+
+
+</mat-card>
+
+<mat-card *ngIf="!isLoading && loadError">
+
+
+  <mat-card-content class="load-error">
+
+    {{ loadError }}
+
+  </mat-card-content>
+
+
+</mat-card>
+
+<mat-card *ngIf="!isLoading && !customer && !loadError">
+
+
+  <mat-card-content>
+
+    Müşteri bulunamadı.
 
   </mat-card-content>
 

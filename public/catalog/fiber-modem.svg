@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-label="Fiber modem">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="fiberGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="50%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="600" height="400" fill="url(#bg)"/>
+
+  <circle cx="480" cy="80" r="90" fill="#38bdf8" opacity="0.08"/>
+  <circle cx="120" cy="320" r="110" fill="#a855f7" opacity="0.08"/>
+
+  <path d="M40 250 C120 220, 180 260, 260 230 S420 210, 560 180" stroke="url(#fiberGlow)" stroke-width="8" fill="none" filter="url(#glow)" opacity="0.95"/>
+  <path d="M40 250 C120 220, 180 260, 260 230 S420 210, 560 180" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.35"/>
+
+  <g transform="translate(190 130)">
+    <rect x="0" y="40" width="220" height="110" rx="18" fill="#334155" stroke="#64748b" stroke-width="3"/>
+    <rect x="18" y="58" width="184" height="74" rx="10" fill="#0f172a"/>
+
+    <rect x="34" y="78" width="18" height="10" rx="2" fill="#22c55e"/>
+    <rect x="58" y="78" width="18" height="10" rx="2" fill="#38bdf8"/>
+    <rect x="82" y="78" width="18" height="10" rx="2" fill="#38bdf8"/>
+    <rect x="106" y="78" width="18" height="10" rx="2" fill="#64748b"/>
+
+    <rect x="34" y="98" width="90" height="8" rx="4" fill="#475569"/>
+    <rect x="34" y="112" width="62" height="8" rx="4" fill="#475569"/>
+
+    <path d="M70 40 L70 18 C70 8 78 0 88 0 L132 0 C142 0 150 8 150 18 L150 40" fill="none" stroke="#64748b" stroke-width="6"/>
+    <rect x="82" y="0" width="56" height="14" rx="7" fill="#475569"/>
+
+    <circle cx="196" cy="95" r="10" fill="#22d3ee" filter="url(#glow)"/>
+    <path d="M206 95 H250" stroke="url(#fiberGlow)" stroke-width="6" stroke-linecap="round" filter="url(#glow)"/>
+  </g>
+
+  <text x="300" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#e2e8f0">Fiber Internet</text>
+  <text x="300" y="360" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#94a3b8">Modem + fiber altyap1</text>
+</svg>

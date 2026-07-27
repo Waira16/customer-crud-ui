@@ -1,0 +1,394 @@
+<div class="portal-page">
+
+  <ng-container *ngIf="!customer && !isLoading">
+    <div class="empty-state">
+      <mat-icon>person_search</mat-icon>
+      <h1>Temsilci Paneli</h1>
+      <p>
+        Sol menüdeki arama alanından müşteri profili seçin.
+      </p>
+      <div class="empty-actions">
+        <a mat-stroked-button routerLink="/tariffs">
+          <mat-icon>storefront</mat-icon>
+          Tarifeler
+        </a>
+      </div>
+    </div>
+  </ng-container>
+
+  <div *ngIf="isLoading" class="loading-box">
+    Profil yükleniyor...
+  </div>
+
+  <ng-container *ngIf="customer && !isLoading">
+    <mat-card class="main-card" [class.suspended-card]="isCustomerSuspended()">
+      <div
+        class="customer-status"
+        [class.active-status]="isCustomerActive()"
+        [class.inactive-status]="!isCustomerActive()">
+        {{ getCustomerStatusLabel() }}
+      </div>
+
+      <div class="portal-header">
+        <div>
+          <h1>{{ customer.firstName }} {{ customer.lastName }}</h1>
+          <p class="subtitle">Temsilci Paneli — seçili müşteri</p>
+        </div>
+        <button mat-stroked-button type="button" (click)="clearProfile()">
+          Profil Değiştir
+        </button>
+      </div>
+
+      <div *ngIf="isCustomerSuspended()" class="suspended-warning">
+        Bu hesap askıya alınmıştır. Ödeme yapıldıktan sonra hizmet devam edecektir.
+      </div>
+
+      <div class="top-section">
+        <div class="left-column">
+          <h3 class="section-title">Müşteri Bilgileri</h3>
+          <p><strong>Ad:</strong> {{ customer.firstName }}</p>
+          <p><strong>Soyad:</strong> {{ customer.lastName }}</p>
+          <p><strong>E-posta:</strong> {{ customer.email }}</p>
+          <p><strong>Telefon:</strong> {{ customer.phone || '-' }}</p>
+          <p><strong>Yaş:</strong> {{ customer.age }}</p>
+          <p><strong>Şikayet Sayısı:</strong> {{ customer.complaintCount ?? 0 }}</p>
+          <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
+          <p><strong>Kayıp Risk Skoru:</strong> {{ customer.churnRiskScore ?? 0 }}</p>
+          <p>
+            <strong>Risk Durumu:</strong>
+            <span
+              class="risk-badge"
+              [ngStyle]="{
+                'background-color': getRiskColor(customer.riskStatus),
+                color: 'white'
+              }">
+              {{ getRiskStatusLabel(customer.riskStatus) }}
+            </span>
+          </p>
+        </div>
+
+        <div class="right-column">
+          <mat-card class="contract-card">
+            <mat-card-content>
+              <h3>Taahhüt</h3>
+              <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
+              <p><strong>Süre:</strong> {{ getCommitmentDuration() }} ay</p>
+              <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
+              <p><strong>Kalan:</strong> {{ getRemainingMonths() }} ay</p>
+              <p *ngIf="commitment?.penaltyAmount && commitment!.penaltyAmount! > 0">
+                <strong>Bekleyen Cayma Bedeli:</strong>
+                {{ commitment!.penaltyAmount | money }}
+              </p>
+              <p>
+                <strong>Durum:</strong>
+                {{ isCommitmentActive() ? 'Aktif' : 'Sonlandırıldı' }}
+              </p>
+
+              <div class="terminate-box" *ngIf="isCommitmentActive()">
+                <p class="terminate-note" *ngIf="terminationPreview">
+                  {{ getTerminationPreviewMessage() }}
+                </p>
+                <p *ngIf="terminationPreview && terminationPreview.penaltyAmount > 0">
+                  <strong>Cayma Bedeli:</strong>
+                  {{ terminationPreview.penaltyAmount | money }}
+                </p>
+                <button
+                  mat-raised-button
+                  color="warn"
+                  type="button"
+                  (click)="terminateContract()"
+                  [disabled]="isTerminating">
+                  {{ isTerminating ? 'İşleniyor...' : 'Kontratı Durdur' }}
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+
+      <div class="summary-row">
+        <mat-card class="price-card" *ngIf="customer.paymentType === 'PREPAID'">
+          <mat-card-content>
+            <div class="price-title">Ön Ödemeli Bakiye</div>
+            <div class="price-value">{{ customer.balance | money }}</div>
+            <div class="price-sub">Mevcut bakiye</div>
+
+            <mat-form-field appearance="outline" class="top-up-field">
+              <mat-label>Yüklenecek Tutar (₺)</mat-label>
+              <input
+                matInput
+                type="number"
+                min="1"
+                [(ngModel)]="topUpAmount"
+                placeholder="Örn: 500" />
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              class="top-up-btn"
+              (click)="addBalance()">
+              Bakiye Yükle
+            </button>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="price-card" *ngIf="customer.paymentType === 'POSTPAID'">
+          <mat-card-content>
+            <div class="price-title">Ödeme Tipi</div>
+            <div class="price-value postpaid-label">Faturalı</div>
+            <div class="price-sub">Aylık faturalandırma</div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="price-card">
+          <mat-card-content>
+            <div class="price-title">Toplam Aylık Ücret</div>
+            <div class="price-value">{{ getTotalMonthlyPrice() | money }}</div>
+            <div class="price-sub">Aktif tarife ve ek paketler</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <section class="detail-section collapsible-section" [class.is-open]="tariffsOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleTariffsSection()"
+          (keydown.enter)="toggleTariffsSection()"
+          (keydown.space)="$event.preventDefault(); toggleTariffsSection()">
+          <mat-icon>{{ tariffsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Aktif Tarifeler</span>
+          <span class="section-count" *ngIf="getActiveCustomerTariffs().length">
+            ({{ getActiveCustomerTariffs().length }})
+          </span>
+        </div>
+
+        <div class="section-body" *ngIf="tariffsOpen">
+          <div *ngIf="getActiveCustomerTariffs().length; else noTariffs">
+            <mat-card class="nested-card" *ngFor="let ct of getActiveCustomerTariffs()">
+              <mat-card-content>
+                <p><strong>Tarife:</strong> {{ ct.tariff?.name }}</p>
+                <p><strong>İnternet:</strong> {{ ct.tariff?.dataGB }} GB</p>
+                <p><strong>Dakika:</strong> {{ ct.tariff?.minutes }} DK</p>
+                <p><strong>Ücret:</strong> {{ ct.tariff?.price | money }}</p>
+                <p><strong>Başlangıç:</strong> {{ formatDate(ct.startDate) }}</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <ng-template #noTariffs>
+            <p class="empty-note">Atanmış tarife yok.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="detail-section collapsible-section" [class.is-open]="addonsOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleAddonsSection()"
+          (keydown.enter)="toggleAddonsSection()"
+          (keydown.space)="$event.preventDefault(); toggleAddonsSection()">
+          <mat-icon>{{ addonsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Ek Paketler</span>
+          <span class="section-count" *ngIf="customer.addons?.length">
+            ({{ customer.addons.length }})
+          </span>
+        </div>
+
+        <div class="section-body" *ngIf="addonsOpen">
+          <div *ngIf="customer.addons?.length; else noAddons">
+            <mat-card class="nested-card" *ngFor="let ca of customer.addons">
+              <mat-card-content>
+                <p><strong>Paket:</strong> {{ ca.addonPackage?.name }}</p>
+                <p><strong>Açıklama:</strong> {{ ca.addonPackage?.description || '-' }}</p>
+                <p><strong>Ücret:</strong> {{ ca.addonPackage?.price | money }}</p>
+                <p><strong>Başlangıç:</strong> {{ formatDate(ca.startDate) }}</p>
+                <p>
+                  <strong>Durum:</strong>
+                  <span [class.active]="ca.active" [class.passive]="!ca.active">
+                    {{ ca.active ? 'Aktif' : 'Pasif' }}
+                  </span>
+                </p>
+
+                <div class="tariff-actions">
+                  <button
+                    *ngIf="!ca.active"
+                    mat-raised-button
+                    color="accent"
+                    type="button"
+                    (click)="deleteAddon(ca.id)">
+                    Sil
+                  </button>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <ng-template #noAddons>
+            <p class="empty-note">Ek paket bulunmuyor.</p>
+          </ng-template>
+        </div>
+      </section>
+
+      <section class="detail-section collapsible-section" [class.is-open]="ordersOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleOrdersSection()"
+          (keydown.enter)="toggleOrdersSection()"
+          (keydown.space)="$event.preventDefault(); toggleOrdersSection()">
+          <mat-icon>{{ ordersOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Son Siparişler</span>
+          <span class="section-count" *ngIf="shopOrders.length">
+            ({{ shopOrders.length }})
+          </span>
+        </div>
+
+        <div class="section-body" *ngIf="ordersOpen">
+          <p *ngIf="shopOrders.length === 0" class="empty-note">
+            Henüz telefon, bilgisayar veya cihaz siparişi verilmemiş.
+          </p>
+
+          <mat-card class="order-card" *ngFor="let order of shopOrders">
+            <div class="order-header">
+              <div>
+                <h4>Sipariş #{{ order.id }}</h4>
+                <p class="order-date">{{ formatDateTime(order.orderDate) }}</p>
+              </div>
+              <div class="order-total">{{ order.totalAmount | money }}</div>
+            </div>
+
+            <div class="order-items">
+              <div class="order-item" *ngFor="let item of order.items">
+                <img
+                  class="order-item-image"
+                  [src]="getOrderItemImage(item)"
+                  [alt]="item.itemName"
+                  loading="lazy"
+                  (error)="onOrderImageError($event, item)" />
+                <div class="order-item-info">
+                  <span class="order-item-type">{{ getOrderItemTypeLabel(item) }}</span>
+                  <strong>{{ item.itemName }}</strong>
+                  <p *ngIf="item.itemBrand" class="order-item-brand">{{ item.itemBrand }}</p>
+                </div>
+                <div class="order-item-price">{{ item.price | money }}</div>
+              </div>
+            </div>
+          </mat-card>
+        </div>
+      </section>
+
+      <section class="detail-section collapsible-section" [class.is-open]="invoicesOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleInvoicesSection()"
+          (keydown.enter)="toggleInvoicesSection()"
+          (keydown.space)="$event.preventDefault(); toggleInvoicesSection()">
+          <mat-icon>{{ invoicesOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Faturalar</span>
+          <span class="section-count" *ngIf="invoices.length">
+            ({{ invoices.length }})
+          </span>
+        </div>
+
+        <div class="section-body" *ngIf="invoicesOpen">
+          <p *ngIf="invoices.length === 0" class="empty-note">
+            Bu müşteriye ait fatura bulunamadı.
+          </p>
+
+          <mat-card class="invoice-detail-card" *ngFor="let invoice of invoices">
+          <h4>Fatura #{{ invoice.id }}</h4>
+          <mat-divider></mat-divider>
+
+          <p><strong>Dönem:</strong> {{ invoice.billingPeriod }}</p>
+          <p><strong>Son Ödeme:</strong> {{ formatDate(invoice.dueDate) }}</p>
+          <p>
+            <strong>Durum:</strong>
+            <span
+              class="invoice-status"
+              [class.paid]="isInvoicePaid(invoice)"
+              [class.unpaid]="isInvoiceUnpaid(invoice)">
+              {{ getInvoiceStatusLabel(invoice) }}
+            </span>
+          </p>
+
+          <p *ngIf="isAutoPaid(invoice)" class="auto-payment-note">
+            Tutar, fatura oluşturulurken bakiyeden otomatik kesildi.
+          </p>
+
+          <p *ngIf="getInvoicePenalty(invoice) > 0">
+            <strong>Cayma Bedeli:</strong> {{ getInvoicePenalty(invoice) | money }}
+          </p>
+
+          <p *ngIf="invoice.paymentDate">
+            <strong>Ödeme Tarihi:</strong> {{ formatDate(invoice.paymentDate) }}
+          </p>
+
+          <p *ngIf="invoice.tariffTotal != null">
+            <strong>Tarife Toplamı:</strong> {{ invoice.tariffTotal | money }}
+          </p>
+
+          <p *ngIf="invoice.addonTotal != null">
+            <strong>Ek Paket Toplamı:</strong> {{ invoice.addonTotal | money }}
+          </p>
+
+          <mat-divider></mat-divider>
+
+          <h5>Fatura İçeriği</h5>
+
+          <div *ngIf="invoice.tariffs?.length">
+            <p><strong>Tarifeler:</strong></p>
+            <ul>
+              <li *ngFor="let tariff of invoice.tariffs">{{ tariff }}</li>
+            </ul>
+          </div>
+
+          <div *ngIf="invoice.addons?.length">
+            <p><strong>Ek Paketler:</strong></p>
+            <ul>
+              <li *ngFor="let addon of invoice.addons">{{ addon }}</li>
+            </ul>
+          </div>
+
+          <p class="invoice-total">
+            <strong>Toplam:</strong> {{ getInvoiceAmount(invoice) | money }}
+          </p>
+
+          <div class="invoice-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              *ngIf="isInvoiceUnpaid(invoice)"
+              (click)="payInvoice(invoice)">
+              Öde
+            </button>
+
+            <button
+              mat-stroked-button
+              color="warn"
+              type="button"
+              *ngIf="isInvoiceUnpaid(invoice)"
+              (click)="deleteInvoice(invoice)">
+              Sil
+            </button>
+
+            <span
+              *ngIf="isInvoicePaid(invoice)"
+              class="paid-message"
+              [class.auto-paid]="isAutoPaid(invoice)">
+              {{ getInvoicePaidMessage(invoice) }}
+            </span>
+          </div>
+        </mat-card>
+        </div>
+      </section>
+    </mat-card>
+  </ng-container>
+
+</div>

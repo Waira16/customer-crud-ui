@@ -1,0 +1,295 @@
+<div class="landing-page">
+
+  <header class="landing-header">
+    <div class="header-inner">
+      <a routerLink="/" class="brand">
+        <mat-icon>cell_tower</mat-icon>
+        <span>Telekom CRM</span>
+      </a>
+
+      <nav class="header-nav" aria-label="Ana menü">
+        <a href="#tarifeler" class="nav-link">
+          <mat-icon>wifi</mat-icon>
+          <span>Tarifeler</span>
+        </a>
+        <a href="#ek-paketler" class="nav-link">
+          <mat-icon>add_circle_outline</mat-icon>
+          <span>Ek Paketler</span>
+        </a>
+        <a href="#urunler" class="nav-link">
+          <mat-icon>devices</mat-icon>
+          <span>Ürünler</span>
+        </a>
+      </nav>
+
+      <nav class="header-actions">
+        <ng-container *ngIf="authService.isLoggedIn(); else guestLogin">
+          <span class="user-chip">
+            {{ authService.getUsername() }}
+            <small>({{ authService.getRoleLabel() }})</small>
+          </span>
+          <button mat-flat-button color="primary" type="button" (click)="goToPanel()">
+            <mat-icon>dashboard</mat-icon>
+            Panele Git
+          </button>
+          <button mat-stroked-button type="button" (click)="logout()">
+            Çıkış Yap
+          </button>
+        </ng-container>
+
+        <ng-template #guestLogin>
+          <a mat-flat-button color="primary" routerLink="/login">
+            <mat-icon>login</mat-icon>
+            Giriş Yap
+          </a>
+        </ng-template>
+      </nav>
+    </div>
+  </header>
+
+  <section class="hero-shell">
+    <div class="hero-media" aria-hidden="true">
+      <video
+        class="hero-video"
+        autoplay
+        muted
+        loop
+        playsinline
+        poster="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1920&q=80">
+        <source
+          src="https://videos.pexels.com/video-files/3121459/3121459-hd_1920_1080_25fps.mp4"
+          type="video/mp4">
+      </video>
+      <div class="hero-overlay"></div>
+      <div class="hero-glow"></div>
+    </div>
+
+    <div class="hero">
+      <div class="hero-content">
+        <p class="hero-badge">Yeni nesil telekom deneyimi</p>
+        <h1>Hızlı internet, güçlü mobil tarifeler ve akıllı cihazlar tek çatı altında</h1>
+        <p class="hero-sub">
+          Ev internetinden mobil paketlere, ek paketlerden telefon ve bilgisayar mağazasına kadar
+          ihtiyacınız olan her şey burada. Giriş yaparak müşteri işlemlerinizi yönetin.
+        </p>
+        <div class="hero-cta">
+          <a mat-flat-button color="primary" routerLink="/login" class="cta-primary">
+            Giriş Yap
+          </a>
+          <a mat-stroked-button href="#paketler" class="cta-secondary">
+            Paketleri İncele
+          </a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-card">
+          <mat-icon>wifi</mat-icon>
+          <strong>1000 Mbps</strong>
+          <span>Fiber internet</span>
+        </div>
+        <div class="hero-card accent">
+          <mat-icon>smartphone</mat-icon>
+          <strong>5G</strong>
+          <span>Mobil tarifeler</span>
+        </div>
+        <div class="hero-card">
+          <mat-icon>devices</mat-icon>
+          <strong>Mağaza</strong>
+          <span>Telefon &amp; PC</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats" *ngIf="!isLoading">
+    <div class="stat">
+      <strong>{{ tariffs.length }}</strong>
+      <span>Aktif tarife</span>
+    </div>
+    <div class="stat">
+      <strong>{{ addons.length }}</strong>
+      <span>Ek paket</span>
+    </div>
+    <div class="stat">
+      <strong>{{ devices.length }}</strong>
+      <span>Ürün</span>
+    </div>
+    <div class="stat">
+      <strong>7/24</strong>
+      <span>Temsilci desteği</span>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading" class="loading-box">
+    Katalog yükleniyor...
+  </div>
+
+  <div *ngIf="!isLoading && loadError" class="error-box">
+    {{ loadError }}
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+
+    <section id="paketler" class="catalog-section">
+      <div class="section-head">
+        <h2>Tarifeler &amp; Ek Paketler</h2>
+        <p>İnternet, mobil, yayın ve ek hizmet paketlerinin tamamı</p>
+      </div>
+
+      <div id="tarifeler" class="subsection-block">
+        <div class="subsection-head">
+          <h3 class="subsection-title">İnternet &amp; Mobil Tarifeler</h3>
+          <div class="carousel-controls">
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Tarifeleri sola kaydır"
+              (click)="scrollCarousel(tariffsTrack, -1)">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Tarifeleri sağa kaydır"
+              (click)="scrollCarousel(tariffsTrack, 1)">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-wrap">
+          <div class="carousel-track" #tariffsTrack>
+            <article class="catalog-card carousel-item" *ngFor="let tariff of tariffs">
+              <div class="card-image">
+                <img
+                  [src]="catalogImageUrl(tariff.imageUrl, tariff.type, tariff.name)"
+                  [alt]="tariff.name"
+                  loading="lazy"
+                  (error)="onImageError($event, tariff.type, tariff.name)">
+              </div>
+              <div class="card-body">
+                <span class="tag">{{ tariff.type }}</span>
+                <h3>{{ tariff.name }}</h3>
+                <p>{{ tariffSummary(tariff) }}</p>
+                <div class="price">{{ tariff.price | money }}<small>/ay</small></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <div id="ek-paketler" class="subsection-block">
+        <div class="subsection-head">
+          <h3 class="subsection-title">Ek Paketler</h3>
+          <div class="carousel-controls">
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Ek paketleri sola kaydır"
+              (click)="scrollCarousel(addonsTrack, -1)">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Ek paketleri sağa kaydır"
+              (click)="scrollCarousel(addonsTrack, 1)">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="carousel-wrap">
+          <div class="carousel-track" #addonsTrack>
+            <article class="catalog-card carousel-item addon" *ngFor="let addon of addons">
+              <div class="card-image addon-image" [class.addon-photo]="!isAddonLogo(addon)">
+                <img
+                  [class.addon-logo]="isAddonLogo(addon)"
+                  [src]="catalogImageUrl(addon.imageUrl, addon.type, addon.name)"
+                  [alt]="addon.name"
+                  loading="lazy"
+                  (error)="onImageError($event, addon.type, addon.name)">
+              </div>
+              <div class="card-body">
+                <span class="tag">{{ addonTypeLabel(addon.type) }}</span>
+                <h3>{{ addon.name }}</h3>
+                <p>{{ addonSummary(addon) }}</p>
+                <div class="price">{{ addon.price | money }}<small>/ay</small></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="urunler" class="catalog-section">
+      <div class="section-head">
+        <div class="section-head-row">
+          <div>
+            <h2>Ürünler</h2>
+            <p>Telefon, bilgisayar ve aksesuar seçenekleri — {{ devices.length }} ürün</p>
+          </div>
+          <div class="carousel-controls">
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Ürünleri sola kaydır"
+              (click)="scrollCarousel(devicesTrack, -1)">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              type="button"
+              class="carousel-btn"
+              aria-label="Ürünleri sağa kaydır"
+              (click)="scrollCarousel(devicesTrack, 1)">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="carousel-wrap">
+        <div class="carousel-track" #devicesTrack>
+          <article class="catalog-card carousel-item device" *ngFor="let device of devices">
+            <div class="card-image">
+              <img
+                [src]="catalogImageUrl(device.imageUrl, device.category, device.name)"
+                [alt]="device.name"
+                loading="lazy"
+                (error)="onImageError($event, device.category, device.name)">
+            </div>
+            <div class="card-body">
+              <span class="tag">{{ deviceCategoryLabel(device.category) }}</span>
+              <h3>{{ device.name }}</h3>
+              <p>{{ device.description }}</p>
+              <div class="price">{{ device.price | money }}</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </ng-container>
+
+  <section class="cta-banner">
+    <div>
+      <h2>Müşteri işlemlerinizi yönetmeye hazır mısınız?</h2>
+      <p>Giriş yapın; fatura ödeme, bakiye yükleme ve daha fazlası sizi bekliyor.</p>
+    </div>
+    <a mat-flat-button color="primary" routerLink="/login">
+      <mat-icon>login</mat-icon>
+      Giriş Yap
+    </a>
+  </section>
+
+  <footer class="landing-footer">
+    <span>© 2026 Telekom CRM — Demo uygulama</span>
+  </footer>
+
+</div>

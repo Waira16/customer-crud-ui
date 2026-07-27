@@ -28,4 +28,6 @@ export interface Invoice {
 
   addons?: string[];
 
+  riskStatus?: 'LOW' | 'MEDIUM' | 'HIGH' | string;
+
 }

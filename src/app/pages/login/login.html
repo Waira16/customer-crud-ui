@@ -1,0 +1,48 @@
+<div class="login-page">
+  <div class="login-card-wrap">
+    <mat-card class="login-card">
+      <div class="login-brand">
+        <a routerLink="/" class="back-home">
+          <mat-icon>arrow_back</mat-icon>
+          Ana Sayfa
+        </a>
+        <mat-icon>shield_lock</mat-icon>
+        <h1>CRM Giriş</h1>
+        <p>Telekom müşteri yönetim sistemine hoş geldiniz</p>
+      </div>
+
+      <form (ngSubmit)="submit()" class="login-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kullanıcı Adı</mat-label>
+          <input matInput [(ngModel)]="username" name="username" autocomplete="username">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Şifre</mat-label>
+          <input
+            matInput
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            autocomplete="current-password">
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          color="primary"
+          class="login-btn"
+          type="submit"
+          [disabled]="isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+          <span *ngIf="!isLoading">Giriş Yap</span>
+        </button>
+      </form>
+
+      <div class="demo-users">
+        <p><strong>Demo hesaplar</strong></p>
+        <span>Admin: admin / admin123</span>
+        <span>Agent: agent / agent123</span>
+      </div>
+    </mat-card>
+  </div>
+</div>

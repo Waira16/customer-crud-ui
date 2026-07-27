@@ -10,6 +10,7 @@ import { BaseChartDirective } from 'ng2-charts';
 
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { roundMoney } from '../../utils/money.util';
+import { environment } from '../../../environments/environment';
 
 import {
   Chart,
@@ -101,8 +102,7 @@ export class DashboardComponent implements OnInit {
 
 
 
-  private apiUrl =
-  'http://localhost:8080/api/dashboard/stats';
+  private apiUrl = `${environment.apiBaseUrl}/api/dashboard/stats`;
 
 
 
@@ -113,9 +113,9 @@ export class DashboardComponent implements OnInit {
   riskChartData:any = {
 
     labels:[
-      'HIGH',
-      'MEDIUM',
-      'LOW'
+      'Yüksek',
+      'Orta',
+      'Düşük'
     ],
 
     datasets:[
@@ -165,7 +165,7 @@ export class DashboardComponent implements OnInit {
 
       {
 
-        label:'Customers',
+        label:'Müşteriler',
 
         data:[0,0,0],
 
@@ -201,8 +201,8 @@ export class DashboardComponent implements OnInit {
 
     labels:[
 
-      'PAID',
-      'UNPAID'
+      'Ödendi',
+      'Ödenmedi'
 
     ],
 
@@ -211,7 +211,7 @@ export class DashboardComponent implements OnInit {
 
       {
 
-        label:'Invoices',
+        label:'Faturalar',
 
         data:[0,0],
 

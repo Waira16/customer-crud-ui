@@ -6,6 +6,7 @@ import { map } from 'rxjs/operators';
 import { Invoice } from '../models/invoice';
 import { InvoiceGenerateResult } from '../models/invoice-generate-result';
 import { PaymentRequest } from '../models/payment-request';
+import { environment } from '../../environments/environment';
 
 
 
@@ -15,7 +16,7 @@ import { PaymentRequest } from '../models/payment-request';
 export class InvoiceService {
 
 
-  private apiUrl = 'http://localhost:8080/api/invoices';
+  private apiUrl = `${environment.apiBaseUrl}/api/invoices`;
 
 
 
@@ -50,6 +51,15 @@ export class InvoiceService {
     return this.http.post(
       `${this.apiUrl}/${id}/pay`,
       payment ?? {}
+    );
+
+  }
+
+
+  deleteInvoice(id: number): Observable<void> {
+
+    return this.http.delete<void>(
+      `${this.apiUrl}/${id}`
     );
 
   }

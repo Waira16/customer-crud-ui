@@ -15,6 +15,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { Customer } from '../../models/customer';
 import { CustomerService } from '../../services/customer.service';
 import { getEmailErrorMessage, isValidEmail } from '../../utils/email.util';
+import { NotificationService } from '../../services/notification.service';
 
 
 
@@ -65,9 +66,7 @@ export class CustomerEditComponent implements OnInit {
     riskStatus: 'LOW',
     paymentType: 'POSTPAID',
     balance: 0,
-    status: 'ACTIVE',
-    contractStartDate: '',
-    contractDuration: 12
+    status: 'ACTIVE'
 
   };
 
@@ -88,7 +87,9 @@ export class CustomerEditComponent implements OnInit {
 
     private route: ActivatedRoute,
 
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+
+    private notification: NotificationService
 
   ) {}
 
@@ -108,7 +109,7 @@ export class CustomerEditComponent implements OnInit {
     }
     else {
 
-      alert('Müşteri ID bulunamadı');
+      this.notification.error('Müşteri ID bulunamadı');
 
       this.router.navigate(['/customers']);
 
@@ -132,8 +133,7 @@ export class CustomerEditComponent implements OnInit {
             ...data,
             paymentType: data.paymentType || 'POSTPAID',
             balance: data.balance ?? 0,
-            status: data.status || 'ACTIVE',
-            contractDuration: data.contractDuration ?? 12
+            status: data.status || 'ACTIVE'
           };
 
           this.isLoading = false;
@@ -146,7 +146,7 @@ export class CustomerEditComponent implements OnInit {
 
           console.error(err);
 
-          alert('Müşteri bilgisi alınamadı');
+          this.notification.error('Müşteri bilgisi alınamadı');
 
           this.isLoading = false;
 
@@ -175,16 +175,19 @@ export class CustomerEditComponent implements OnInit {
       age: Number(this.customer.age) || 18,
       complaintCount: Number(this.customer.complaintCount) || 0,
       churnRiskScore: Number(this.customer.churnRiskScore) || 0,
-      balance: Number(this.customer.balance) || 0,
-      contractDuration: Number(this.customer.contractDuration) || 12
+      balance: Number(this.customer.balance) || 0
     };
+
+    delete payload.contractStartDate;
+    delete payload.contractDuration;
+    delete payload.commitment;
 
     this.customerService.updateCustomer(this.customer.id, payload)
       .subscribe({
 
         next: () => {
 
-          alert('Müşteri başarıyla güncellendi');
+          this.notification.success('Müşteri başarıyla güncellendi');
 
           this.router.navigate(['/customers']);
 
@@ -194,7 +197,9 @@ export class CustomerEditComponent implements OnInit {
 
           console.error(err);
 
-          alert('Güncelleme başarısız');
+          this.notification.error(
+            this.notification.extractError(err, 'Güncelleme başarısız')
+          );
 
           this.isSaving = false;
 

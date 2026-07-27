@@ -16,6 +16,10 @@ body {
 
 }
 
+body.public-page {
+  background:#f0f9ff;
+}
+
 
 
 /* Material kart genel */
@@ -24,4 +28,50 @@ body {
 
   border-radius:18px !important;
 
+}
+
+
+
+.app-snackbar .mdc-snackbar__surface {
+  border-radius: 14px !important;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18) !important;
+  min-width: 320px;
+}
+
+.app-snackbar .mdc-snackbar__label {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.app-snackbar-success .mdc-snackbar__surface {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border: 1px solid #86efac;
+}
+
+.app-snackbar-error .mdc-snackbar__surface {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5;
+}
+
+.app-snackbar-info .mdc-snackbar__surface {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #93c5fd;
+}
+
+.app-snackbar-warning .mdc-snackbar__surface {
+  background: #fef9c3 !important;
+  color: #854d0e !important;
+  border: 1px solid #fde047;
+}
+
+.app-snackbar-success .mat-mdc-snack-bar-action,
+.app-snackbar-error .mat-mdc-snack-bar-action,
+.app-snackbar-info .mat-mdc-snack-bar-action,
+.app-snackbar-warning .mat-mdc-snack-bar-action {
+  color: inherit !important;
+  font-weight: 700;
 }

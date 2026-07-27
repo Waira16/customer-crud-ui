@@ -14,13 +14,17 @@ import {
   debounceTime,
   distinctUntilChanged,
   switchMap,
-  filter
+  filter,
+  catchError
 } from 'rxjs/operators';
 
 import { of } from 'rxjs';
 
 import { CustomerService } from '../../services/customer.service';
 import { Customer } from '../../models/customer';
+import { AuthService } from '../../services/auth.service';
+import { AgentContextService } from '../../services/agent-context.service';
+import { MatButtonModule } from '@angular/material/button';
 
 
 
@@ -35,7 +39,8 @@ import { Customer } from '../../models/customer';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    MatIconModule
+    MatIconModule,
+    MatButtonModule
 
   ],
 
@@ -48,7 +53,7 @@ import { Customer } from '../../models/customer';
 
 
     <h1>
-      Customer Management System
+      Müşteri Yönetim Sistemi
     </h1>
 
 
@@ -62,7 +67,7 @@ import { Customer } from '../../models/customer';
 
 
 
-  <div class="search-box">
+  <div class="search-box" *ngIf="authService.isAdmin()">
 
 
     <mat-icon>
@@ -77,7 +82,7 @@ import { Customer } from '../../models/customer';
 
       [formControl]="searchControl"
 
-      placeholder="Müşteri ara...">
+      [placeholder]="searchPlaceholder">
 
 
 
@@ -97,7 +102,7 @@ import { Customer } from '../../models/customer';
 
         *ngFor="let customer of customers"
 
-        (click)="goToCustomer(customer.id)">
+        (mousedown.prevent)="selectCustomer(customer)">
 
 
 
@@ -114,6 +119,25 @@ import { Customer } from '../../models/customer';
     </div>
 
 
+
+  </div>
+
+
+
+  <div class="user-panel">
+
+    <div class="user-info">
+      <strong>{{ authService.getUsername() }}</strong>
+      <span>({{ authService.getRoleLabel() }})</span>
+    </div>
+
+    <button
+      mat-stroked-button
+      type="button"
+      class="logout-btn"
+      (click)="logout()">
+      Çıkış Yap
+    </button>
 
   </div>
 
@@ -141,7 +165,9 @@ export class NavbarComponent implements OnInit {
 
 
 
-  currentPage = signal('Dashboard');
+  currentPage = signal('Gösterge Paneli');
+
+  searchPlaceholder = 'Müşteri ara...';
 
 
 
@@ -151,7 +177,11 @@ export class NavbarComponent implements OnInit {
 
     private customerService: CustomerService,
 
-    private router: Router
+    private router: Router,
+
+    public authService: AuthService,
+
+    private agentContext: AgentContextService
 
   ) {}
 
@@ -161,7 +191,9 @@ export class NavbarComponent implements OnInit {
 
   ngOnInit(): void {
 
-
+    this.searchPlaceholder = this.authService.isAgent()
+      ? 'Adınızı yazın, profilinizi seçin...'
+      : 'Müşteri ara...';
 
     this.updatePageTitle(
       this.router.url
@@ -203,65 +235,35 @@ export class NavbarComponent implements OnInit {
 
     .pipe(
 
-      debounceTime(150),
+      debounceTime(300),
 
       distinctUntilChanged(),
 
-
-      switchMap(value=>{
-
+      switchMap(value => {
 
         const query = value?.trim();
 
-
-
-        if(!query){
-
-
+        if (!query) {
           this.customers = [];
-
-
           return of([]);
-
-
         }
 
-
-
-        return this.customerService.searchCustomers(query);
-
+        return this.customerService.searchCustomers(query).pipe(
+          catchError((err) => {
+            console.error('Arama hatası:', err);
+            return of([]);
+          })
+        );
 
       })
-
 
     )
 
     .subscribe({
 
-
-      next:(data)=>{
-
-
-        this.customers = data;
-
-
-      },
-
-
-      error:(err)=>{
-
-
-        console.error(
-          "Arama hatası:",
-          err
-        );
-
-
-        this.customers = [];
-
-
+      next: (data) => {
+        this.customers = data ?? [];
       }
-
 
     });
 
@@ -292,7 +294,16 @@ export class NavbarComponent implements OnInit {
     if(url.includes('dashboard')){
 
 
-      this.currentPage.set('Dashboard');
+      this.currentPage.set('Gösterge Paneli');
+
+
+    }
+
+
+    else if(url.includes('portal')){
+
+
+      this.currentPage.set('Temsilci Paneli');
 
 
     }
@@ -301,7 +312,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('customers')){
 
 
-      this.currentPage.set('Customers');
+      this.currentPage.set('Müşteriler');
 
 
     }
@@ -310,7 +321,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('add-customer')){
 
 
-      this.currentPage.set('Add Customer');
+      this.currentPage.set('Müşteri Ekle');
 
 
     }
@@ -319,7 +330,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('customer-edit')){
 
 
-      this.currentPage.set('Customer Edit');
+      this.currentPage.set('Müşteri Düzenle');
 
 
     }
@@ -328,7 +339,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('customer-detail')){
 
 
-      this.currentPage.set('Customer Detail');
+      this.currentPage.set('Müşteri Detayı');
 
 
     }
@@ -337,7 +348,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('invoices')){
 
 
-      this.currentPage.set('Invoices');
+      this.currentPage.set('Kullanıcılar');
 
 
     }
@@ -346,7 +357,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('tariffs')){
 
 
-      this.currentPage.set('Tariffs');
+      this.currentPage.set('Tarifeler');
 
 
     }
@@ -355,7 +366,7 @@ export class NavbarComponent implements OnInit {
     else{
 
 
-      this.currentPage.set('Dashboard');
+      this.currentPage.set('Gösterge Paneli');
 
 
     }
@@ -382,40 +393,28 @@ export class NavbarComponent implements OnInit {
 
 
 
-  goToCustomer(id:number | undefined):void {
+  selectCustomer(customer: Customer): void {
 
-
-
-    if(id == null){
-
+    if (customer?.id == null) {
       return;
-
     }
 
-
-
     this.customers = [];
-
-
-
     this.searchControl.setValue('');
 
+    if (this.authService.isAgent()) {
+      this.agentContext.setSelectedCustomer(customer);
+      this.router.navigate(['/portal']);
+      return;
+    }
 
-
-
-    this.router.navigate([
-
-      '/customer-detail',
-
-      id
-
-    ]);
-
-
-
+    this.router.navigate(['/customer-detail', customer.id]);
   }
 
-
-
+  logout(): void {
+    this.agentContext.clearSelection();
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 
 }

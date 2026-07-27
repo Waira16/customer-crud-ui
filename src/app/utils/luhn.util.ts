@@ -59,3 +59,9 @@ export function isValidExpiryDate(expiryDate: string): boolean {
 export function isValidCvv(cvv: string): boolean {
   return /^\d{3,4}$/.test(cvv || '');
 }
+
+export const DEMO_PAYMENT_CARD = {
+  number: '4242 4242 4242 4242',
+  expiry: '12/30',
+  cvv: '123'
+} as const;

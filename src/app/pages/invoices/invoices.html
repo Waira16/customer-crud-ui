@@ -4,10 +4,10 @@
   <div class="page-header">
 
     <h1>
-      Faturalar
+      Kullanıcılar
     </h1>
 
-    <div class="generate-wrapper">
+    <div class="generate-wrapper" *appHasRole="'ROLE_ADMIN'">
 
       <button
         class="generate-btn"
@@ -146,6 +146,18 @@
 
     </select>
 
+    <label>
+      Ödeme Tipi:
+    </label>
+
+    <select
+      [(ngModel)]="selectedPaymentType"
+      (change)="filterInvoices()">
+      <option value="ALL">Tümü</option>
+      <option value="PREPAID">Ön Ödemeli</option>
+      <option value="POSTPAID">Faturalı</option>
+    </select>
+
 
   </div>
 
@@ -206,6 +218,8 @@
           <th>
             İşlem
           </th>
+
+          <th class="risk-indicator-header" aria-hidden="true"></th>
 
 
         </tr>
@@ -287,6 +301,14 @@
 
           </td>
 
+          <td
+            class="risk-indicator-cell"
+            [class.risk-low]="getRiskLevel(invoice) === 'LOW'"
+            [class.risk-medium]="getRiskLevel(invoice) === 'MEDIUM'"
+            [class.risk-high]="getRiskLevel(invoice) === 'HIGH'"
+            aria-hidden="true">
+          </td>
+
 
 
         </tr>
@@ -294,8 +316,8 @@
 
         <tr *ngIf="filteredInvoices.length === 0">
 
-          <td colspan="9" class="empty-row">
-            Bu filtreye uygun fatura bulunamadı.
+          <td colspan="10" class="empty-row">
+            Bu filtreye uygun kayıt bulunamadı.
           </td>
 
         </tr>

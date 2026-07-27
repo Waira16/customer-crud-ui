@@ -3,8 +3,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Customer } from '../models/customer';
+import { ShopOrder } from '../models/shop-order';
 import { TariffChangePreview } from '../models/tariff-change-preview';
-import { BalanceTopUpRequest } from '../models/payment-request';
+import { BalanceTopUpRequest, PaymentRequest } from '../models/payment-request';
+import { environment } from '../../environments/environment';
 
 
 @Injectable({
@@ -13,8 +15,7 @@ import { BalanceTopUpRequest } from '../models/payment-request';
 export class CustomerService {
 
 
-  private apiUrl = 
-    'http://localhost:8080/api/customers';
+  private apiUrl = `${environment.apiBaseUrl}/api/customers`;
 
 
 
@@ -122,12 +123,36 @@ export class CustomerService {
 
 
 
-  exportExcel(){
+  exportExcel(filters?: {
+    search?: string;
+    risk?: string;
+    paymentType?: string;
+    invoiceStatus?: string;
+  }){
 
+
+    let params = new HttpParams();
+
+    if (filters?.search?.trim()) {
+      params = params.set('search', filters.search.trim());
+    }
+
+    if (filters?.risk && filters.risk !== 'ALL') {
+      params = params.set('risk', filters.risk);
+    }
+
+    if (filters?.paymentType && filters.paymentType !== 'ALL') {
+      params = params.set('paymentType', filters.paymentType);
+    }
+
+    if (filters?.invoiceStatus && filters.invoiceStatus !== 'ALL') {
+      params = params.set('invoiceStatus', filters.invoiceStatus);
+    }
 
     return this.http.get(
       `${this.apiUrl}/export/excel`,
       {
+        params,
         responseType:'blob'
       }
     );
@@ -281,5 +306,28 @@ addBalance(
     request
   );
 
+}
+
+shopCheckout(
+  customerId: number,
+  request: {
+    payment: PaymentRequest;
+    tariffIds: number[];
+    addonIds: number[];
+    deviceIds: number[];
+  }
+): Observable<Customer> {
+
+  return this.http.post<Customer>(
+    `${this.apiUrl}/${customerId}/shop/checkout`,
+    request
+  );
+
+}
+
+getShopOrders(customerId: number): Observable<ShopOrder[]> {
+  return this.http.get<ShopOrder[]>(
+    `${this.apiUrl}/${customerId}/shop/orders`
+  );
 }
 }

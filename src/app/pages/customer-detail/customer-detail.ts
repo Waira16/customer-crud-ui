@@ -1,6 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -12,7 +11,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialog } from '@angular/material/dialog';
 import { Tariff } from '../../services/tariff.service';
 import { CustomerService } from '../../services/customer.service';
 import { TariffService } from '../../services/tariff.service';
@@ -20,13 +18,18 @@ import { TariffChangePreview } from '../../models/tariff-change-preview';
 import { Commitment } from '../../models/commitment';
 import { Invoice } from '../../models/invoice';
 import { InvoiceService } from '../../services/invoice.service';
-import { PaymentRequest } from '../../models/payment-request';
-import {
-  PaymentDialogComponent,
-  PaymentDialogData
-} from '../../components/payment-dialog/payment-dialog';
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { roundMoney } from '../../utils/money.util';
+import { NotificationService } from '../../services/notification.service';
+import { AuthService } from '../../services/auth.service';
+import { PaymentFlowService } from '../../services/payment-flow.service';
+import { CommitmentService } from '../../services/commitment.service';
+import { AddonService } from '../../services/addon.service';
+import { HasRoleDirective } from '../../directives/has-role.directive';
+import {
+  isTariffDowngrade,
+  requiresTariffChangeConfirmation
+} from '../../utils/tariff-change.util';
 
 
 
@@ -116,7 +119,6 @@ export interface Customer {
   imports:[
 
     CommonModule,
-    HttpClientModule,
     FormsModule,
 
     MatCardModule,
@@ -127,7 +129,8 @@ export interface Customer {
     MatDividerModule,
     MatInputModule,
     MatCheckboxModule,
-    MoneyPipe
+    MoneyPipe,
+    HasRoleDirective
 
   ],
 
@@ -141,6 +144,7 @@ export interface Customer {
 
 export class CustomerDetailComponent implements OnInit {
 
+  readonly isTariffDowngrade = isTariffDowngrade;
 
   customerId!: number;
 
@@ -165,17 +169,7 @@ export class CustomerDetailComponent implements OnInit {
   topUpAmount: number | null = null;
 
   isLoading = true;
-
-private apiUrl =
-'http://localhost:8080/api/customers';
-
-
-
-private invoiceUrl =
-'http://localhost:8080/api/invoices';
-
-private commitmentUrl =
-'http://localhost:8080/api/commitments';
+  loadError = '';
 
 
 
@@ -185,15 +179,19 @@ constructor(
 
 private route:ActivatedRoute,
 
-private http:HttpClient,
-
 private customerService:CustomerService,
 
 private tariffService:TariffService,
 
 private invoiceService:InvoiceService,
+private addonService: AddonService,
+private commitmentService: CommitmentService,
 
-private dialog: MatDialog,
+private notification: NotificationService,
+
+private authService: AuthService,
+
+private paymentFlow: PaymentFlowService,
 
 private router:Router,
 
@@ -227,47 +225,39 @@ this.loadInvoices();
 
 loadCustomer():void{
 
+this.isLoading = true;
+this.loadError = '';
 
-this.http.get<Customer>(
-`${this.apiUrl}/${this.customerId}`
-)
-
+this.customerService.getCustomerById(this.customerId)
 .subscribe({
 
 next:(data:Customer)=>{
-
-
-console.log("CUSTOMER:",data);
-
 
 this.customer=data;
 
 this.applyCommitmentData(data);
 
-
 this.isLoading=false;
-
 
 this.cdr.detectChanges();
 
-
 },
-
 
 error:(err:any)=>{
 
-
 console.error("Müşteri alınamadı:",err);
 
-
 this.isLoading=false;
+this.loadError = this.notification.extractError(
+  err,
+  'Müşteri bilgileri yüklenemedi.'
+);
 
+this.cdr.detectChanges();
 
 }
 
-
 });
-
 
 }
 
@@ -319,41 +309,26 @@ err
 
 loadAddons():void{
 
-
-this.http.get<any[]>(
-
-'http://localhost:8080/api/addons'
-
-)
-
-.subscribe({
+this.addonService.fetchAddons().subscribe({
 
 next:(data)=>{
 
-
-console.log("ADDONS:",data);
-
-
-this.addons=data;
-
+this.addons=data ?? [];
 
 },
 
-
 error:(err)=>{
-
 
 console.error(
 "Addon alınamadı",
 err
 );
 
+this.addons = [];
 
 }
 
-
 });
-
 
 }
 
@@ -418,7 +393,7 @@ onTariffSelectionChange(): void {
     .subscribe({
       next: (preview) => {
         this.tariffPreview = preview;
-        this.showPenaltyWarning = preview.commitmentWarning;
+        this.showPenaltyWarning = requiresTariffChangeConfirmation(preview);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -435,20 +410,37 @@ updateTariff():void{
 
 if(!this.selectedTariffId){
 
-alert("Tarife seçiniz.");
+this.notification.warning("Tarife seçiniz.");
 
 return;
 
 }
 
 if(this.showPenaltyWarning && this.tariffPreview){
-
   return;
-
 }
 
+this.customerService
+  .previewTariffChange(this.customerId, this.selectedTariffId)
+  .subscribe({
+    next: (preview) => {
+      this.tariffPreview = preview;
+      this.showPenaltyWarning = requiresTariffChangeConfirmation(preview);
 
-this.executeTariffChange();
+      if (this.showPenaltyWarning) {
+        this.cdr.detectChanges();
+        return;
+      }
+
+      this.executeTariffChange();
+    },
+    error: (err) => {
+      console.error('Tarife önizleme hatası', err);
+      this.notification.error(
+        this.notification.extractError(err, 'Tarife önizlemesi alınamadı.')
+      );
+    }
+  });
 
 }
 
@@ -482,7 +474,7 @@ this.selectedTariffId
 next:(customer)=>{
 
 
-alert("Tarife değiştirildi.");
+this.notification.success("Tarife değiştirildi.");
 
 
 this.customer = customer;
@@ -507,7 +499,9 @@ error:(err)=>{
 
 console.error(err);
 
-alert("Tarife değiştirilemedi.");
+this.notification.error(
+  this.notification.extractError(err, "Tarife değiştirilemedi.")
+);
 
 }
 
@@ -526,7 +520,7 @@ addAddon():void{
 
 if(!this.selectedAddonId){
 
-alert("Ek paket seçiniz.");
+this.notification.warning("Ek paket seçiniz.");
 
 return;
 
@@ -545,7 +539,7 @@ this.selectedAddonId
 next:(customer)=>{
 
 
-alert("Ek paket eklendi.");
+this.notification.success("Ek paket eklendi.");
 
 
 this.customer=customer;
@@ -569,7 +563,9 @@ error:(err)=>{
 console.error(err);
 
 
-alert("Ek paket eklenemedi.");
+this.notification.error(
+  this.notification.extractError(err, "Ek paket eklenemedi.")
+);
 
 
 }
@@ -657,7 +653,15 @@ this.cdr.detectChanges();
 deleteAddon(id:number):void{
 
 
-if(!confirm("Ek paket silinsin mi?"))
+this.notification.confirm(
+  'Ek paket silinsin mi?',
+  'Ek Paket Sil',
+  'Sil',
+  'Vazgeç',
+  true
+).subscribe((confirmed) => {
+
+if(!confirmed)
 
 return;
 
@@ -686,42 +690,33 @@ this.cdr.detectChanges();
 });
 
 
+});
+
 }payInvoice(invoice: Invoice):void{
 
 if (invoice.paymentType === 'PREPAID' || this.customer?.paymentType === 'PREPAID') {
   this.invoiceService.payInvoice(invoice.id)
     .subscribe({
       next: () => {
-        alert('Fatura bakiyeden kesildi.');
+        this.notification.success('Fatura bakiyeden kesildi.');
         this.loadInvoices();
         this.loadCustomer();
       },
       error: (err) => {
         console.error('Ödeme hatası:', err);
-        const backendMessage =
-          err?.error?.message
-          || (typeof err?.error === 'string' ? err.error : null);
-        alert(backendMessage || 'Bakiyeden ödeme yapılamadı.');
+        this.notification.error(
+          this.notification.extractError(err, 'Bakiyeden ödeme yapılamadı.')
+        );
       }
     });
   return;
 }
 
-const dialogRef = this.dialog.open<
-  PaymentDialogComponent,
-  PaymentDialogData,
-  PaymentRequest
->(PaymentDialogComponent, {
-  width: '520px',
-  disableClose: true,
-  data: {
-    title: 'Kredi Kartı ile Ödeme',
-    subtitle: `Fatura #${invoice.id}`,
-    amount: this.getInvoiceAmount(invoice)
-  }
-});
-
-dialogRef.afterClosed().subscribe((payment) => {
+this.paymentFlow.requestPayment({
+  title: 'Kredi Kartı ile Ödeme',
+  subtitle: `Fatura #${invoice.id}`,
+  amount: this.getInvoiceAmount(invoice)
+}).subscribe((payment) => {
   if (!payment) {
     return;
   }
@@ -729,15 +724,15 @@ dialogRef.afterClosed().subscribe((payment) => {
   this.invoiceService.payInvoice(invoice.id, payment)
     .subscribe({
       next: () => {
-        alert('Fatura ödendi.');
+        this.notification.success('Fatura ödendi.');
         this.loadInvoices();
+        this.loadCustomer();
       },
       error: (err) => {
         console.error('Ödeme hatası:', err);
-        const backendMessage =
-          err?.error?.message
-          || (typeof err?.error === 'string' ? err.error : null);
-        alert(backendMessage || 'Fatura ödenemedi.');
+        this.notification.error(
+          this.notification.extractError(err, 'Fatura ödenemedi.')
+        );
       }
     });
 });
@@ -814,7 +809,15 @@ this.cdr.detectChanges();
 deleteTariff(id:number):void{
 
 
-if(!confirm("Tarife silinsin mi?"))
+this.notification.confirm(
+  'Tarife silinsin mi?',
+  'Tarife Sil',
+  'Sil',
+  'Vazgeç',
+  true
+).subscribe((confirmed) => {
+
+if(!confirmed)
 
 return;
 
@@ -843,6 +846,8 @@ this.cdr.detectChanges();
 });
 
 
+});
+
 }
 
 
@@ -860,27 +865,17 @@ const amount = Number(this.topUpAmount);
 
 if(!amount || amount <= 0){
 
-alert("Geçerli bir tutar giriniz.");
+this.notification.warning("Geçerli bir tutar giriniz.");
 
 return;
 
 }
 
-const dialogRef = this.dialog.open<
-  PaymentDialogComponent,
-  PaymentDialogData,
-  PaymentRequest
->(PaymentDialogComponent, {
-  width: '520px',
-  disableClose: true,
-  data: {
-    title: 'Bakiye Yükleme',
-    subtitle: `${this.customer.firstName} ${this.customer.lastName}`,
-    amount
-  }
-});
-
-dialogRef.afterClosed().subscribe((payment) => {
+this.paymentFlow.requestPayment({
+  title: 'Bakiye Yükleme',
+  subtitle: `${this.customer.firstName} ${this.customer.lastName}`,
+  amount
+}).subscribe((payment) => {
   if (!payment) {
     return;
   }
@@ -898,14 +893,13 @@ dialogRef.afterClosed().subscribe((payment) => {
         this.topUpAmount = null;
         this.loadCustomer();
         this.cdr.detectChanges();
-        alert('Bakiye yüklendi.');
+        this.notification.success('Bakiye yüklendi.');
       },
       error: (err) => {
         console.error(err);
-        const backendMessage =
-          err?.error?.message
-          || (typeof err?.error === 'string' ? err.error : null);
-        alert(backendMessage || 'Bakiye yüklenemedi.');
+        this.notification.error(
+          this.notification.extractError(err, 'Bakiye yüklenemedi.')
+        );
       }
     });
 });
@@ -933,6 +927,19 @@ return "#ff9800";
 return "#4caf50";
 
 
+}
+
+getRiskStatusLabel(status: string): string {
+  if (status === 'HIGH') {
+    return 'Yüksek';
+  }
+  if (status === 'MEDIUM') {
+    return 'Orta';
+  }
+  if (status === 'LOW') {
+    return 'Düşük';
+  }
+  return status;
 }
 
 
@@ -1040,9 +1047,7 @@ applyCommitmentData(data: Customer): void {
     return;
   }
 
-  this.http.get<Commitment>(
-    `${this.commitmentUrl}/${this.customerId}`
-  ).subscribe({
+  this.commitmentService.getCommitment(this.customerId).subscribe({
     next: (commitment) => {
       this.commitment = commitment;
       this.cdr.detectChanges();
