@@ -10,6 +10,7 @@ import {
 } from '../models/auth.model';
 import { AgentContextService } from './agent-context.service';
 import { environment } from '../../environments/environment';
+import { isJwtExpired } from '../utils/jwt.util';
 
 @Injectable({
   providedIn: 'root'
@@ -48,7 +49,25 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    if (this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+
+    return true;
+  }
+
+  isTokenExpired(token: string = this.getToken() ?? ''): boolean {
+    if (!token) {
+      return true;
+    }
+
+    return isJwtExpired(token);
   }
 
   getToken(): string | null {
@@ -107,6 +126,12 @@ export class AuthService {
     const rawUser = localStorage.getItem(AUTH_USER_KEY);
 
     if (!token || !rawUser) {
+      return null;
+    }
+
+    if (this.isTokenExpired(token)) {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      localStorage.removeItem(AUTH_USER_KEY);
       return null;
     }
 

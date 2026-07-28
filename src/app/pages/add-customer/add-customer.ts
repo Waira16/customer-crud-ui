@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
@@ -16,8 +15,8 @@ import { getEmailErrorMessage, isValidEmail } from '../../utils/email.util';
 import { NotificationService } from '../../services/notification.service';
 import { AuthService } from '../../services/auth.service';
 import { AgentContextService } from '../../services/agent-context.service';
+import { CustomerService } from '../../services/customer.service';
 import { Customer as CustomerModel } from '../../models/customer';
-import { environment } from '../../../environments/environment';
 
 
 
@@ -62,9 +61,7 @@ export class AddCustomerComponent implements OnInit {
 
 
   customer: CustomerModel = {
-
     id: 0,
-
     firstName: '',
 
     lastName: '',
@@ -90,12 +87,7 @@ export class AddCustomerComponent implements OnInit {
 
     balance: 0,
 
-    status: 'ACTIVE',
-
-    contractStartDate: new Date().toISOString().split('T')[0],
-
-    contractDuration: 12
-
+    status: 'ACTIVE'
 
   };
 
@@ -107,16 +99,9 @@ export class AddCustomerComponent implements OnInit {
 
   emailTouched = false;
 
-
-
-  private apiUrl = `${environment.apiBaseUrl}/api/customers`;
-
-
-
-
   constructor(
 
-    private http: HttpClient,
+    private customerService: CustomerService,
 
     private router: Router,
 
@@ -167,40 +152,23 @@ export class AddCustomerComponent implements OnInit {
 
     this.isLoading = true;
 
-
-
-    this.http.get<CustomerModel>(
-
-      `${this.apiUrl}/${id}`
-
-    )
-
-    .subscribe({
-
+    this.customerService.getCustomerById(id).subscribe({
 
       next:(data)=>{
 
-
         this.customer = data;
 
-
         this.isLoading=false;
-
 
       },
 
-
       error:(err)=>{
-
 
         console.error(err);
 
-
         this.isLoading=false;
 
-
       }
-
 
     });
 
@@ -212,177 +180,64 @@ export class AddCustomerComponent implements OnInit {
 
 
 
-  onSubmit(form:any):void{
-
+  onSubmit(form: NgForm): void {
 
     this.emailTouched = true;
 
-    if(form.invalid || !isValidEmail(this.customer.email)){
-
+    if (form.invalid) {
+      form.form.markAllAsTouched();
+      this.notification.warning('Lütfen zorunlu alanları doldurun.');
       return;
-
     }
 
+    if (!isValidEmail(this.customer.email)) {
+      this.notification.warning(getEmailErrorMessage(this.customer.email));
+      return;
+    }
 
+    if (!this.authService.getToken()) {
+      this.notification.warning('Oturumunuz sona erdi. Lütfen tekrar giriş yapın.');
+      void this.router.navigate(['/login'], {
+        queryParams: { returnUrl: this.router.url }
+      });
+      return;
+    }
 
-    this.isLoading=true;
-
-
-
-
+    this.isLoading = true;
 
     const payload: CustomerModel = {
-
-      id: this.customer.id || 0,
-
-      firstName:
-      this.customer.firstName.trim(),
-
-
-
-      lastName:
-      this.customer.lastName.trim(),
-
-
-
-      email:
-      this.customer.email.trim(),
-
-
-
-      phone:
-      this.customer.phone
-      ? this.customer.phone.trim()
-      : '',
-
-
-
-      age:
-      Number(this.customer.age) || 18,
-
-
-
-      complaintCount:
-      this.customer.complaintCount || 0,
-
-
-
-      hasLatePayments:
-      this.customer.hasLatePayments || false,
-
-      churnRiskScore:
-      this.customer.churnRiskScore || 0,
-
-      riskStatus:
-      this.customer.riskStatus || 'LOW',
-
-      paymentType:
-      this.customer.paymentType || 'POSTPAID',
-
-
-
-      balance:
-      this.customer.balance || 0,
-
-
-
-      status:
-      this.customer.status || 'ACTIVE',
-
-
-      contractStartDate:
-      this.customer.contractStartDate,
-
-
-      contractDuration:
-      Number(this.customer.contractDuration) || 12
-
-
-    };
-
-
-
-
-
-    if(this.isEditMode && this.customer.id){
-
-
-
-      payload.id =
-      this.customer.id;
-
-
-
-      this.http.put<CustomerModel>(
-
-        `${this.apiUrl}/${this.customer.id}`,
-
-        payload
-
-      )
-
-      .subscribe({
-
-
-        next:(created)=>{
-
-          this.handleSuccess(created);
-
-        },
-
-
-        error:(err)=>{
-
-          this.handleError(err);
-
-        }
-
-
-      });
-
-
-
-    }
-
-    else {
-
-
-
-      this.http.post<CustomerModel>(
-
-        this.apiUrl,
-
-        payload
-
-      )
-
-      .subscribe({
-
-
-        next:(created)=>{
-
-          this.handleSuccess(created);
-
-        },
-
-
-        error:(err)=>{
-
-
-          this.handleError(err);
-
-
-        }
-
-
-      });
-
-
-
-    }
-
-
-
+      firstName: this.customer.firstName.trim(),
+      lastName: this.customer.lastName.trim(),
+      email: this.customer.email.trim(),
+      phone: this.customer.phone ? this.customer.phone.trim() : '',
+      age: Number(this.customer.age) || 18,
+      complaintCount: Number(this.customer.complaintCount) || 0,
+      hasLatePayments: this.customer.hasLatePayments || false,
+      churnRiskScore: Number(this.customer.churnRiskScore) || 0,
+      riskStatus: this.customer.riskStatus || 'LOW',
+      paymentType: this.customer.paymentType || 'POSTPAID',
+      balance: Number(this.customer.balance) || 0,
+      status: this.customer.status || 'ACTIVE'
+    } as CustomerModel;
+
+    const request$ = this.isEditMode && this.customer.id
+      ? this.customerService.updateCustomer(this.customer.id, {
+          ...payload,
+          id: this.customer.id
+        })
+      : this.customerService.createCustomer(payload);
+
+    request$.subscribe({
+      next: (created) => {
+        this.handleSuccess(created);
+      },
+      error: (err) => {
+        this.handleError(err);
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
 
@@ -454,19 +309,26 @@ export class AddCustomerComponent implements OnInit {
 
   private handleError(err:any):void{
 
-
     console.error(
       'API ERROR:',
       err
     );
 
-
     this.isLoading=false;
+
+    if (err?.status === 401) {
+      this.notification.error('Oturum gerekli veya geçersiz. Lütfen tekrar giriş yapın.');
+      return;
+    }
+
+    if (err?.status === 403) {
+      this.notification.error('Müşteri oluşturmak için yönetici (admin) hesabı gerekir.');
+      return;
+    }
 
     this.notification.error(
       this.notification.extractError(err, 'Müşteri kaydedilemedi.')
     );
-
 
   }
 

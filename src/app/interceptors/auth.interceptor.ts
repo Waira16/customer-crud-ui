@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 function isPublicCatalogRequest(url: string, method: string): boolean {
   if (method !== 'GET') {
@@ -28,13 +29,19 @@ function shouldForceLogout(url: string, status: number): boolean {
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const notification = inject(NotificationService);
 
   if (req.url.includes('/api/auth/login')) {
     return next(req);
   }
 
-  const token = authService.getToken();
   const skipAuthHeader = isPublicCatalogRequest(req.url, req.method);
+  let token = authService.getToken();
+
+  if (token && authService.isTokenExpired(token)) {
+    authService.logout();
+    token = null;
+  }
 
   const authReq = token && !skipAuthHeader
     ? req.clone({
@@ -47,10 +54,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error) => {
       if (shouldForceLogout(req.url, error.status)) {
+        const hadToken = !!authService.getToken();
         authService.logout();
 
         const currentPath = router.url.split('?')[0];
         if (currentPath !== '/login' && currentPath !== '/') {
+          if (hadToken) {
+            notification.warning('Oturumunuz sona erdi. Lütfen tekrar giriş yapın.');
+          }
+
           const returnPath = currentPath.startsWith('/login') ? null : router.url;
           router.navigate(['/login'], returnPath
             ? { queryParams: { returnUrl: returnPath } }

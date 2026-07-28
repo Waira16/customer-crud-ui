@@ -274,46 +274,6 @@
 
 
 
-          <!-- TAAHHÜT BİLGİLERİ -->
-
-
-          <mat-form-field appearance="outline" class="full-width">
-
-            <mat-label>
-              Taahhüt Başlangıç Tarihi
-            </mat-label>
-
-            <input
-              matInput
-              type="date"
-              name="contractStartDate"
-              [(ngModel)]="customer.contractStartDate">
-
-          </mat-form-field>
-
-
-
-
-
-          <mat-form-field appearance="outline" class="full-width">
-
-            <mat-label>
-              Taahhüt Süresi (Ay)
-            </mat-label>
-
-            <input
-              matInput
-              type="number"
-              name="contractDuration"
-              min="1"
-              [(ngModel)]="customer.contractDuration">
-
-          </mat-form-field>
-
-
-
-
-
           <!-- MÜŞTERİ DURUMU -->
 
 
@@ -390,21 +350,11 @@
 
 
           <button
-
             mat-raised-button
-
             color="primary"
-
             type="submit"
-
-            [disabled]="customerForm.invalid || isLoading">
-
-
-
+            [disabled]="isLoading">
             {{ isLoading ? 'Kaydediliyor...' : 'Kaydet' }}
-
-
-
           </button>
 
 

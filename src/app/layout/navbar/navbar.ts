@@ -348,7 +348,7 @@ export class NavbarComponent implements OnInit {
     else if(url.includes('invoices')){
 
 
-      this.currentPage.set('Kullanıcılar');
+      this.currentPage.set('Faturalar');
 
 
     }
