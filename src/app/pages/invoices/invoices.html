@@ -199,6 +199,10 @@
   Cayma Bedeli
 </th>
 
+<th>
+  Cihaz Taksiti
+</th>
+
 
           <th>
             Son Ödeme
@@ -253,6 +257,12 @@
           <td class="invoice-detail-cell">
             <span [class.penalty-value]="getPenalty(invoice) > 0">
               {{ getPenalty(invoice) > 0 ? formatMoney(getPenalty(invoice)) : '-' }}
+            </span>
+          </td>
+
+          <td class="invoice-detail-cell">
+            <span [class.installment-value]="getInstallmentTotal(invoice) > 0">
+              {{ getInstallmentTotal(invoice) > 0 ? formatMoney(getInstallmentTotal(invoice)) : '-' }}
             </span>
           </td>
 
@@ -316,7 +326,7 @@
 
         <tr *ngIf="filteredInvoices.length === 0">
 
-          <td colspan="10" class="empty-row">
+          <td colspan="11" class="empty-row">
             Bu filtreye uygun kayıt bulunamadı.
           </td>
 

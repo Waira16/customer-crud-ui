@@ -1,0 +1,128 @@
+<section class="account-page">
+  <div *ngIf="isLoading" class="state-card loading-card">
+    <mat-spinner diameter="36"></mat-spinner>
+    <p>Kullanım bilgileriniz yükleniyor...</p>
+  </div>
+
+  <div *ngIf="error && !isLoading" class="state-card error-card">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button type="button" (click)="retry()">Tekrar Dene</button>
+  </div>
+
+  <ng-container *ngIf="summary && !isLoading">
+    <div class="hero-banner">
+      <div class="hero-copy">
+        <span class="hero-tag">{{ packageName }}</span>
+        <h2>{{ customerName }}, bugünkü kullanımınız</h2>
+        <p>{{ todayLabel }} · {{ packageSummary }} · Hattınız kullanıma açık.</p>
+      </div>
+      <div class="hero-stat">
+        <span>Kalan Internet</span>
+        <strong>{{ remainingDataLabel }}</strong>
+        <small>{{ summary.totalDataMb }} MB kullanıldı</small>
+      </div>
+    </div>
+
+    <div class="quick-grid">
+      <article class="quick-card data">
+        <mat-icon>wifi</mat-icon>
+        <div>
+          <span>Internet</span>
+          <strong>{{ remainingDataLabel }}</strong>
+        </div>
+      </article>
+      <article class="quick-card voice">
+        <mat-icon>call</mat-icon>
+        <div>
+          <span>Dakika</span>
+          <strong>{{ remainingVoice }} dk</strong>
+        </div>
+      </article>
+      <article class="quick-card sms">
+        <mat-icon>sms</mat-icon>
+        <div>
+          <span>SMS</span>
+          <strong>{{ remainingSms }}</strong>
+        </div>
+      </article>
+      <article class="quick-card invoice" routerLink="/invoices">
+        <mat-icon>receipt_long</mat-icon>
+        <div>
+          <span>Faturalar</span>
+          <strong>Öde / Görüntüle</strong>
+        </div>
+      </article>
+      <article class="quick-card packages" routerLink="/packages">
+        <mat-icon>shopping_bag</mat-icon>
+        <div>
+          <span>Ek Paketler</span>
+          <strong>Satın Al</strong>
+        </div>
+      </article>
+    </div>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div>
+          <h3>Kullanım Detayı</h3>
+          <p>Internet, dakika ve SMS tüketiminizi anlık takip edin.</p>
+        </div>
+      </div>
+
+      <div class="rings">
+        <div class="ring-card">
+          <div class="ring" [ngStyle]="ringStyle(summary.totalDataMb, dataQuota, '#0b5cab')">
+            <span>{{ ringPercent(summary.totalDataMb, dataQuota) }}%</span>
+          </div>
+          <p class="ring-title">Internet</p>
+          <p class="ring-value">{{ summary.totalDataMb }} / {{ dataQuota }} MB</p>
+          <span class="ring-badge">Mobil Data</span>
+        </div>
+
+        <div class="ring-card">
+          <div class="ring" [ngStyle]="ringStyle(summary.totalVoiceMinutes, voiceQuota, '#7c3aed')">
+            <span>{{ ringPercent(summary.totalVoiceMinutes, voiceQuota) }}%</span>
+          </div>
+          <p class="ring-title">Dakika</p>
+          <p class="ring-value">{{ summary.totalVoiceMinutes }} / {{ voiceQuota }} dk</p>
+          <span class="ring-badge">Konuşma</span>
+        </div>
+
+        <div class="ring-card">
+          <div class="ring" [ngStyle]="ringStyle(summary.totalSmsCount, smsQuota, '#059669')">
+            <span>{{ ringPercent(summary.totalSmsCount, smsQuota) }}%</span>
+          </div>
+          <p class="ring-title">SMS</p>
+          <p class="ring-value">{{ summary.totalSmsCount }} / {{ smsQuota }}</p>
+          <span class="ring-badge">Mesaj</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel support-panel">
+      <div class="support-grid">
+        <a class="support-item" routerLink="/invoices">
+          <mat-icon>payments</mat-icon>
+          <span>Fatura Öde</span>
+        </a>
+        <a class="support-item" routerLink="/packages">
+          <mat-icon>shopping_bag</mat-icon>
+          <span>Ek Paket Al</span>
+        </a>
+        <a class="support-item" routerLink="/tariffs">
+          <mat-icon>local_offer</mat-icon>
+          <span>Tarife İncele</span>
+        </a>
+        <button type="button" class="support-item" (click)="retry()">
+          <mat-icon>refresh</mat-icon>
+          <span>Kullanımı Yenile</span>
+        </button>
+        <button type="button" class="support-item" (click)="logout()">
+          <mat-icon>logout</mat-icon>
+          <span>Güvenli Çıkış</span>
+        </button>
+      </div>
+    </section>
+  </ng-container>
+</section>

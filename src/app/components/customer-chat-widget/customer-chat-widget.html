@@ -1,0 +1,54 @@
+<div class="chat-widget">
+  <section *ngIf="isOpen" class="chat-panel">
+    <header class="chat-header">
+      <div>
+        <strong>Müşteri Asistanı</strong>
+        <small>{{ assistantSubtitle }}</small>
+      </div>
+      <button mat-icon-button type="button" (click)="toggle()" aria-label="Kapat">
+        <mat-icon>close</mat-icon>
+      </button>
+    </header>
+
+    <div class="chat-body">
+      <div
+        *ngFor="let message of messages"
+        class="chat-bubble"
+        [class.user]="message.role === 'user'"
+        [class.assistant]="message.role === 'assistant'">
+        <p>{{ message.text }}</p>
+        <span *ngIf="message.aiPowered" class="ai-badge">AI</span>
+        <span *ngIf="message.role === 'assistant' && message.aiPowered === false" class="data-badge">Canlı veri</span>
+      </div>
+
+      <div *ngIf="isLoading" class="chat-loading">
+        <mat-spinner diameter="22"></mat-spinner>
+        <span>Fatura ve kullanım verileri inceleniyor...</span>
+      </div>
+    </div>
+
+    <div class="quick-prompts">
+      <button type="button" *ngFor="let prompt of quickPrompts" (click)="usePrompt(prompt)">
+        {{ prompt }}
+      </button>
+    </div>
+
+    <footer class="chat-input">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="full-width">
+        <mat-label>Sorunuzu yazın</mat-label>
+        <input
+          matInput
+          [(ngModel)]="draft"
+          (keydown.enter)="send()"
+          [disabled]="isLoading" />
+      </mat-form-field>
+      <button mat-fab color="primary" type="button" [disabled]="isLoading || !draft.trim()" (click)="send()">
+        <mat-icon>send</mat-icon>
+      </button>
+    </footer>
+  </section>
+
+  <button mat-fab color="primary" class="chat-fab" type="button" (click)="toggle()" aria-label="AI Asistan">
+    <mat-icon>{{ isOpen ? 'close' : 'smart_toy' }}</mat-icon>
+  </button>
+</div>

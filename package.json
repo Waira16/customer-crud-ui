@@ -3,8 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng serve customer-crud-ui --port 4201",
+    "start:public": "ng serve public-pricing --port 4200",
+    "start:crm": "ng serve customer-crud-ui --port 4201",
+    "start:self-service": "ng serve customer-self-service --port 4202",
+    "start:all": "concurrently \"npm run start:public\" \"npm run start:crm\" \"npm run start:self-service\"",
+    "build": "ng build customer-crud-ui",
+    "build:public": "ng build public-pricing",
+    "build:crm": "ng build customer-crud-ui",
+    "build:self-service": "ng build customer-self-service",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -31,6 +38,7 @@
     "@angular/cli": "^22.0.6",
     "@angular/compiler-cli": "^22.0.0",
     "jsdom": "^28.0.0",
+    "ng-packagr": "^22.0.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
     "vitest": "^4.0.8"

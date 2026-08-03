@@ -1,3 +1,16 @@
+<button
+  #scrollTopBtn
+  *ngIf="showScrollTop"
+  mat-raised-button
+  color="primary"
+  type="button"
+  class="tariffs-scroll-top-btn"
+  aria-label="En üste çık"
+  (click)="scrollToTop()">
+  <mat-icon>keyboard_arrow_up</mat-icon>
+  En Üste Çık
+</button>
+
 <div class="tariff-page">
 
   <h1>Tarifeler, Ek Paketler ve Cihaz Mağazası</h1>
@@ -12,7 +25,12 @@
     </div>
 
     <p class="cart-hint" *ngIf="!hasSelectedProfile">
-      Sepet kullanmak için sol menüden profilinizi seçin.
+      {{ getProfileSelectionHint() }}
+    </p>
+
+    <p class="cart-selected-customer" *ngIf="hasSelectedProfile && selectedCustomer">
+      İşlem yapılan müşteri:
+      <strong>{{ selectedCustomer.firstName }} {{ selectedCustomer.lastName }}</strong>
     </p>
 
     <div class="cart-items" *ngIf="cartItems.length > 0">
@@ -207,6 +225,54 @@
               [disabled]="isInCart('ADDON', addon.id)"
               (click)="addAddonToCart(addon)">
               {{ isInCart('ADDON', addon.id) ? 'Sepette' : 'Sepete Ekle' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-block device-section" *ngIf="salesDevices.length > 0">
+      <div class="section-header">
+        <h2>Taksitli Cihaz Satışı</h2>
+        <span class="count-badge">{{ salesDevices.length }} cihaz</span>
+      </div>
+
+      <p class="section-desc">
+        Taahhütlü cihazlar faturanıza aylık taksit olarak yansır. Ödeme ekranında taksit seçeneğini belirleyin.
+      </p>
+
+      <div class="cards">
+        <div class="card device-card sales-device-card" *ngFor="let device of salesDevices">
+          <div class="card-header">
+            <div>
+              <p class="device-brand">{{ device.brand }}</p>
+              <h2>{{ device.model }}</h2>
+            </div>
+            <span class="type device-type">{{ salesCategoryLabels[device.category] || device.category }}</span>
+          </div>
+
+          <div class="info">
+            <p class="stock" [class.low-stock]="device.stockQuantity < 10">
+              Stok: {{ device.stockQuantity }} adet
+            </p>
+            <p class="price">{{ device.price | money }}</p>
+            <p class="installment-estimate" *ngIf="device.price">
+              6 ay faizsiz: {{ getDeviceInstallmentEstimate(device.price) | money }} / ay
+            </p>
+            <p class="installment-note">Taksit: 2-6 ay faizsiz · 12-18 ay faizli</p>
+            <button
+              *ngIf="showCartActions()"
+              mat-flat-button
+              color="primary"
+              type="button"
+              class="add-cart-btn"
+              [disabled]="device.stockQuantity <= 0 || isPurchasingSalesDevice(device.id)"
+              (click)="purchaseSalesDevice(device)">
+              {{
+                isPurchasingSalesDevice(device.id)
+                  ? 'İşleniyor...'
+                  : (device.stockQuantity <= 0 ? 'Stokta Yok' : 'Taksitle Al')
+              }}
             </button>
           </div>
         </div>

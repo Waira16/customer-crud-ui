@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
+import { MatRadioModule } from '@angular/material/radio';
 
 import { PaymentRequest } from '../../models/payment-request';
 import {
@@ -23,11 +24,25 @@ import {
   stripCardDigits
 } from '../../utils/luhn.util';
 import { formatMoney as formatMoneyUtil } from '../../utils/money.util';
+import {
+  calculateInstallmentTotal,
+  calculateInterestAmount,
+  calculateMonthlyInstallment,
+  getInstallmentRateLabel,
+  INSTALLMENT_MONTH_OPTIONS,
+  isInterestFreeInstallment
+} from '../../utils/installment.util';
 
 export interface PaymentDialogData {
   title: string;
   subtitle?: string;
   amount?: number;
+  showInstallmentOptions?: boolean;
+  devicePrice?: number;
+}
+
+export interface PaymentDialogResult extends PaymentRequest {
+  installments?: number;
 }
 
 export function getDemoPaymentRequest(): PaymentRequest {
@@ -36,6 +51,13 @@ export function getDemoPaymentRequest(): PaymentRequest {
     expiryDate: DEMO_PAYMENT_CARD.expiry,
     cvv: DEMO_PAYMENT_CARD.cvv
   };
+}
+
+interface InstallmentOption {
+  months: number;
+  label: string;
+  interestFree: boolean;
+  rateLabel: string;
 }
 
 @Component({
@@ -48,7 +70,8 @@ export function getDemoPaymentRequest(): PaymentRequest {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatIconModule
+    MatIconModule,
+    MatRadioModule
   ],
   templateUrl: './payment-dialog.html',
   styleUrl: './payment-dialog.css'
@@ -58,13 +81,21 @@ export class PaymentDialogComponent {
   cardNumber = '';
   expiryDate = '';
   cvv = '';
+  selectedInstallments = 6;
 
   cardTouched = false;
   expiryTouched = false;
   cvvTouched = false;
 
+  readonly installmentOptions: InstallmentOption[] = INSTALLMENT_MONTH_OPTIONS.map((months) => ({
+    months,
+    label: `${months} Ay`,
+    interestFree: isInterestFreeInstallment(months),
+    rateLabel: getInstallmentRateLabel(months)
+  }));
+
   constructor(
-    private dialogRef: MatDialogRef<PaymentDialogComponent, PaymentRequest>,
+    private dialogRef: MatDialogRef<PaymentDialogComponent, PaymentDialogResult>,
     @Inject(MAT_DIALOG_DATA) public data: PaymentDialogData
   ) {}
 
@@ -113,6 +144,10 @@ export class PaymentDialogComponent {
       && isValidCvv(this.cvv);
   }
 
+  get installmentBasePrice(): number {
+    return this.data.devicePrice ?? this.data.amount ?? 0;
+  }
+
   formatMoney(value?: number): string {
     if (value == null) {
       return '';
@@ -121,12 +156,24 @@ export class PaymentDialogComponent {
     return formatMoneyUtil(value);
   }
 
+  getMonthlyInstallment(months: number): number {
+    return calculateMonthlyInstallment(this.installmentBasePrice, months);
+  }
+
+  getInstallmentTotal(months: number): number {
+    return calculateInstallmentTotal(this.installmentBasePrice, months);
+  }
+
+  getInterestAmount(months: number): number {
+    return calculateInterestAmount(this.installmentBasePrice, months);
+  }
+
   cancel(): void {
     this.dialogRef.close();
   }
 
   payDirect(): void {
-    this.dialogRef.close(getDemoPaymentRequest());
+    this.dialogRef.close(this.buildResult(getDemoPaymentRequest()));
   }
 
   pay(): void {
@@ -138,10 +185,21 @@ export class PaymentDialogComponent {
       return;
     }
 
-    this.dialogRef.close({
+    this.dialogRef.close(this.buildResult({
       cardNumber: this.cardDigits,
       expiryDate: this.expiryDate,
       cvv: this.cvv
-    });
+    }));
+  }
+
+  private buildResult(payment: PaymentRequest): PaymentDialogResult {
+    if (!this.data.showInstallmentOptions) {
+      return payment;
+    }
+
+    return {
+      ...payment,
+      installments: this.selectedInstallments
+    };
   }
 }

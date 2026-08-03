@@ -1,0 +1,56 @@
+.message-box {
+  padding: 8px 4px 4px;
+  min-width: 280px;
+}
+
+.message-box__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.message-box__header mat-icon {
+  font-size: 32px;
+  width: 32px;
+  height: 32px;
+}
+
+.message-box__header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.message-box__message {
+  margin: 0 0 24px;
+  color: #475569;
+  line-height: 1.55;
+  font-size: 15px;
+  white-space: pre-line;
+}
+
+.message-box__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.message-box--confirm .message-box__header mat-icon,
+.message-box--info .message-box__header mat-icon {
+  color: #0b5cab;
+}
+
+.message-box--warning .message-box__header mat-icon {
+  color: #d97706;
+}
+
+.message-box--success .message-box__header mat-icon {
+  color: #059669;
+}
+
+.message-box--error .message-box__header mat-icon {
+  color: #dc2626;
+}

@@ -1,0 +1,253 @@
+.invoices-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.summary-banner {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 18px;
+  padding: 24px;
+  border-radius: 24px;
+  color: #fff;
+  background: linear-gradient(135deg, #312e81 0%, #4338ca 55%, #6366f1 100%);
+  box-shadow: 0 18px 40px rgba(67, 56, 202, 0.22);
+}
+
+.banner-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.summary-banner h2 {
+  margin: 12px 0 8px;
+  font-size: clamp(24px, 4vw, 32px);
+}
+
+.summary-banner p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.summary-stats {
+  display: grid;
+  gap: 12px;
+}
+
+.summary-stats article {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.summary-stats span {
+  display: block;
+  font-size: 13px;
+  opacity: 0.84;
+}
+
+.summary-stats strong {
+  font-size: 28px;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-tabs button {
+  border: 1px solid #dbe4ef;
+  background: #fff;
+  color: #64748b;
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.filter-tabs button.active {
+  background: #0b5cab;
+  border-color: #0b5cab;
+  color: #fff;
+}
+
+.state-card,
+.empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--portal-shadow, 0 12px 32px rgba(11, 92, 171, 0.08));
+  text-align: center;
+}
+
+.error-card mat-icon,
+.empty-card mat-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: #0b5cab;
+}
+
+.error-card mat-icon {
+  color: #dc2626;
+}
+
+.success-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #bbf7d0;
+}
+
+.invoice-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--portal-shadow, 0 12px 32px rgba(11, 92, 171, 0.08));
+  border: 1px solid #e2e8f0;
+}
+
+.invoice-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.invoice-period {
+  margin: 0 0 4px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.invoice-head h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-badge.paid {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.invoice-body {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.amount-box {
+  padding: 16px;
+  border-radius: 16px;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+}
+
+.amount-box span {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.amount-box strong {
+  font-size: 28px;
+  color: #0b5cab;
+}
+
+.meta-grid p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: #475569;
+}
+
+.meta-grid mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #0b5cab;
+}
+
+.invoice-actions {
+  margin-top: 16px;
+}
+
+.pay-box {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pay-head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.pay-head mat-icon {
+  color: #0b5cab;
+}
+
+.pay-head p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pay-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.full {
+  width: 100%;
+}
+
+.pay-btn {
+  width: 100%;
+  height: 48px;
+  margin-top: 8px;
+  border-radius: 14px !important;
+  font-weight: 700;
+}
+
+@media (max-width: 860px) {
+  .summary-banner,
+  .invoice-body {
+    grid-template-columns: 1fr;
+  }
+
+  .pay-row {
+    grid-template-columns: 1fr;
+  }
+}

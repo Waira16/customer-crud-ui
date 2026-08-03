@@ -1,283 +1,452 @@
-.detail-container {
-
+.detail-page {
   padding: 20px;
-
   width: 100%;
-
   box-sizing: border-box;
-
 }
 
-
-
-mat-card {
-
+.main-card {
+  position: relative;
   width: 100%;
-
   box-sizing: border-box;
-
-  border-radius: 18px;
-
+  border-radius: 18px !important;
   padding: 10px;
-
-  box-shadow:
-    0 8px 25px rgba(0,0,0,.08);
-
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
 }
 
-
-.top-section{
-    display:flex;
-    gap:30px;
-    align-items:flex-start;
-    margin-bottom:30px;
+.main-card.suspended-card {
+  border: 2px solid #fecaca;
 }
 
-.left-column{
-    flex:2;
+.customer-status {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
 }
 
-.right-column{
-    flex:1;
-    min-width:300px;
+.active-status {
+  background: #16a34a;
+  color: #ffffff;
+  border: 2px solid #15803d;
 }
 
-.contract-card{
-    position:sticky;
-    top:20px;
-    border-radius:16px;
+.suspended-status {
+  background: #dc2626;
+  color: #ffffff;
+  border: 2px solid #b91c1c;
 }
-
 
 mat-card-title {
-
   font-size: 26px;
-
   font-weight: 800;
-
   color: #1e293b;
-
+  padding-right: 100px;
 }
 
+.suspended-warning {
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
 
+.top-section {
+  display: flex;
+  gap: 30px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
 
+.left-column {
+  flex: 2;
+}
 
+.right-column {
+  flex: 1;
+  min-width: 280px;
+}
 
-mat-card-content p {
+.section-title {
+  margin: 0 0 14px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+}
 
-  margin: 10px 0;
-
+.left-column p,
+.contract-card p,
+.nested-card p,
+.invoice-detail-card p {
+  margin: 8px 0;
+  color: #475569;
   font-size: 15px;
-
 }
-
-
-
-
 
 strong {
-
   color: #334155;
-
 }
-
-
-
-
-
-mat-divider {
-
-  margin: 25px 0;
-
-}
-
-
-
-
-
-/* Risk Badge */
-
 
 .risk-badge {
-
   padding: 6px 14px;
-
   border-radius: 20px;
-
   font-weight: bold;
-
   margin-left: 10px;
-
   display: inline-block;
-
 }
 
-
-
-
-
-/* Tarife Kartları */
-
-
-mat-card mat-card {
-
+.contract-card {
+  border-radius: 16px !important;
   background: #f8fafc;
-
-  border-radius: 14px;
-
-  box-shadow:
-
-    0 4px 15px rgba(0,0,0,.06);
-
+  position: sticky;
+  top: 20px;
 }
 
-
-
-
-
-h3 {
-
-  font-size: 20px;
-
-  font-weight: 700;
-
+.contract-card h3 {
+  margin: 0 0 12px;
   color: #1e293b;
-
-  margin-bottom: 15px;
-
 }
 
+.summary-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
 
+.price-card {
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+}
 
+.price-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 8px;
+}
 
+.price-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #1d4ed8;
+}
 
-/* Aktif Pasif Durumu */
+.postpaid-label {
+  font-size: 22px;
+}
 
+.price-sub {
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.top-up-field {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.top-up-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.detail-section {
+  margin: 16px 0;
+}
+
+.collapsible-section {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: #f8fafc;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-align: left;
+  user-select: none;
+}
+
+.section-toggle:hover,
+.collapsible-section.is-open > .section-toggle {
+  background: #f1f5f9;
+}
+
+.section-toggle:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+.section-toggle-heading {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.section-toggle mat-icon {
+  color: #64748b;
+}
+
+.section-count {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.section-body {
+  padding: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.nested-card {
+  margin-bottom: 12px;
+  border-radius: 14px !important;
+  background: #f8fafc;
+}
+
+.tariff-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
 
 .active {
-
   color: #16a34a;
-
-  font-weight: bold;
-
+  font-weight: 700;
 }
-
-
-
-
 
 .passive {
-
-  color: #dc2626;
-
-  font-weight: bold;
-
-}
-
-
-
-
-
-/* Fatura Tablosu */
-
-
-.invoice-table {
-
-  width: 100%;
-
-  margin-top: 20px;
-
-  border-collapse: collapse;
-
-}
-
-
-
-
-
-.invoice-table th {
-
-  background: #f1f5f9;
-
+  color: #94a3b8;
   font-weight: 700;
-
 }
 
-
-
-
-
-.invoice-table th,
-
-.invoice-table td {
-
-  text-align: left;
-
-  padding: 12px 16px;
-
-  border-bottom: 1px solid #e2e8f0;
-
+.empty-note {
+  color: #64748b;
+  font-style: italic;
 }
 
+.admin-form-block {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed #cbd5e1;
+}
 
+.admin-form-block h4 {
+  margin: 0 0 12px;
+  color: #1e293b;
+}
 
+.full-width {
+  width: 100%;
+}
 
+.penalty-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  padding: 16px;
+  border-radius: 8px;
+  margin: 16px 0;
+}
 
-.invoice-table tr:hover {
+.penalty-warning p {
+  margin: 8px 0;
+}
 
+.penalty-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.order-card {
+  margin-bottom: 16px;
+  padding: 18px;
+  border-radius: 16px !important;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.order-header h4 {
+  margin: 0 0 4px;
+  color: #1e293b;
+}
+
+.order-date {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.order-total {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1d4ed8;
+  white-space: nowrap;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-item {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
   background: #f8fafc;
-
 }
 
-
-
-
-
-/* Butonlar */
-
-
-button {
-
+.order-item-image {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
   border-radius: 10px;
-
+  background: #e2e8f0;
 }
 
-
-
-
-
-.mat-mdc-form-field {
-
-  width:100%;
-
-}
-.invoice-status {
-
-  padding: 6px 12px;
-
-  border-radius: 20px;
-
-  font-weight: bold;
-
+.order-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
+.order-item-type {
+  display: inline-block;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.order-item-brand {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.order-item-price {
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.usage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.usage-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.usage-stats div {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.usage-stats span {
+  display: block;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.usage-stats strong {
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.usage-chart {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 4px;
+  align-items: end;
+  height: 120px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #eff6ff;
+}
+
+.usage-bar {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 8px;
+}
+
+.usage-chart-caption {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.invoice-detail-card {
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 16px !important;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+.invoice-detail-card h4 {
+  margin: 0 0 12px;
+  color: #1e293b;
+}
+
+.invoice-detail-card h5 {
+  margin: 16px 0 8px;
+  color: #334155;
+}
 
 .invoice-status.paid {
-
-  background: #4caf50;
-
-  color:white;
-
+  color: #16a34a;
+  font-weight: 700;
 }
 
-
-
 .invoice-status.unpaid {
-
-  background:#f44336;
-
-  color:white;
-
+  color: #dc2626;
+  font-weight: 700;
 }
 
 .invoice-auto-note {
@@ -291,76 +460,76 @@ button {
 }
 
 .auto-payment-note {
-  color: #2563eb;
-  font-size: 14px;
-  margin-top: -4px;
+  font-size: 13px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.invoice-total {
+  font-size: 18px;
+  color: #0f172a !important;
+  margin-top: 12px !important;
+}
+
+.invoice-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 16px;
 }
 
 .paid-message {
   color: #16a34a;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .paid-message.auto-paid {
   color: #2563eb;
 }
-.customer-status{
-  display:inline-block;
-  padding:8px 16px;
-  border-radius:20px;
-  font-weight:bold;
-  margin-bottom:15px;
+
+.load-error {
+  color: #dc2626;
 }
 
-
-.active-status{
-  background:#d4edda;
-  color:#155724;
+.back-btn {
+  margin-top: 16px;
+  border-radius: 10px;
 }
 
-
-.suspended-status{
-  background:#f8d7da;
-  color:#721c24;
-}
-.suspended-card{
-
-  opacity:0.6;
-
+button {
+  border-radius: 10px;
 }
 
-
-.suspended-warning{
-
-  background:#f8d7da;
-  color:#721c24;
-  padding:12px;
-  border-radius:8px;
-  font-weight:bold;
-  margin-bottom:15px;
-
+mat-divider {
+  margin: 20px 0;
 }
 
-.penalty-warning{
-  background:#fff3cd;
-  color:#856404;
-  border:1px solid #ffeeba;
-  padding:16px;
-  border-radius:8px;
-  margin:16px 0;
-}
+@media (max-width: 768px) {
+  .detail-page {
+    padding: 12px;
+  }
 
-.penalty-warning p{
-  margin:8px 0;
-}
+  mat-card-title {
+    padding-right: 0;
+  }
 
-.penalty-actions{
-  display:flex;
-  gap:12px;
-  margin-top:12px;
-}
+  .customer-status {
+    position: static;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
 
-.top-up-field{
-  width:100%;
-  margin-top:12px;
+  .top-section {
+    flex-direction: column;
+  }
+
+  .right-column {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .contract-card {
+    position: static;
+  }
 }

@@ -403,8 +403,21 @@ export class NavbarComponent implements OnInit {
     this.searchControl.setValue('');
 
     if (this.authService.isAgent()) {
-      this.agentContext.setSelectedCustomer(customer);
-      this.router.navigate(['/portal']);
+      this.customerService.getCustomerById(Number(customer.id)).subscribe({
+        next: (fullCustomer) => {
+          this.agentContext.setSelectedCustomer(fullCustomer);
+          this.router.navigate(['/portal']);
+        }
+      });
+      return;
+    }
+
+    if (this.authService.isAdmin() && this.router.url.includes('/tariffs')) {
+      this.customerService.getCustomerById(Number(customer.id)).subscribe({
+        next: (fullCustomer) => {
+          this.agentContext.setSelectedCustomer(fullCustomer);
+        }
+      });
       return;
     }
 

@@ -1,1073 +1,549 @@
-<mat-card *ngIf="customer" [class.suspended-card]="customer.status === 'SUSPENDED'">
-<div
-  class="customer-status"
-  [class.active-status]="customer.status === 'ACTIVE'"
-  [class.suspended-status]="customer.status === 'SUSPENDED'">
+<div class="detail-page">
 
-  {{ customer.status }}
+<mat-card *ngIf="customer" class="main-card" [class.suspended-card]="isCustomerSuspended()">
 
-</div>
+  <div
+    class="customer-status"
+    [class.active-status]="!isCustomerSuspended()"
+    [class.suspended-status]="isCustomerSuspended()">
+    {{ getCustomerStatusLabel() }}
+  </div>
 
   <mat-card-header>
-
     <mat-card-title>
-      Müşteri Detayı
+      {{ customer.firstName }} {{ customer.lastName }}
     </mat-card-title>
-
   </mat-card-header>
 
-<div
-  *ngIf="customer.status === 'SUSPENDED'"
-  class="suspended-warning">
-
-  ⚠️ Bu müşteri askıya alınmıştır.
-  Ödeme yapıldıktan sonra hizmet aktif olacaktır.
-
-</div>
-
+  <div *ngIf="isCustomerSuspended()" class="suspended-warning">
+    Bu müşteri askıya alınmıştır. Ödeme yapıldıktan sonra hizmet aktif olacaktır.
+  </div>
 
   <mat-card-content>
 
-<div class="top-section">
-
-  <!-- SOL -->
-  <div class="left-column">
-
-    <!-- Burada mevcut müşteri bilgilerin kalacak -->
-
-    <p><strong>Ad:</strong> {{ customer.firstName }}</p>
-
-    <p><strong>Soyad:</strong> {{ customer.lastName }}</p>
-
-    <p><strong>Email:</strong> {{ customer.email }}</p>
-
-    <p><strong>Telefon:</strong> {{ customer.phone }}</p>
-
-    <p><strong>Yaş:</strong> {{ customer.age }}</p>
-
-    <p><strong>Şikayet Sayısı:</strong> {{ customer.complaintCount }}</p>
-
-    <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
-
-    <p><strong>Kayıp Risk Skoru:</strong> {{ customer.churnRiskScore }}</p>
-
-    <p>
-      <strong>Risk Durumu:</strong>
-
-      <span
-        class="risk-badge"
-        [ngStyle]="{
-          'background-color': getRiskColor(customer.riskStatus),
-          color: 'white'
-        }">
-
-        {{ getRiskStatusLabel(customer.riskStatus) }}
-
-      </span>
-
-    </p>
-
-  </div>
-
-  <!-- SAĞ -->
-  <div class="right-column">
-
-    <mat-card class="contract-card">
-
-      <mat-card-content>
-
-        <h3>📄 Taahhüt</h3>
-
-        <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
-
-        <p><strong>Süre:</strong> {{ getCommitmentDuration() }} Ay</p>
-
-        <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
-
-        <p><strong>Kalan:</strong> {{ getRemainingMonths() }} Ay</p>
-
-        <p *ngIf="commitment?.penaltyAmount && commitment!.penaltyAmount! > 0">
-          <strong>Bekleyen Cayma Bedeli:</strong>
-          {{ commitment!.penaltyAmount | money }}
+    <div class="top-section">
+      <div class="left-column">
+        <h3 class="section-title">Müşteri Bilgileri</h3>
+        <p><strong>Ad:</strong> {{ customer.firstName }}</p>
+        <p><strong>Soyad:</strong> {{ customer.lastName }}</p>
+        <p><strong>E-posta:</strong> {{ customer.email }}</p>
+        <p><strong>Telefon:</strong> {{ customer.phone || '-' }}</p>
+        <p><strong>Yaş:</strong> {{ customer.age }}</p>
+        <p><strong>Şikayet Sayısı:</strong> {{ customer.complaintCount ?? 0 }}</p>
+        <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
+        <p><strong>Kayıp Risk Skoru:</strong> {{ customer.churnRiskScore ?? 0 }}</p>
+        <p>
+          <strong>Risk Durumu:</strong>
+          <span
+            class="risk-badge"
+            [ngStyle]="{
+              'background-color': getRiskColor(customer.riskStatus),
+              color: 'white'
+            }">
+            {{ getRiskStatusLabel(customer.riskStatus) }}
+          </span>
         </p>
-      </mat-card-content>
-
-    </mat-card>
-
-  </div>
-
-</div>
-
-    
-
-<!-- ÖDEME TİPİ VE BAKİYE -->
-
-<mat-card 
-  *ngIf="customer.paymentType === 'PREPAID'"
-  class="price-card">
-
-  <mat-card-content>
-
-    <div class="price-title">
-      Ön Ödemeli Bakiye
-    </div>
-
-
-    <div class="price-value">
-      {{ customer.balance | money }}
-    </div>
-
-
-    <div class="price-sub">
-      Mevcut bakiye
-    </div>
-
-
-    <mat-form-field appearance="outline" class="top-up-field">
-
-      <mat-label>Yüklenecek Tutar (₺)</mat-label>
-
-      <input
-        matInput
-        type="number"
-        min="1"
-        [(ngModel)]="topUpAmount"
-        placeholder="Örn: 500">
-
-    </mat-form-field>
-
-
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="addBalance()">
-
-      Bakiye Yükle
-
-    </button>
-
-
-  </mat-card-content>
-
-</mat-card>
-
-
-
-<mat-card *ngIf="customer.paymentType === 'POSTPAID'">
-
-  <mat-card-content>
-
-    <strong>
-      Ödeme Tipi:
-    </strong>
-
-    Faturalı (POSTPAID)
-
-  </mat-card-content>
-
-</mat-card>
-
-    <mat-divider></mat-divider>
-
-
-
-    <br>
-
-
-
-
-    <!-- TARİFE LİSTESİ -->
-
-<mat-card class="price-card">
-
-  <mat-card-content>
-
-    <div class="price-title">
-      Toplam Aylık Ücret
-    </div>
-
-    <div class="price-value">
-      {{ getTotalMonthlyPrice() | money }}
-    </div>
-
-    <div class="price-sub">
-      Sadece aktif tarifeler hesaplanır.
-    </div>
-
-  </mat-card-content>
-
-</mat-card>
-    <h3>
-      Tarifeler
-    </h3>
-
-
-
-    <div
-      *ngIf="customer.tariffs && customer.tariffs.length > 0">
-
-
-
-      <mat-card
-
-        *ngFor="let ct of customer.tariffs"
-
-        style="margin-bottom:15px;">
-
-
-
-        <mat-card-content>
-
-
-          <p>
-
-            <strong>Tarife:</strong>
-
-            {{ ct.tariff.name }}
-
-          </p>
-
-
-
-
-          <p>
-
-            <strong>İnternet:</strong>
-
-            {{ ct.tariff.dataGB }} GB
-
-          </p>
-
-
-
-
-          <p>
-
-            <strong>Dakika:</strong>
-
-            {{ ct.tariff.minutes }}
-
-          </p>
-
-
-
-
-          <p>
-
-            <strong>Ücret:</strong>
-
-            {{ ct.tariff.price | money }}
-
-          </p>
-
-
-
-
-          <p>
-
-            <strong>Başlangıç:</strong>
-
-            {{ ct.startDate }}
-
-          </p>
-
-
-
-
-          <p>
-
-<strong>Durum:</strong>
-
-<span
-[class.active]="ct.active"
-[class.passive]="!ct.active">
-
-{{ ct.active ? 'Aktif' : 'Pasif' }}
-
-</span>
-
-</p>
-
-
-
-
-<div class="tariff-actions" *appHasRole="'ROLE_ADMIN'">
-
-  <button
-    *ngIf="ct.active"
-    mat-raised-button
-    color="warn"
-    (click)="deactivateTariff(ct.id)">
-
-    Pasif Yap
-
-  </button>
-
-  <button
-    *ngIf="!ct.active"
-    mat-raised-button
-    color="primary"
-    (click)="activateTariff(ct.id)">
-
-    Aktif Et
-
-  </button>
-
-  <button
-    *ngIf="!ct.active"
-    mat-raised-button
-    color="accent"
-    (click)="deleteTariff(ct.id)">
-
-    Sil
-
-  </button>
-
-</div>
-
-
-        </mat-card-content>
-
-
-      </mat-card>
-
-
-
-    </div>
-
-
-
-
-
-    <p
-
-    *ngIf="!customer.tariffs || customer.tariffs.length === 0">
-
-
-      Tarife bulunamadı.
-
-
-    </p>
-
-
-
-
-
-
-
-    <mat-divider></mat-divider>
-
-
-
-    <br>
-
-
-<!-- EK PAKETLER -->
-
-<mat-divider></mat-divider>
-
-<br>
-
-
-<h3>
-  Ek Paketler
-</h3>
-
-
-
-<div
-*ngIf="customer.addons && customer.addons.length > 0">
-
-
-
-<mat-card
-
-*ngFor="let ca of customer.addons"
-
-style="margin-bottom:15px;">
-
-
-
-<mat-card-content>
-
-
-<p>
-
-<strong>Paket:</strong>
-
-{{ ca.addonPackage.name }}
-
-</p>
-
-
-
-<p>
-
-<strong>Açıklama:</strong>
-
-{{ ca.addonPackage.description }}
-
-</p>
-
-
-
-<p>
-
-<strong>Ücret:</strong>
-
-{{ ca.addonPackage.price | money }}
-
-</p>
-
-
-
-<p>
-
-<strong>Başlangıç:</strong>
-
-{{ ca.startDate }}
-
-</p>
-
-
-
-
-<p>
-
-<strong>Durum:</strong>
-
-
-<span
-
-[class.active]="ca.active"
-
-[class.passive]="!ca.active">
-
-
-{{ ca.active ? 'Aktif' : 'Pasif' }}
-
-
-</span>
-
-
-</p>
-
-
-
-
-
-<div class="tariff-actions">
-
-
-
-<div *appHasRole="'ROLE_ADMIN'">
-
-
-
-<button
-
-*ngIf="ca.active"
-
-mat-raised-button
-
-color="warn"
-
-(click)="deactivateAddon(ca.id)">
-
-
-Pasif Yap
-
-
-</button>
-
-
-
-
-
-<button
-
-*ngIf="!ca.active"
-
-mat-raised-button
-
-color="primary"
-
-(click)="activateAddon(ca.id)">
-
-
-Aktif Et
-
-
-</button>
-
-
-
-
-
-<button
-
-mat-raised-button
-
-color="accent"
-
-(click)="deleteAddon(ca.id)">
-
-
-Sil
-
-
-</button>
-
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-</mat-card-content>
-
-
-</mat-card>
-
-
-
-</div>
-
-
-
-
-
-<p
-
-*ngIf="!customer.addons || customer.addons.length === 0">
-
-
-Ek paket bulunamadı.
-
-
-</p>
-
-
-
-
-
-
-<ng-container *appHasRole="'ROLE_ADMIN'">
-
-<h3>
-
-Yeni Ek Paket Ekle
-
-</h3>
-
-
-
-
-
-<mat-form-field
-
-appearance="outline"
-
-style="width:100%;">
-
-
-
-<mat-label>
-
-Ek Paket Seç
-
-</mat-label>
-
-
-
-
-<mat-select
-
-[(ngModel)]="selectedAddonId">
-
-
-
-<mat-option
-
-*ngFor="let addon of addons"
-
-[value]="addon.id">
-
-
-
-{{ addon.name }}
-
--
-
-{{ addon.price | money }}
-
-
-
-</mat-option>
-
-
-
-</mat-select>
-
-
-
-</mat-form-field>
-
-
-
-
-
-<button
-
-mat-raised-button
-
-color="primary"
-
-(click)="addAddon()">
-
-
-
-<mat-icon>
-
-add
-
-</mat-icon>
-
-
-Ek Paket Ekle
-
-
-</button>
-
-
-
-<br>
-<br>
-
-
-    <!-- TARİFE EKLEME -->
-
-
-    <h3>
-
-      Tarife Değiştir
-
-    </h3>
-
-
-
-
-    <mat-form-field
-
-      appearance="outline"
-
-      style="width:100%;">
-
-
-
-      <mat-label>
-
-        Tarife Seç
-
-      </mat-label>
-
-
-
-
-      <mat-select
-
-        [(ngModel)]="selectedTariffId"
-        (selectionChange)="onTariffSelectionChange()">
-
-
-
-        <mat-option
-
-          *ngFor="let tariff of tariffs"
-
-          [value]="tariff.id">
-
-
-
-          {{ tariff.name }}
-
-          -
-
-          {{ tariff.price | money }}
-
-          -
-
-          {{ tariff.type }}
-
-
-
-        </mat-option>
-
-
-
-      </mat-select>
-
-
-
-    </mat-form-field>
-
-
-    <div
-      *ngIf="showPenaltyWarning && tariffPreview"
-      class="penalty-warning">
-
-      <strong>⚠️ Taahhüt Uyarısı</strong>
-      <p *ngIf="isTariffDowngrade(tariffPreview)">
-        Yüksek tarifeden düşük tarifeye geçiyorsunuz.
-      </p>
-      <p *ngIf="tariffPreview.penaltyAmount > 0">
-        Bu işlemi yaparsanız faturanıza
-        <strong>{{ tariffPreview.penaltyAmount | number:'1.2-2' }} TL</strong>
-        cayma bedeli yansıtılacaktır.
-        (Kalan taahhüt: {{ tariffPreview.remainingMonths }} ay)
-      </p>
-      <p *ngIf="tariffPreview.proratedAmount > 0">
-        Bu ay kıstelyevm tutarı:
-        <strong>{{ tariffPreview.proratedAmount | number:'1.2-2' }} TL</strong>
-      </p>
-      <p>Emin misiniz? Onaylıyor musunuz?</p>
-
-      <div class="penalty-actions">
-        <button
-          mat-raised-button
-          color="warn"
-          (click)="confirmTariffChangeWithPenalty()">
-          Evet, Onaylıyorum
-        </button>
-
-        <button
-          mat-button
-          (click)="cancelTariffChange()">
-          İptal
-        </button>
       </div>
 
+      <div class="right-column">
+        <mat-card class="contract-card">
+          <mat-card-content>
+            <h3>Taahhüt</h3>
+            <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
+            <p><strong>Süre:</strong> {{ getCommitmentDuration() }} ay</p>
+            <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
+            <p><strong>Kalan:</strong> {{ getRemainingMonths() }} ay</p>
+            <p *ngIf="commitment?.penaltyAmount && commitment!.penaltyAmount! > 0">
+              <strong>Bekleyen Cayma Bedeli:</strong>
+              {{ commitment!.penaltyAmount | money }}
+            </p>
+          </mat-card-content>
+        </mat-card>
+      </div>
     </div>
 
+    <div class="summary-row">
+      <mat-card class="price-card" *ngIf="customer.paymentType === 'PREPAID'">
+        <mat-card-content>
+          <div class="price-title">Ön Ödemeli Bakiye</div>
+          <div class="price-value">{{ customer.balance | money }}</div>
+          <div class="price-sub">Mevcut bakiye</div>
 
+          <mat-form-field appearance="outline" class="top-up-field">
+            <mat-label>Yüklenecek Tutar (₺)</mat-label>
+            <input
+              matInput
+              type="number"
+              min="1"
+              [(ngModel)]="topUpAmount"
+              placeholder="Örn: 500">
+          </mat-form-field>
 
+          <button mat-raised-button color="primary" type="button" class="top-up-btn" (click)="addBalance()">
+            Bakiye Yükle
+          </button>
+        </mat-card-content>
+      </mat-card>
 
+      <mat-card class="price-card" *ngIf="customer.paymentType === 'POSTPAID'">
+        <mat-card-content>
+          <div class="price-title">Ödeme Tipi</div>
+          <div class="price-value postpaid-label">Faturalı</div>
+          <div class="price-sub">Aylık faturalandırma</div>
+        </mat-card-content>
+      </mat-card>
 
-    <button
+      <mat-card class="price-card">
+        <mat-card-content>
+          <div class="price-title">Toplam Aylık Ücret</div>
+          <div class="price-value">{{ getTotalMonthlyPrice() | money }}</div>
+          <div class="price-sub">Aktif tarife ve ek paketler</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
 
-      mat-raised-button
+    <!-- TARİFELER -->
+    <section class="detail-section collapsible-section" [class.is-open]="tariffsOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleTariffsSection()"
+        (keydown.enter)="toggleTariffsSection()"
+        (keydown.space)="$event.preventDefault(); toggleTariffsSection()">
+        <mat-icon>{{ tariffsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Tarifeler</span>
+        <span class="section-count" *ngIf="customer.tariffs?.length">
+          ({{ customer.tariffs!.length }})
+        </span>
+      </div>
 
-      color="primary"
-      *ngIf="!showPenaltyWarning"
+      <div class="section-body" *ngIf="tariffsOpen">
+        <div *ngIf="customer.tariffs?.length; else noTariffs">
+          <mat-card class="nested-card" *ngFor="let ct of customer.tariffs">
+            <mat-card-content>
+              <p><strong>Tarife:</strong> {{ ct.tariff.name }}</p>
+              <p><strong>İnternet:</strong> {{ ct.tariff.dataGB }} GB</p>
+              <p><strong>Dakika:</strong> {{ ct.tariff.minutes }} DK</p>
+              <p><strong>Ücret:</strong> {{ ct.tariff.price | money }}</p>
+              <p><strong>Başlangıç:</strong> {{ formatDate(ct.startDate) }}</p>
+              <p>
+                <strong>Durum:</strong>
+                <span [class.active]="ct.active" [class.passive]="!ct.active">
+                  {{ ct.active ? 'Aktif' : 'Pasif' }}
+                </span>
+              </p>
 
-      (click)="updateTariff()">
+              <div class="tariff-actions" *appHasRole="'ROLE_ADMIN'">
+                <button *ngIf="ct.active" mat-raised-button color="warn" type="button" (click)="deactivateTariff(ct.id)">
+                  Pasif Yap
+                </button>
+                <button *ngIf="!ct.active" mat-raised-button color="primary" type="button" (click)="activateTariff(ct.id)">
+                  Aktif Et
+                </button>
+                <button *ngIf="!ct.active" mat-raised-button color="accent" type="button" (click)="deleteTariff(ct.id)">
+                  Sil
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        <ng-template #noTariffs>
+          <p class="empty-note">Tarife bulunamadı.</p>
+        </ng-template>
 
+        <div class="admin-form-block" *appHasRole="'ROLE_ADMIN'">
+          <h4>Tarife Değiştir</h4>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Tarife Seç</mat-label>
+            <mat-select [(ngModel)]="selectedTariffId" (selectionChange)="onTariffSelectionChange()">
+              <mat-option *ngFor="let tariff of tariffs" [value]="tariff.id">
+                {{ tariff.name }} - {{ tariff.price | money }} - {{ tariff.type }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
 
+          <div *ngIf="showPenaltyWarning && tariffPreview" class="penalty-warning">
+            <strong>Taahhüt Uyarısı</strong>
+            <p *ngIf="isTariffDowngrade(tariffPreview)">Yüksek tarifeden düşük tarifeye geçiyorsunuz.</p>
+            <p *ngIf="tariffPreview.penaltyAmount > 0">
+              Bu işlemi yaparsanız faturanıza
+              <strong>{{ tariffPreview.penaltyAmount | number:'1.2-2' }} TL</strong>
+              cayma bedeli yansıtılacaktır.
+              (Kalan taahhüt: {{ tariffPreview.remainingMonths }} ay)
+            </p>
+            <p *ngIf="tariffPreview.proratedAmount > 0">
+              Bu ay kıstelyevm tutarı:
+              <strong>{{ tariffPreview.proratedAmount | number:'1.2-2' }} TL</strong>
+            </p>
+            <p>Emin misiniz? Onaylıyor musunuz?</p>
+            <div class="penalty-actions">
+              <button mat-raised-button color="warn" type="button" (click)="confirmTariffChangeWithPenalty()">
+                Evet, Onaylıyorum
+              </button>
+              <button mat-button type="button" (click)="cancelTariffChange()">İptal</button>
+            </div>
+          </div>
 
-      <mat-icon>
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            *ngIf="!showPenaltyWarning"
+            (click)="updateTariff()">
+            <mat-icon>swap_horiz</mat-icon>
+            Tarife Değiştir
+          </button>
+        </div>
+      </div>
+    </section>
 
-        swap_horiz
+    <!-- EK PAKETLER -->
+    <section class="detail-section collapsible-section" [class.is-open]="addonsOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleAddonsSection()"
+        (keydown.enter)="toggleAddonsSection()"
+        (keydown.space)="$event.preventDefault(); toggleAddonsSection()">
+        <mat-icon>{{ addonsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Ek Paketler</span>
+        <span class="section-count" *ngIf="customer.addons?.length">
+          ({{ customer.addons!.length }})
+        </span>
+      </div>
 
-      </mat-icon>
+      <div class="section-body" *ngIf="addonsOpen">
+        <div *ngIf="customer.addons?.length; else noAddons">
+          <mat-card class="nested-card" *ngFor="let ca of customer.addons">
+            <mat-card-content>
+              <p><strong>Paket:</strong> {{ ca.addonPackage.name }}</p>
+              <p><strong>Açıklama:</strong> {{ ca.addonPackage.description || '-' }}</p>
+              <p><strong>Ücret:</strong> {{ ca.addonPackage.price | money }}</p>
+              <p><strong>Başlangıç:</strong> {{ formatDate(ca.startDate) }}</p>
+              <p>
+                <strong>Durum:</strong>
+                <span [class.active]="ca.active" [class.passive]="!ca.active">
+                  {{ ca.active ? 'Aktif' : 'Pasif' }}
+                </span>
+              </p>
 
+              <div class="tariff-actions" *appHasRole="'ROLE_ADMIN'">
+                <button *ngIf="ca.active" mat-raised-button color="warn" type="button" (click)="deactivateAddon(ca.id)">
+                  Pasif Yap
+                </button>
+                <button *ngIf="!ca.active" mat-raised-button color="primary" type="button" (click)="activateAddon(ca.id)">
+                  Aktif Et
+                </button>
+                <button mat-raised-button color="accent" type="button" (click)="deleteAddon(ca.id)">
+                  Sil
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        <ng-template #noAddons>
+          <p class="empty-note">Ek paket bulunmuyor.</p>
+        </ng-template>
 
-      Tarife Değiştir
+        <div class="admin-form-block" *appHasRole="'ROLE_ADMIN'">
+          <h4>Yeni Ek Paket Ekle</h4>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Ek Paket Seç</mat-label>
+            <mat-select [(ngModel)]="selectedAddonId">
+              <mat-option *ngFor="let addon of addons" [value]="addon.id">
+                {{ addon.name }} - {{ addon.price | money }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button color="primary" type="button" (click)="addAddon()">
+            <mat-icon>add</mat-icon>
+            Ek Paket Ekle
+          </button>
+        </div>
+      </div>
+    </section>
 
+    <!-- SİPARİŞLER -->
+    <section class="detail-section collapsible-section" [class.is-open]="ordersOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleOrdersSection()"
+        (keydown.enter)="toggleOrdersSection()"
+        (keydown.space)="$event.preventDefault(); toggleOrdersSection()">
+        <mat-icon>{{ ordersOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Son Siparişler</span>
+        <span class="section-count" *ngIf="shopOrders.length">
+          ({{ shopOrders.length }})
+        </span>
+      </div>
 
-    </button>
+      <div class="section-body" *ngIf="ordersOpen">
+        <p *ngIf="shopOrders.length === 0" class="empty-note">
+          Henüz telefon, bilgisayar veya cihaz siparişi verilmemiş.
+        </p>
 
-</ng-container>
+        <mat-card class="order-card" *ngFor="let order of shopOrders">
+          <div class="order-header">
+            <div>
+              <h4>Sipariş #{{ order.id }}</h4>
+              <p class="order-date">{{ formatDateTime(order.orderDate) }}</p>
+            </div>
+            <div class="order-total">{{ order.totalAmount | money }}</div>
+          </div>
 
+          <div class="order-items">
+            <div class="order-item" *ngFor="let item of order.items">
+              <img
+                class="order-item-image"
+                [src]="getOrderItemImage(item)"
+                [alt]="item.itemName"
+                loading="lazy"
+                (error)="onOrderImageError($event, item)" />
+              <div class="order-item-info">
+                <span class="order-item-type">{{ getOrderItemTypeLabel(item) }}</span>
+                <strong>{{ item.itemName }}</strong>
+                <p *ngIf="item.itemBrand" class="order-item-brand">{{ item.itemBrand }}</p>
+              </div>
+              <div class="order-item-price">{{ item.price | money }}</div>
+            </div>
+          </div>
+        </mat-card>
+      </div>
+    </section>
 
+    <!-- CİHAZ TAKSİTLERİ -->
+    <section class="detail-section collapsible-section" [class.is-open]="installmentsOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleInstallmentsSection()"
+        (keydown.enter)="toggleInstallmentsSection()"
+        (keydown.space)="$event.preventDefault(); toggleInstallmentsSection()">
+        <mat-icon>{{ installmentsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Cihaz Taksitleri</span>
+        <span class="section-count" *ngIf="deviceInstallments.length">
+          ({{ deviceInstallments.length }})
+        </span>
+      </div>
 
+      <div class="section-body" *ngIf="installmentsOpen">
+        <p *ngIf="deviceInstallments.length === 0" class="empty-note">
+          Aktif cihaz taksiti bulunmuyor.
+        </p>
 
-    <br>
-    <br>
+        <mat-card class="nested-card" *ngFor="let contract of deviceInstallments">
+          <mat-card-content>
+            <p><strong>Cihaz:</strong> {{ contract.deviceName }}</p>
+            <p><strong>Aylık Taksit:</strong> {{ contract.monthlyInstallment | money }}</p>
+            <p><strong>Toplam Vade:</strong> {{ contract.totalInstallments }} ay</p>
+            <p><strong>Kalan:</strong> {{ contract.remainingInstallments }} ay</p>
+            <p><strong>Başlangıç:</strong> {{ formatDate(contract.startDate) }}</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </section>
 
+    <!-- KULLANIM (CDR) -->
+    <section class="detail-section collapsible-section" [class.is-open]="usageOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleUsageSection()"
+        (keydown.enter)="toggleUsageSection()"
+        (keydown.space)="$event.preventDefault(); toggleUsageSection()">
+        <mat-icon>{{ usageOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Günlük Kullanım (CDR)</span>
+      </div>
 
+      <div class="section-body" *ngIf="usageOpen">
+        <div class="usage-actions">
+          <mat-form-field appearance="outline">
+            <mat-label>Kullanım Tipi</mat-label>
+            <mat-select [(ngModel)]="selectedUsageType">
+              <mat-option value="DATA">İnternet (500 MB)</mat-option>
+              <mat-option value="VOICE">Konuşma (10 dk)</mat-option>
+              <mat-option value="SMS">SMS</mat-option>
+            </mat-select>
+          </mat-form-field>
 
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            [disabled]="isSimulatingUsage"
+            (click)="simulateUsage()">
+            {{ isSimulatingUsage ? 'Simüle ediliyor...' : 'Kullanım Simüle Et' }}
+          </button>
+        </div>
 
+        <p *ngIf="isUsageLoading" class="empty-note">Kullanım verisi yükleniyor...</p>
 
+        <div *ngIf="!isUsageLoading && dailyUsageSummary as summary" class="usage-summary">
+          <div class="usage-stats">
+            <div>
+              <span>İnternet</span>
+              <strong>{{ summary.totalDataMb }} MB</strong>
+            </div>
+            <div>
+              <span>Konuşma</span>
+              <strong>{{ summary.totalVoiceMinutes }} dk</strong>
+            </div>
+            <div>
+              <span>SMS</span>
+              <strong>{{ summary.totalSmsCount }}</strong>
+            </div>
+          </div>
 
-    <mat-divider></mat-divider>
-
-
-
-
-    <br>
-
-
-
-
+          <div class="usage-chart">
+            <div
+              class="usage-bar"
+              *ngFor="let point of summary.hourlyBreakdown"
+              [style.height.px]="getUsageBarHeight(point.dataMb, getMaxHourlyData())"
+              [title]="point.hour + ':00 — ' + point.dataMb + ' MB'">
+            </div>
+          </div>
+          <p class="usage-chart-caption">Saatlik internet kullanımı (MB)</p>
+        </div>
+      </div>
+    </section>
 
     <!-- FATURALAR -->
-
-
-   <!-- FATURALAR -->
-
-
-<h3>
-  Faturalar
-</h3>
-
-<p
-  *ngIf="customer.paymentType === 'PREPAID'"
-  class="invoice-auto-note">
-
-  ℹ️ Bu müşteri <strong>ön ödemeli</strong>. Fatura oluşunca tutar bakiyeden otomatik düşülür;
-  siz manuel ödeme yapmadınız.
-
-</p>
-
-
-
-<div *ngIf="invoices.length > 0">
-
-
-  <mat-card
-    class="invoice-card"
-    *ngFor="let invoice of invoices">
-
-
-    <h2>
-      📄 Fatura
-    </h2>
-
-
-    <mat-divider></mat-divider>
-
-
-    <p>
-      <strong>Dönem:</strong>
-      {{ invoice.billingPeriod }}
-    </p>
-
-
-
-    <p>
-      <strong>Son Ödeme:</strong>
-      {{ invoice.dueDate }}
-    </p>
-
-
-
-    <p>
-  <strong>Durum:</strong>
-
-  <span
-    class="invoice-status"
-    [class.paid]="isInvoicePaid(invoice)"
-    [class.unpaid]="isInvoiceUnpaid(invoice)">
-
-    {{ getInvoiceStatusLabel(invoice) }}
-
-  </span>
-
-</p>
-
-<p *ngIf="isAutoPaid(invoice)" class="auto-payment-note">
-  Tutar, fatura oluşturulurken bakiyeden otomatik kesildi.
-</p>
-
-<p *ngIf="getInvoicePenalty(invoice) > 0">
-  <strong>Cayma Bedeli:</strong>
-  {{ getInvoicePenalty(invoice) | money }}
-</p>
-
-<p *ngIf="invoice.paymentDate">
-
-  <strong>Ödeme Tarihi:</strong>
-
-  {{ invoice.paymentDate }}
-
-</p>
-
-    <mat-divider></mat-divider>
-
-
-
-    <h3>
-      📦 Fatura İçeriği
-    </h3>
-
-
-
-    <div *ngIf="invoice.tariffs?.length">
-
-      <p>
-        <strong>Tarifeler:</strong>
-      </p>
-
-
-      <ul>
-
-        <li *ngFor="let tariff of invoice.tariffs">
-
-          {{ tariff }}
-
-        </li>
-
-      </ul>
-
-    </div>
-
-
-
-    <div *ngIf="invoice.addons?.length">
-
-
-      <p>
-        <strong>Ek Paketler:</strong>
-      </p>
-
-
-      <ul>
-
-        <li *ngFor="let addon of invoice.addons">
-
-          {{ addon }}
-
-        </li>
-
-      </ul>
-
-
-    </div>
-
-
-
-    <mat-divider></mat-divider>
-
-
-
-    <h2>
-
-      Toplam:
-      {{ getInvoiceAmount(invoice) | money }}
-
-    </h2>
-
-
-
-    <button
-
-      mat-raised-button
-
-      color="primary"
-
-      *ngIf="isInvoiceUnpaid(invoice)"
-
-      (click)="payInvoice(invoice)">
-
-      Öde
-
-    </button>
-
-
-
-    <span
-      *ngIf="isInvoicePaid(invoice)"
-      class="paid-message"
-      [class.auto-paid]="isAutoPaid(invoice)">
-
-      ✅ {{ getInvoicePaidMessage(invoice) }}
-
-    </span>
-
-
-
-  </mat-card>
-
-
-</div>
-
-
-
-
-<p *ngIf="invoices.length === 0">
-
-  Bu müşteriye ait fatura bulunamadı.
-
-</p>
-
-
+    <section class="detail-section collapsible-section" [class.is-open]="invoicesOpen">
+      <div
+        class="section-toggle"
+        role="button"
+        tabindex="0"
+        (click)="toggleInvoicesSection()"
+        (keydown.enter)="toggleInvoicesSection()"
+        (keydown.space)="$event.preventDefault(); toggleInvoicesSection()">
+        <mat-icon>{{ invoicesOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+        <span class="section-toggle-heading">Faturalar</span>
+        <span class="section-count" *ngIf="invoices.length">
+          ({{ invoices.length }})
+        </span>
+      </div>
+
+      <div class="section-body" *ngIf="invoicesOpen">
+        <p *ngIf="customer.paymentType === 'PREPAID'" class="invoice-auto-note">
+          Bu müşteri ön ödemeli. Fatura oluşunca tutar bakiyeden otomatik düşülür.
+        </p>
+
+        <p *ngIf="invoices.length === 0" class="empty-note">
+          Bu müşteriye ait fatura bulunamadı.
+        </p>
+
+        <mat-card class="invoice-detail-card" *ngFor="let invoice of invoices">
+          <h4>Fatura #{{ invoice.id }}</h4>
+          <mat-divider></mat-divider>
+
+          <p><strong>Dönem:</strong> {{ invoice.billingPeriod }}</p>
+          <p><strong>Son Ödeme:</strong> {{ formatDate(invoice.dueDate) }}</p>
+          <p>
+            <strong>Durum:</strong>
+            <span
+              class="invoice-status"
+              [class.paid]="isInvoicePaid(invoice)"
+              [class.unpaid]="isInvoiceUnpaid(invoice)">
+              {{ getInvoiceStatusLabel(invoice) }}
+            </span>
+          </p>
+
+          <p *ngIf="isAutoPaid(invoice)" class="auto-payment-note">
+            Tutar, fatura oluşturulurken bakiyeden otomatik kesildi.
+          </p>
+
+          <p *ngIf="getInvoicePenalty(invoice) > 0">
+            <strong>Cayma Bedeli:</strong> {{ getInvoicePenalty(invoice) | money }}
+          </p>
+
+          <p *ngIf="invoice.paymentDate">
+            <strong>Ödeme Tarihi:</strong> {{ formatDate(invoice.paymentDate) }}
+          </p>
+
+          <p *ngIf="invoice.tariffTotal != null">
+            <strong>Tarife Toplamı:</strong> {{ invoice.tariffTotal | money }}
+          </p>
+
+          <p *ngIf="invoice.addonTotal != null">
+            <strong>Ek Paket Toplamı:</strong> {{ invoice.addonTotal | money }}
+          </p>
+
+          <p *ngIf="invoice.installmentTotal != null && invoice.installmentTotal > 0">
+            <strong>Cihaz Taksit Toplamı:</strong> {{ invoice.installmentTotal | money }}
+          </p>
+
+          <mat-divider></mat-divider>
+          <h5>Fatura İçeriği</h5>
+
+          <div *ngIf="invoice.tariffs?.length">
+            <p><strong>Tarifeler:</strong></p>
+            <ul>
+              <li *ngFor="let tariff of invoice.tariffs">{{ tariff }}</li>
+            </ul>
+          </div>
+
+          <div *ngIf="invoice.addons?.length">
+            <p><strong>Ek Paketler:</strong></p>
+            <ul>
+              <li *ngFor="let addon of invoice.addons">{{ addon }}</li>
+            </ul>
+          </div>
+
+          <div *ngIf="invoice.deviceInstallments?.length">
+            <p><strong>Cihaz Taksitleri:</strong></p>
+            <ul>
+              <li *ngFor="let installment of invoice.deviceInstallments">{{ installment }}</li>
+            </ul>
+          </div>
+
+          <p class="invoice-total">
+            <strong>Toplam:</strong> {{ getInvoiceAmount(invoice) | money }}
+          </p>
+
+          <div class="invoice-actions">
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              *ngIf="isInvoiceUnpaid(invoice)"
+              (click)="payInvoice(invoice)">
+              Öde
+            </button>
+
+            <span
+              *ngIf="isInvoicePaid(invoice)"
+              class="paid-message"
+              [class.auto-paid]="isAutoPaid(invoice)">
+              {{ getInvoicePaidMessage(invoice) }}
+            </span>
+          </div>
+        </mat-card>
+      </div>
+    </section>
 
   </mat-card-content>
-
-
-
 </mat-card>
 
-
-
-
-
-
-
 <mat-card *ngIf="isLoading">
-
-
-  <mat-card-content>
-
-    Müşteri yükleniyor...
-
-  </mat-card-content>
-
-
+  <mat-card-content>Müşteri yükleniyor...</mat-card-content>
 </mat-card>
 
 <mat-card *ngIf="!isLoading && loadError">
-
-
-  <mat-card-content class="load-error">
-
-    {{ loadError }}
-
-  </mat-card-content>
-
-
+  <mat-card-content class="load-error">{{ loadError }}</mat-card-content>
 </mat-card>
 
 <mat-card *ngIf="!isLoading && !customer && !loadError">
-
-
-  <mat-card-content>
-
-    Müşteri bulunamadı.
-
-  </mat-card-content>
-
-
+  <mat-card-content>Müşteri bulunamadı.</mat-card-content>
 </mat-card>
 
-
-
-
-
-
-<br>
-
-
-
-
-
-<button
-
-mat-raised-button
-
-color="accent"
-
-(click)="goBack()">
-
-
-
-Listeye Dön
-
-
-
+<button mat-raised-button color="accent" type="button" class="back-btn" (click)="goBack()">
+  Listeye Dön
 </button>
+
+</div>

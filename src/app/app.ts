@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './layout/navbar/navbar';
 import { SidebarComponent } from './layout/sidebar/sidebar';
+import { CustomerChatWidgetComponent } from './components/customer-chat-widget/customer-chat-widget';
 
 @Component({
   selector: 'app-root',
@@ -15,7 +16,8 @@ import { SidebarComponent } from './layout/sidebar/sidebar';
     RouterModule,
     MatSidenavModule,
     NavbarComponent,
-    SidebarComponent
+    SidebarComponent,
+    CustomerChatWidgetComponent
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.css']
@@ -49,7 +51,7 @@ export class App {
   }
 
   private isPublicRoute(path: string): boolean {
-    return path === '/' || path.startsWith('/login');
+    return path === '/' || path === '/login' || path.startsWith('/welcome');
   }
 
 }

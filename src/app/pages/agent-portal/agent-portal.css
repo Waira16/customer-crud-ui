@@ -457,6 +457,61 @@ mat-divider {
   margin: 20px 0;
 }
 
+.usage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.usage-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.usage-stats div {
+  padding: 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.usage-stats span {
+  display: block;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.usage-stats strong {
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.usage-chart {
+  display: grid;
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+  gap: 4px;
+  align-items: end;
+  height: 120px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #eff6ff;
+}
+
+.usage-bar {
+  background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 8px;
+}
+
+.usage-chart-caption {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
   .portal-page {
     padding: 12px;

@@ -19,6 +19,12 @@ export const routes: Routes = [
   },
 
   {
+    path: 'welcome',
+    redirectTo: '',
+    pathMatch: 'full'
+  },
+
+  {
     path: 'login',
     component: LoginComponent
   },
@@ -73,6 +79,14 @@ export const routes: Routes = [
     path: 'tariffs',
     component: TariffsComponent,
     canActivate: [authGuard]
+  },
+
+  {
+    path: 'dealers',
+    loadComponent: () =>
+      import('./pages/dealer-portal/dealer-portal')
+        .then(m => m.DealerPortalComponent),
+    canActivate: [authGuard, roleGuard(['ROLE_ADMIN', 'ROLE_AGENT'])]
   },
 
   {

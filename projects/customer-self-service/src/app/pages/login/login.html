@@ -1,0 +1,69 @@
+<div class="login-page">
+  <div class="login-glow login-glow-a"></div>
+  <div class="login-glow login-glow-b"></div>
+
+  <div class="login-shell">
+    <section class="login-hero">
+      <div class="hero-badge">
+        <mat-icon>smartphone</mat-icon>
+        <span>Mobil Self-Service</span>
+      </div>
+      <h1>Müşteri Yanımda</h1>
+      <p>Kalan internet, dakika ve SMS kullanımınızı görün; ek paket alın, faturanızı ödeyin.</p>
+
+      <ul class="hero-features">
+        <li><mat-icon>donut_large</mat-icon> Anlık kullanım takibi</li>
+        <li><mat-icon>bolt</mat-icon> Tek tıkla ek 5 GB</li>
+        <li><mat-icon>credit_card</mat-icon> Güvenli fatura ödeme</li>
+      </ul>
+    </section>
+
+    <mat-card class="login-card">
+      <div class="card-header">
+        <mat-icon>verified_user</mat-icon>
+        <div>
+          <h2>Giriş Yap</h2>
+          <p>Müşteri numaranız ve kayıtlı telefonunuzla devam edin.</p>
+        </div>
+      </div>
+
+      <form class="login-form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+          <mat-label>Müşteri No</mat-label>
+          <input matInput type="number" [(ngModel)]="customerId" name="customerId" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+          <mat-label>Telefon</mat-label>
+          <input
+            matInput
+            [(ngModel)]="phone"
+            name="phone"
+            autocomplete="tel"
+            required />
+        </mat-form-field>
+
+        <button mat-flat-button color="primary" class="login-btn" type="submit" [disabled]="isLoading">
+          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+          <span *ngIf="!isLoading">Giriş Yap</span>
+          <span *ngIf="isLoading">Giriş yapılıyor...</span>
+        </button>
+      </form>
+
+      <div *ngIf="error" class="error-box">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ error }}</span>
+      </div>
+
+      <div class="demo-box">
+        <p><strong>İpucu</strong></p>
+        <span>CRM’de müşteri detayından numara ve telefonu kontrol edebilirsiniz.</span>
+      </div>
+
+      <a class="back-link" [href]="publicUrl + '?from=self-service'">
+        <mat-icon>arrow_back</mat-icon>
+        Fiyatlandırma sitesine dön
+      </a>
+    </mat-card>
+  </div>
+</div>

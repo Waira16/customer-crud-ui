@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { distinctUntilChanged } from 'rxjs/operators';
 
@@ -21,6 +22,7 @@ import { PaymentFlowService } from '../../services/payment-flow.service';
 import { Customer } from '../../models/customer';
 import { Invoice } from '../../models/invoice';
 import { ShopOrder, ShopOrderItem } from '../../models/shop-order';
+import { DeviceInstallment } from '../../models/device-installment';
 import { Commitment } from '../../models/commitment';
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { roundMoney } from '../../utils/money.util';
@@ -28,6 +30,8 @@ import {
   catalogImageUrl,
   onCatalogImageError
 } from '../../utils/catalog-image.util';
+import { UsageService } from '../../services/usage.service';
+import { DailyUsageSummary, UsageType } from '../../models/usage';
 import { DEVICE_CATEGORY_LABELS, DeviceCategory } from '../../models/device';
 
 @Component({
@@ -44,6 +48,7 @@ import { DEVICE_CATEGORY_LABELS, DeviceCategory } from '../../models/device';
     MatDividerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MoneyPipe
   ],
   templateUrl: './agent-portal.html',
@@ -56,14 +61,22 @@ export class AgentPortalComponent implements OnInit {
   terminationPreview: CommitmentTerminationResult | null = null;
   invoices: Invoice[] = [];
   shopOrders: ShopOrder[] = [];
+  deviceInstallments: DeviceInstallment[] = [];
   isLoading = false;
   isTerminating = false;
 
   tariffsOpen = false;
   addonsOpen = false;
   ordersOpen = false;
+  installmentsOpen = false;
   invoicesOpen = false;
+  usageOpen = false;
   topUpAmount: number | null = null;
+
+  dailyUsageSummary: DailyUsageSummary | null = null;
+  isUsageLoading = false;
+  isSimulatingUsage = false;
+  selectedUsageType: UsageType = 'DATA';
 
   private loadingCustomerId: number | null = null;
   private readonly destroyRef = inject(DestroyRef);
@@ -75,6 +88,7 @@ export class AgentPortalComponent implements OnInit {
     private commitmentService: CommitmentService,
     private notification: NotificationService,
     private paymentFlow: PaymentFlowService,
+    private usageService: UsageService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -116,7 +130,7 @@ export class AgentPortalComponent implements OnInit {
         this.agentContext.refreshSelectedCustomer(customer);
         this.applyCommitmentData(customer);
         this.loadInvoices(customerId);
-        this.loadShopOrders(customerId);
+        this.loadDeviceInstallments(customerId);
         this.isLoading = false;
         this.loadingCustomerId = null;
         this.cdr.detectChanges();
@@ -162,6 +176,19 @@ export class AgentPortalComponent implements OnInit {
       },
       error: () => {
         this.shopOrders = [];
+      }
+    });
+  }
+
+  loadDeviceInstallments(customerId: number): void {
+    this.customerService.getDeviceInstallments(customerId).subscribe({
+      next: (installments) => {
+        this.deviceInstallments = installments ?? [];
+        this.loadShopOrders(customerId);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.deviceInstallments = [];
       }
     });
   }
@@ -348,12 +375,12 @@ export class AgentPortalComponent implements OnInit {
       title: 'Kredi Kartı ile Ödeme',
       subtitle: `Fatura #${invoice.id}`,
       amount: Number(invoice.amount ?? 0)
-    }).subscribe((payment) => {
-      if (!payment) {
+    }).subscribe((result) => {
+      if (!result) {
         return;
       }
 
-      this.invoiceService.payInvoice(invoice.id, payment).subscribe({
+      this.invoiceService.payInvoice(invoice.id, result.payment).subscribe({
         next: () => {
           this.notification.success('Fatura ödendi.');
           if (this.customer?.id) {
@@ -385,13 +412,13 @@ export class AgentPortalComponent implements OnInit {
       title: 'Bakiye Yükleme',
       subtitle: `${this.customer.firstName} ${this.customer.lastName}`,
       amount
-    }).subscribe((payment) => {
-      if (!payment) {
+    }).subscribe((result) => {
+      if (!result) {
         return;
       }
 
       this.customerService.addBalance(this.customer!.id!, {
-        ...payment,
+        ...result.payment,
         amount
       }).subscribe({
         next: (customer) => {
@@ -458,9 +485,86 @@ export class AgentPortalComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  toggleInstallmentsSection(): void {
+    this.installmentsOpen = !this.installmentsOpen;
+    if (this.installmentsOpen && this.customer?.id) {
+      this.loadDeviceInstallments(this.customer.id);
+    }
+    this.cdr.detectChanges();
+  }
+
   toggleInvoicesSection(): void {
     this.invoicesOpen = !this.invoicesOpen;
     this.cdr.detectChanges();
+  }
+
+  toggleUsageSection(): void {
+    this.usageOpen = !this.usageOpen;
+    if (this.usageOpen && this.customer?.id) {
+      this.loadUsageSummary(this.customer.id);
+    }
+    this.cdr.detectChanges();
+  }
+
+  loadUsageSummary(customerId: number): void {
+    this.isUsageLoading = true;
+    this.usageService.getDailySummary(customerId).subscribe({
+      next: (summary) => {
+        this.dailyUsageSummary = summary;
+        this.isUsageLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.dailyUsageSummary = null;
+        this.isUsageLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  simulateUsage(): void {
+    if (!this.customer?.id) {
+      return;
+    }
+
+    this.isSimulatingUsage = true;
+    this.usageService.simulateUsage({
+      customerId: this.customer.id,
+      customerPhone: this.customer.phone,
+      type: this.selectedUsageType
+    }).subscribe({
+      next: (response) => {
+        this.isSimulatingUsage = false;
+        this.loadUsageSummary(this.customer!.id!);
+
+        if (response.quotaExceeded) {
+          this.notification.warning(response.message || 'Günlük internet kotası aşıldı.');
+        } else {
+          this.notification.success(response.message || 'Kullanım kaydı oluşturuldu.');
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isSimulatingUsage = false;
+        this.notification.error(
+          this.notification.extractError(err, 'Kullanım simülasyonu başarısız.')
+        );
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getUsageBarHeight(value: number, max: number): number {
+    if (!max || max <= 0) {
+      return 0;
+    }
+    return Math.max(8, Math.round((value / max) * 100));
+  }
+
+  getMaxHourlyData(): number {
+    const points = this.dailyUsageSummary?.hourlyBreakdown ?? [];
+    return Math.max(...points.map(point => point.dataMb), 1);
   }
 
   getActiveCustomerTariffs() {
@@ -681,6 +785,7 @@ export class AgentPortalComponent implements OnInit {
     this.commitment = null;
     this.invoices = [];
     this.shopOrders = [];
+    this.deviceInstallments = [];
   }
 
 }

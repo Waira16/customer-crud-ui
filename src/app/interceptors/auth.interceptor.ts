@@ -4,22 +4,28 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { NotificationService } from '../services/notification.service';
+import { isJwtExpired } from '../utils/jwt.util';
 
 function isPublicCatalogRequest(url: string, method: string): boolean {
   if (method !== 'GET') {
     return false;
   }
 
-  return /\/api\/(tariffs|addons|devices)(\/|$)/.test(url);
+  return /\/api\/(tariffs|addons|devices|v1\/devices)(\/|$)/.test(url);
 }
 
-function shouldForceLogout(url: string, status: number): boolean {
+function shouldForceLogout(url: string, status: number, token: string | null): boolean {
   if (status !== 401) {
     return false;
   }
 
   // Eski/bozuk endpoint'ler veya opsiyonel istekler oturumu düşürmemeli.
   if (/\/termination-preview(\/|$|\?)/.test(url)) {
+    return false;
+  }
+
+  // JWT hâlâ geçerliyse 401 büyük ihtimalle eksik endpoint veya yetki sorunu.
+  if (token && !isJwtExpired(token)) {
     return false;
   }
 
@@ -53,8 +59,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error) => {
-      if (shouldForceLogout(req.url, error.status)) {
-        const hadToken = !!authService.getToken();
+      const token = authService.getToken();
+      if (shouldForceLogout(req.url, error.status, token)) {
+        const hadToken = !!token;
         authService.logout();
 
         const currentPath = router.url.split('?')[0];

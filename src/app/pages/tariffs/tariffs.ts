@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, DestroyRef, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,8 +13,10 @@ import { MatInputModule } from '@angular/material/input';
 import { TariffService, Tariff } from '../../services/tariff';
 import { AddonService } from '../../services/addon.service';
 import { DeviceService } from '../../services/device.service';
+import { DeviceSalesService } from '../../services/device-sales.service';
 import { AddonPackage } from '../../models/addon-package';
 import { Device, DEVICE_CATEGORY_LABELS, DeviceCategory } from '../../models/device';
+import { SalesDevice } from '../../models/device-sales';
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { catalogImageUrl, onCatalogImageError } from '../../utils/catalog-image.util';
 import { AuthService } from '../../services/auth.service';
@@ -35,6 +38,11 @@ import {
   buildTariffChangeConfirmMessage,
   requiresTariffChangeConfirmation
 } from '../../utils/tariff-change.util';
+import {
+  calculateMonthlyInstallment,
+  DEFAULT_INSTALLMENT_ESTIMATE_MONTHS,
+  DEFAULT_INSTALLMENT_MONTHS
+} from '../../utils/installment.util';
 
 @Component({
   selector: 'app-tariffs',
@@ -53,11 +61,12 @@ import {
   templateUrl: './tariffs.html',
   styleUrl: './tariffs.css'
 })
-export class TariffsComponent implements OnInit {
+export class TariffsComponent implements OnInit, AfterViewInit {
 
   tariffs: Tariff[] = [];
   addons: AddonPackage[] = [];
   devices: Device[] = [];
+  salesDevices: SalesDevice[] = [];
   cartItems: CartItem[] = [];
   selectedDeviceCategory: DeviceCategory | 'ALL' = 'ALL';
   hasSelectedProfile = false;
@@ -65,15 +74,41 @@ export class TariffsComponent implements OnInit {
   isAdmin = false;
   isCheckingOut = false;
   applyingTariffId: number | null = null;
+  purchasingSalesDeviceId: number | null = null;
   selectedCustomer: Customer | null = null;
 
   isLoading = true;
   loadError = '';
+  showScrollTop = true;
+
+  @ViewChild('scrollTopBtn')
+  private scrollTopBtn?: ElementRef<HTMLButtonElement>;
+
+  private scrollContainer: HTMLElement | null = null;
+  private readonly onScrollContainerScroll = (): void => {
+    const scrollTop = this.getScrollTop();
+    const shouldShow = scrollTop > 120 || this.isPageScrollable();
+
+    if (shouldShow !== this.showScrollTop) {
+      this.showScrollTop = shouldShow;
+      this.cdr.detectChanges();
+
+      if (shouldShow) {
+        setTimeout(() => this.mountScrollTopButton());
+      }
+    }
+  };
 
   readonly categoryLabels = DEVICE_CATEGORY_LABELS;
   readonly deviceCategories: DeviceCategory[] = [
     'PHONE', 'TABLET', 'HEADPHONE', 'LAPTOP', 'DESKTOP', 'WEARABLE'
   ];
+
+  readonly salesCategoryLabels: Record<string, string> = {
+    PHONE: 'Telefon',
+    TABLET: 'Tablet',
+    MODEM: 'Modem'
+  };
 
   catalogImageUrl = catalogImageUrl;
   onImageError = onCatalogImageError;
@@ -84,6 +119,7 @@ export class TariffsComponent implements OnInit {
     private tariffService: TariffService,
     private addonService: AddonService,
     private deviceService: DeviceService,
+    private deviceSalesService: DeviceSalesService,
     private authService: AuthService,
     private agentContext: AgentContextService,
     private cartService: CatalogCartService,
@@ -119,6 +155,61 @@ export class TariffsComponent implements OnInit {
     this.loadPageData();
   }
 
+  ngAfterViewInit(): void {
+    this.mountScrollTopButton();
+    this.bindScrollContainer();
+
+    this.destroyRef.onDestroy(() => {
+      this.scrollContainer?.removeEventListener('scroll', this.onScrollContainerScroll);
+      window.removeEventListener('scroll', this.onScrollContainerScroll);
+      this.unmountScrollTopButton();
+    });
+  }
+
+  private mountScrollTopButton(): void {
+    const button = this.scrollTopBtn?.nativeElement;
+    if (!button || button.parentElement === document.body) {
+      return;
+    }
+
+    document.body.appendChild(button);
+  }
+
+  private unmountScrollTopButton(): void {
+    const button = this.scrollTopBtn?.nativeElement;
+    if (button?.parentElement === document.body) {
+      document.body.removeChild(button);
+    }
+  }
+
+  private bindScrollContainer(): void {
+    this.scrollContainer = document.querySelector('mat-sidenav-content');
+
+    if (this.scrollContainer) {
+      this.scrollContainer.addEventListener('scroll', this.onScrollContainerScroll, { passive: true });
+    } else {
+      window.addEventListener('scroll', this.onScrollContainerScroll, { passive: true });
+    }
+
+    setTimeout(() => this.onScrollContainerScroll());
+  }
+
+  private getScrollTop(): number {
+    if (this.scrollContainer) {
+      return this.scrollContainer.scrollTop;
+    }
+
+    return window.scrollY || document.documentElement.scrollTop || 0;
+  }
+
+  private isPageScrollable(): boolean {
+    if (this.scrollContainer) {
+      return this.scrollContainer.scrollHeight > this.scrollContainer.clientHeight + 40;
+    }
+
+    return document.documentElement.scrollHeight > window.innerHeight + 40;
+  }
+
   loadPageData(): void {
     this.isLoading = true;
     this.loadError = '';
@@ -126,20 +217,27 @@ export class TariffsComponent implements OnInit {
     forkJoin({
       tariffs: this.tariffService.fetchTariffs(),
       addons: this.addonService.fetchAddons(),
-      devices: this.deviceService.fetchDevices()
+      devices: this.deviceService.fetchDevices(),
+      salesDevices: this.deviceSalesService.fetchSalesDevices().pipe(catchError(() => of([])))
     }).subscribe({
-      next: ({ tariffs, addons, devices }) => {
+      next: ({ tariffs, addons, devices, salesDevices }) => {
         this.tariffs = tariffs ?? [];
         this.addons = addons ?? [];
         this.devices = devices ?? [];
+        this.salesDevices = salesDevices ?? [];
         this.isLoading = false;
         this.cdr.detectChanges();
+        setTimeout(() => {
+          this.mountScrollTopButton();
+          this.onScrollContainerScroll();
+        });
       },
       error: (err) => {
         console.error('Tarife/ek paket/cihaz yukleme hatasi', err);
         this.tariffs = [];
         this.addons = [];
         this.devices = [];
+        this.salesDevices = [];
         this.isLoading = false;
         this.loadError = 'Veriler yüklenemedi. Lütfen sayfayı yenileyin.';
         this.cdr.detectChanges();
@@ -149,6 +247,12 @@ export class TariffsComponent implements OnInit {
 
   showCartActions(): boolean {
     return this.isAgent || this.isAdmin;
+  }
+
+  getProfileSelectionHint(): string {
+    return this.isAdmin
+      ? 'Sepet kullanmak için sol menüden müşteri seçin.'
+      : 'Sepet kullanmak için sol menüden profilinizi seçin.';
   }
 
   openCreateTariffDialog(): void {
@@ -374,6 +478,76 @@ export class TariffsComponent implements OnInit {
     this.notification.success(`${device.name} sepete eklendi.`);
   }
 
+  getSalesDeviceName(device: SalesDevice): string {
+    return `${device.brand} ${device.model}`.trim();
+  }
+
+  getDeviceInstallmentEstimate(price: number, months = DEFAULT_INSTALLMENT_ESTIMATE_MONTHS): number {
+    return calculateMonthlyInstallment(Number(price ?? 0), months);
+  }
+
+  purchaseSalesDevice(device: SalesDevice): void {
+    if (!this.ensureProfileSelected()) {
+      return;
+    }
+
+    const customerId = this.agentContext.getSelectedCustomerId();
+    if (!customerId) {
+      return;
+    }
+
+    if (device.stockQuantity <= 0) {
+      this.notification.warning('Bu cihaz stokta yok.');
+      return;
+    }
+
+    const profile = this.agentContext.getSelectedCustomer();
+
+    this.paymentFlow.requestPayment({
+      title: 'Cihaz Taksit Ödemesi',
+      subtitle: profile
+        ? `${profile.firstName} ${profile.lastName} — ${this.getSalesDeviceName(device)}`
+        : this.getSalesDeviceName(device),
+      amount: Number(device.price),
+      showInstallmentOptions: true,
+      devicePrice: Number(device.price)
+    }).subscribe((result) => {
+      if (!result) {
+        return;
+      }
+
+      this.purchasingSalesDeviceId = device.id;
+      this.cdr.detectChanges();
+
+      this.deviceSalesService.purchaseDevice({
+        customerId,
+        deviceId: device.id,
+        installments: result.installments ?? DEFAULT_INSTALLMENT_MONTHS
+      }).subscribe({
+        next: (response) => {
+          this.purchasingSalesDeviceId = null;
+          this.loadPageData();
+          this.notification.success(
+            response.message
+              || `Cihaz taksiti oluşturuldu. Aylık ${response.monthlyInstallment} TL faturaya yansıyacak. Profilde Cihaz Taksitleri bölümünden görebilirsiniz.`
+          );
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.purchasingSalesDeviceId = null;
+          this.notification.error(
+            this.notification.extractError(err, 'Cihaz taksit satışı tamamlanamadı.')
+          );
+          this.cdr.detectChanges();
+        }
+      });
+    });
+  }
+
+  isPurchasingSalesDevice(deviceId: number): boolean {
+    return this.purchasingSalesDeviceId === deviceId;
+  }
+
   removeFromCart(item: CartItem): void {
     this.cartService.removeItem(item.type, item.id);
   }
@@ -390,7 +564,7 @@ export class TariffsComponent implements OnInit {
     const customerId = this.agentContext.getSelectedCustomerId();
 
     if (!customerId) {
-      this.notification.warning('Önce sol menüden profilinizi seçin.');
+      this.notification.warning(this.getProfileSelectionHint());
       return;
     }
 
@@ -401,15 +575,21 @@ export class TariffsComponent implements OnInit {
 
     const profile = this.agentContext.getSelectedCustomer();
     const total = this.getCartTotal();
+    const deviceTotal = this.cartItems
+      .filter(item => item.type === 'DEVICE')
+      .reduce((sum, item) => sum + Number(item.price ?? 0), 0);
+    const hasDevices = deviceTotal > 0;
 
     this.paymentFlow.requestPayment({
       title: 'Sepet Ödemesi',
       subtitle: profile
         ? `${profile.firstName} ${profile.lastName}`
         : undefined,
-      amount: total
-    }).subscribe((payment) => {
-      if (!payment) {
+      amount: total,
+      showInstallmentOptions: hasDevices,
+      devicePrice: hasDevices ? deviceTotal : undefined
+    }).subscribe((result) => {
+      if (!result) {
         return;
       }
 
@@ -417,7 +597,7 @@ export class TariffsComponent implements OnInit {
       this.cdr.detectChanges();
 
       this.customerService.shopCheckout(customerId, {
-        payment,
+        payment: result.payment,
         tariffIds: [],
         addonIds: this.cartItems
           .filter(item => item.type === 'ADDON')
@@ -450,7 +630,7 @@ export class TariffsComponent implements OnInit {
       return true;
     }
 
-    this.notification.warning('Önce sol menüden profilinizi seçin.');
+    this.notification.warning(this.getProfileSelectionHint());
     return false;
   }
 
@@ -502,6 +682,15 @@ export class TariffsComponent implements OnInit {
       return 'Ek Paket';
     }
     return 'Cihaz';
+  }
+
+  scrollToTop(): void {
+    if (this.scrollContainer) {
+      this.scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
 }

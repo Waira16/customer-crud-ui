@@ -104,12 +104,45 @@
   outline-offset: 2px;
 }
 
+.header-nav .nav-link-ai {
+  background: linear-gradient(135deg, #0284c7, #7c3aed);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.22);
+}
+
+.header-nav .nav-link-ai mat-icon {
+  color: #fff;
+}
+
+.header-nav .nav-link-ai:hover {
+  color: #fff;
+  background: linear-gradient(135deg, #0369a1, #6d28d9);
+  border-color: transparent;
+  box-shadow: 0 8px 22px rgba(124, 58, 237, 0.28);
+}
+
+.header-nav .nav-link-ai:hover mat-icon {
+  color: #fff;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
   flex-wrap: wrap;
+}
+
+.login-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.login-actions a mat-icon {
+  margin-right: 0.15rem;
 }
 
 .brand {
@@ -245,6 +278,75 @@
   border-color: rgba(3, 105, 161, 0.35) !important;
   background: rgba(255, 255, 255, 0.55) !important;
   backdrop-filter: blur(8px);
+}
+
+.hero-cta a mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  margin-right: 0.2rem;
+}
+
+.pricing-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 18px;
+  text-decoration: none;
+  color: inherit;
+  background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+  box-shadow: 0 14px 34px rgba(2, 132, 199, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pricing-promo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(2, 132, 199, 0.28);
+}
+
+.pricing-promo-copy h4 {
+  margin: 0.35rem 0 0.25rem;
+  color: #fff;
+  font-size: 1.08rem;
+}
+
+.pricing-promo-copy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  max-width: 640px;
+}
+
+.pricing-promo-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pricing-promo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  background: #fff;
+  color: #0369a1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pricing-link-btn mat-icon {
+  margin-right: 0.2rem;
 }
 
 .hero-visual {
@@ -402,7 +504,7 @@
   scroll-margin-top: 88px;
 }
 
-#paketler {
+#katalog {
   scroll-margin-top: 88px;
 }
 
@@ -612,6 +714,22 @@
   opacity: 0.92;
 }
 
+.cta-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.cta-banner-actions a mat-icon {
+  margin-right: 0.15rem;
+}
+
+.cta-banner-actions .mat-mdc-outlined-button {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
+}
+
 .landing-footer {
   text-align: center;
   padding: 2rem 1rem;
@@ -659,6 +777,11 @@
 
   .carousel-item {
     flex-basis: 220px;
+  }
+
+  .pricing-promo {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 

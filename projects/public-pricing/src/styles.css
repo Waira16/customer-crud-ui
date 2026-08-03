@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: Roboto, Arial, sans-serif;
+  background: #f0f9ff;
+  color: #0f172a;
+}
+
+pub-root {
+  display: block;
+  min-height: 100%;
+}
+
+pub-chat-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10000;
+}
+
+mat-icon,
+.mat-icon {
+  font-family: 'Material Icons' !important;
+  overflow: hidden;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  max-width: none !important;
+}
+
+.mat-mdc-form-field-infix {
+  min-width: 0 !important;
+}

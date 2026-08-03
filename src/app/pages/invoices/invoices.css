@@ -467,6 +467,11 @@ tbody tr {
   font-weight: 700;
 }
 
+.installment-value {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
 .empty-row {
   text-align: center;
   color: #64748b;

@@ -24,6 +24,10 @@ export interface Invoice {
 
   addonTotal?: number;
 
+  installmentTotal?: number;
+
+  deviceInstallments?: string[];
+
   tariffs?: string[];
 
   addons?: string[];

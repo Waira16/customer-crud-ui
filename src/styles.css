@@ -5,6 +5,11 @@ body {
 
 }
 
+app-root {
+  display: block;
+  min-height: 100%;
+}
+
 
 body {
 
@@ -18,6 +23,19 @@ body {
 
 body.public-page {
   background:#f0f9ff;
+}
+
+app-customer-chat-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10000;
+  display: block;
+  pointer-events: none;
+}
+
+app-customer-chat-widget .chat-fab {
+  pointer-events: auto;
 }
 
 
@@ -74,4 +92,17 @@ body.public-page {
 .app-snackbar-warning .mat-mdc-snack-bar-action {
   color: inherit !important;
   font-weight: 700;
+}
+
+.tariffs-scroll-top-btn {
+  position: fixed;
+  top: 96px;
+  right: 28px;
+  z-index: 3000;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35);
 }

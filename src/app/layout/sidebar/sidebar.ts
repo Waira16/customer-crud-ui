@@ -17,6 +17,7 @@ import { of } from 'rxjs';
 
 import { HasRoleDirective } from '../../directives/has-role.directive';
 import { AgentContextService } from '../../services/agent-context.service';
+import { AuthService } from '../../services/auth.service';
 import { CustomerService } from '../../services/customer.service';
 import { Customer } from '../../models/customer';
 import { MoneyPipe } from '../../pipes/money.pipe';
@@ -47,11 +48,32 @@ export class SidebarComponent implements OnInit {
   showResults = false;
   isSelectingProfile = false;
 
+  get profileSelectionLabel(): string {
+    return this.authService.isAdmin() ? 'Seçili Müşteri' : 'Seçili Profil';
+  }
+
+  get changeProfileLabel(): string {
+    return this.authService.isAdmin() ? 'Müşteri Değiştir' : 'Profil Değiştir';
+  }
+
+  get emptyProfileHint(): string {
+    return this.authService.isAdmin()
+      ? 'Ad veya soyad yazarak müşteri seçin'
+      : 'Ad veya soyad yazarak profilinizi seçin';
+  }
+
+  get searchPlaceholder(): string {
+    return this.authService.isAdmin()
+      ? 'Müşteri ara (ad, soyad, e-posta)...'
+      : 'Ad, soyad veya e-posta...';
+  }
+
   private blurTimeout: ReturnType<typeof setTimeout> | null = null;
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
     private agentContext: AgentContextService,
+    private authService: AuthService,
     private customerService: CustomerService,
     private router: Router,
     private notification: NotificationService,
@@ -154,8 +176,12 @@ export class SidebarComponent implements OnInit {
         this.agentContext.setSelectedCustomer(fullCustomer);
         this.isSelectingProfile = false;
 
-        if (!this.router.url.startsWith('/portal')) {
-          void this.router.navigate(['/portal']);
+        if (this.authService.isAgent()) {
+          if (!this.router.url.startsWith('/portal')) {
+            void this.router.navigate(['/portal']);
+          }
+        } else if (this.authService.isAdmin()) {
+          void this.router.navigate(['/customer-detail', customerId]);
         }
 
         this.cdr.markForCheck();
@@ -177,6 +203,21 @@ export class SidebarComponent implements OnInit {
     this.searchQuery = '';
     this.profileSearchControl.setValue('', { emitEvent: false });
     this.cdr.markForCheck();
+  }
+
+  openSelectedProfile(): void {
+    const customerId = this.selectedCustomer?.id;
+
+    if (!customerId) {
+      return;
+    }
+
+    if (this.authService.isAdmin()) {
+      void this.router.navigate(['/customer-detail', customerId]);
+      return;
+    }
+
+    void this.router.navigate(['/portal']);
   }
 
 }

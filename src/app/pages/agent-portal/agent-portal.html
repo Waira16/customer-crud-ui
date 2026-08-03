@@ -282,6 +282,102 @@
         </div>
       </section>
 
+      <section class="detail-section collapsible-section" [class.is-open]="installmentsOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleInstallmentsSection()"
+          (keydown.enter)="toggleInstallmentsSection()"
+          (keydown.space)="$event.preventDefault(); toggleInstallmentsSection()">
+          <mat-icon>{{ installmentsOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Cihaz Taksitleri</span>
+          <span class="section-count" *ngIf="deviceInstallments.length">
+            ({{ deviceInstallments.length }})
+          </span>
+        </div>
+
+        <div class="section-body" *ngIf="installmentsOpen">
+          <p *ngIf="deviceInstallments.length === 0" class="empty-note">
+            Aktif cihaz taksiti bulunmuyor.
+          </p>
+
+          <mat-card class="nested-card" *ngFor="let contract of deviceInstallments">
+            <mat-card-content>
+              <p><strong>Cihaz:</strong> {{ contract.deviceName }}</p>
+              <p><strong>Aylık Taksit:</strong> {{ contract.monthlyInstallment | money }}</p>
+              <p><strong>Toplam Vade:</strong> {{ contract.totalInstallments }} ay</p>
+              <p><strong>Kalan:</strong> {{ contract.remainingInstallments }} ay</p>
+              <p><strong>Başlangıç:</strong> {{ formatDate(contract.startDate) }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </section>
+
+      <section class="detail-section collapsible-section" [class.is-open]="usageOpen">
+        <div
+          class="section-toggle"
+          role="button"
+          tabindex="0"
+          (click)="toggleUsageSection()"
+          (keydown.enter)="toggleUsageSection()"
+          (keydown.space)="$event.preventDefault(); toggleUsageSection()">
+          <mat-icon>{{ usageOpen ? 'expand_less' : 'expand_more' }}</mat-icon>
+          <span class="section-toggle-heading">Günlük Kullanım (CDR)</span>
+        </div>
+
+        <div class="section-body" *ngIf="usageOpen">
+          <div class="usage-actions">
+            <mat-form-field appearance="outline">
+              <mat-label>Kullanım Tipi</mat-label>
+              <mat-select [(ngModel)]="selectedUsageType">
+                <mat-option value="DATA">İnternet (500 MB)</mat-option>
+                <mat-option value="VOICE">Konuşma (10 dk)</mat-option>
+                <mat-option value="SMS">SMS</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <button
+              mat-raised-button
+              color="primary"
+              type="button"
+              [disabled]="isSimulatingUsage"
+              (click)="simulateUsage()">
+              {{ isSimulatingUsage ? 'Simüle ediliyor...' : 'Kullanım Simüle Et' }}
+            </button>
+          </div>
+
+          <p *ngIf="isUsageLoading" class="empty-note">Kullanım verisi yükleniyor...</p>
+
+          <div *ngIf="!isUsageLoading && dailyUsageSummary as summary" class="usage-summary">
+            <div class="usage-stats">
+              <div>
+                <span>İnternet</span>
+                <strong>{{ summary.totalDataMb }} MB</strong>
+              </div>
+              <div>
+                <span>Konuşma</span>
+                <strong>{{ summary.totalVoiceMinutes }} dk</strong>
+              </div>
+              <div>
+                <span>SMS</span>
+                <strong>{{ summary.totalSmsCount }}</strong>
+              </div>
+            </div>
+
+            <div class="usage-chart">
+              <div
+                class="usage-bar"
+                *ngFor="let point of summary.hourlyBreakdown"
+                [style.height.px]="getUsageBarHeight(point.dataMb, getMaxHourlyData())"
+                [title]="point.hour + ':00 — ' + point.dataMb + ' MB'">
+              </div>
+            </div>
+            <p class="usage-chart-caption">Saatlik internet kullanımı (MB)</p>
+          </div>
+        </div>
+      </section>
+
       <section class="detail-section collapsible-section" [class.is-open]="invoicesOpen">
         <div
           class="section-toggle"
@@ -338,6 +434,10 @@
             <strong>Ek Paket Toplamı:</strong> {{ invoice.addonTotal | money }}
           </p>
 
+          <p *ngIf="invoice.installmentTotal != null && invoice.installmentTotal > 0">
+            <strong>Cihaz Taksit Toplamı:</strong> {{ invoice.installmentTotal | money }}
+          </p>
+
           <mat-divider></mat-divider>
 
           <h5>Fatura İçeriği</h5>
@@ -353,6 +453,13 @@
             <p><strong>Ek Paketler:</strong></p>
             <ul>
               <li *ngFor="let addon of invoice.addons">{{ addon }}</li>
+            </ul>
+          </div>
+
+          <div *ngIf="invoice.deviceInstallments?.length">
+            <p><strong>Cihaz Taksitleri:</strong></p>
+            <ul>
+              <li *ngFor="let installment of invoice.deviceInstallments">{{ installment }}</li>
             </ul>
           </div>
 

@@ -1,0 +1,107 @@
+<section class="invoices-page">
+  <div class="summary-banner">
+    <div>
+      <span class="banner-tag">Fatura Merkezi</span>
+      <h2>Faturalarım</h2>
+      <p>Ödenmemiş faturalarınızı görüntüleyin ve güvenli ödeme yapın.</p>
+    </div>
+    <div class="summary-stats">
+      <article>
+        <span>Bekleyen</span>
+        <strong>{{ unpaidCount }}</strong>
+      </article>
+      <article>
+        <span>Toplam Borç</span>
+        <strong>{{ unpaidTotal | money }}</strong>
+      </article>
+    </div>
+  </div>
+
+  <div class="filter-tabs">
+    <button type="button" [class.active]="filter === 'ALL'" (click)="setFilter('ALL')">Tümü</button>
+    <button type="button" [class.active]="filter === 'UNPAID'" (click)="setFilter('UNPAID')">Ödenmemiş</button>
+    <button type="button" [class.active]="filter === 'PAID'" (click)="setFilter('PAID')">Ödenmiş</button>
+  </div>
+
+  <div *ngIf="isLoading" class="state-card">
+    <mat-spinner diameter="36"></mat-spinner>
+    <p>Faturalarınız yükleniyor...</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredInvoices.length === 0" class="empty-card">
+    <mat-icon>receipt_long</mat-icon>
+    <h3>Bu filtrede fatura bulunamadı</h3>
+    <p>Henüz kayıtlı faturanız yok veya seçili filtreye uygun fatura bulunmuyor.</p>
+    <a mat-stroked-button routerLink="/account">Ana Sayfaya Dön</a>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+  <article class="invoice-card" *ngFor="let invoice of filteredInvoices">
+    <div class="invoice-head">
+      <div>
+        <p class="invoice-period">{{ invoice.billingPeriod || 'Fatura Dönemi' }}</p>
+        <h3>#{{ invoice.id }}</h3>
+      </div>
+      <span class="status-badge" [class.paid]="invoice.status === 'PAID'">
+        {{ statusLabel(invoice.status) }}
+      </span>
+    </div>
+
+    <div class="invoice-body">
+      <div class="amount-box">
+        <span>Tutar</span>
+        <strong>{{ invoice.amount | money }}</strong>
+      </div>
+      <div class="meta-grid">
+        <p><mat-icon>event</mat-icon> Son ödeme: {{ invoice.dueDate || '—' }}</p>
+        <p *ngIf="invoice.installmentTotal">
+          <mat-icon>smartphone</mat-icon> Cihaz taksiti: {{ invoice.installmentTotal | money }}
+        </p>
+      </div>
+    </div>
+
+    <div *ngIf="invoice.status !== 'PAID'" class="invoice-actions">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="togglePayment(invoice.id)">
+        {{ expandedInvoiceId === invoice.id ? 'Ödemeyi Gizle' : 'Kart ile Öde' }}
+      </button>
+    </div>
+
+    <div *ngIf="invoice.status !== 'PAID' && expandedInvoiceId === invoice.id" class="pay-box">
+      <div class="pay-head">
+        <mat-icon>credit_card</mat-icon>
+        <div>
+          <strong>Güvenli Ödeme</strong>
+          <p>Kart numaranız Luhn algoritması ile doğrulanır.</p>
+        </div>
+      </div>
+
+      <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+        <mat-label>Kart Numarası</mat-label>
+        <input matInput [(ngModel)]="payment.cardNumber" />
+      </mat-form-field>
+      <div class="pay-row">
+        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+          <mat-label>Son Kullanma (AA/YY)</mat-label>
+          <input matInput [(ngModel)]="payment.expiryDate" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+          <mat-label>CVV</mat-label>
+          <input matInput [(ngModel)]="payment.cvv" />
+        </mat-form-field>
+      </div>
+      <button
+        mat-flat-button
+        color="primary"
+        class="pay-btn"
+        [disabled]="payingInvoiceId === invoice.id"
+        (click)="pay(invoice)">
+        <mat-spinner *ngIf="payingInvoiceId === invoice.id" diameter="18"></mat-spinner>
+        <span>{{ payingInvoiceId === invoice.id ? 'Ödeniyor...' : 'Faturayı Öde' }}</span>
+      </button>
+    </div>
+  </article>
+  </ng-container>
+</section>

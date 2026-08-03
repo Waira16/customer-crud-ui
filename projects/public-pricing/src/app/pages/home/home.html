@@ -1,0 +1,243 @@
+<div class="public-shell">
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <a [href]="crmUrl" class="brand">
+        <mat-icon>cell_tower</mat-icon>
+        <span>Telecom Fiyatlandırma</span>
+      </a>
+
+      <nav class="nav-pills" aria-label="Sayfa menüsü">
+        <a [href]="crmUrl" class="nav-pill">
+          <mat-icon>home</mat-icon>
+          Ana Sayfa
+        </a>
+        <a href="#robot" class="nav-pill">
+          <mat-icon>tune</mat-icon>
+          Tarife Robotu
+        </a>
+        <a href="#ai-advisor" class="nav-pill">
+          <mat-icon>smart_toy</mat-icon>
+          AI Öneri
+        </a>
+        <a href="#calculator" class="nav-pill">
+          <mat-icon>calculate</mat-icon>
+          Hesaplayıcı
+        </a>
+        <a href="#application" class="nav-pill">
+          <mat-icon>assignment</mat-icon>
+          Başvuru
+        </a>
+      </nav>
+
+      <div class="top-actions">
+        <a *ngIf="showReturnToPortal" class="back-link" [href]="selfServiceUrl">
+          <mat-icon>arrow_back</mat-icon>
+          Portala Dön
+        </a>
+        <a class="action-link" [href]="selfServiceUrl">Müşteri Girişi</a>
+        <a mat-flat-button color="primary" class="staff-btn" [href]="crmUrl" rel="noopener">
+          Personel Girişi
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <div *ngIf="showReturnToPortal" class="return-banner">
+    <mat-icon>info</mat-icon>
+    <span>Tarifeleri inceliyorsunuz. Müşteri panelinize dönmek için üst menüdeki geri bağlantısını kullanın.</span>
+    <a [href]="selfServiceUrl">← Portal'a Dön</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <span class="hero-badge">4200 · Akıllı Paket Danışmanı</span>
+      <h1>Tarife Robotu ile size en uygun paketi bulun</h1>
+      <p>İnternet ve dakika ihtiyacınızı kaydırın, AI destekli öneriyi alın, cihaz taksitini hesaplayın.</p>
+      <div class="hero-chips">
+        <span><mat-icon>wifi</mat-icon> Tarife eşleştirme</span>
+        <span><mat-icon>smart_toy</mat-icon> Ollama AI</span>
+        <span><mat-icon>devices</mat-icon> Cihaz taksiti</span>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="isLoading" class="info-box">Katalog yükleniyor...</div>
+  <div *ngIf="loadError" class="error-box">{{ loadError }}</div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+    <section id="robot" class="panel robot-panel">
+      <h2><mat-icon>tune</mat-icon> Tarife Robotu</h2>
+      <div class="sliders">
+        <label>İnternet: <strong>{{ selectedDataGb }} GB</strong></label>
+        <mat-slider [min]="minDataGb" [max]="100" [step]="5" discrete>
+          <input matSliderThumb [(ngModel)]="selectedDataGb" (ngModelChange)="onRobotChange()" />
+        </mat-slider>
+
+        <label>Dakika: <strong>{{ selectedMinutes }}</strong></label>
+        <mat-slider [min]="minMinutes" [max]="5000" [step]="100" discrete>
+          <input matSliderThumb [(ngModel)]="selectedMinutes" (ngModelChange)="onRobotChange()" />
+        </mat-slider>
+      </div>
+
+      <div class="tariff-results">
+        <p class="result-count">{{ filteredTariffs.length }} tarife eşleşti</p>
+        <mat-card class="tariff-card" *ngFor="let tariff of filteredTariffs">
+          <mat-card-content>
+            <span class="tariff-type">{{ tariff.type === 'MOBILE' ? 'Mobil' : 'Fiber' }}</span>
+            <h3>{{ tariff.name }}</h3>
+            <p>{{ tariff.dataGB }} GB · {{ tariff.minutes }} dk</p>
+            <strong>{{ tariff.price | money }} / ay</strong>
+          </mat-card-content>
+        </mat-card>
+        <p *ngIf="filteredTariffs.length === 0" class="empty-note">
+          Bu kriterlere uygun tarife bulunamadı. Slider değerlerini düşürmeyi deneyin.
+        </p>
+      </div>
+    </section>
+
+    <section id="ai-advisor" class="panel ai-panel">
+      <h2><mat-icon>smart_toy</mat-icon> AI Paket Öneri Asistanı</h2>
+      <p class="hint">
+        Tarife robotundaki {{ selectedDataGb }} GB / {{ selectedMinutes }} dk profilinize göre
+        en uygun paketi doğal dille açıklar. (Ollama · ücretsiz)
+      </p>
+
+      <div class="ai-actions">
+        <button mat-flat-button color="primary" type="button" [disabled]="aiRecommendLoading" (click)="askAiAdvisor()">
+          <mat-spinner *ngIf="aiRecommendLoading" diameter="18"></mat-spinner>
+          <span>{{ aiRecommendLoading ? 'Analiz ediliyor...' : 'AI ile Öneri Al' }}</span>
+        </button>
+      </div>
+
+      <div *ngIf="aiRecommendedTariffName" class="ai-summary-card">
+        <span class="ai-badge">Önerilen</span>
+        <strong>{{ aiRecommendedTariffName }}</strong>
+        <p *ngIf="aiRecommendedMonthlyTotal != null">
+          Tahmini aylık: {{ aiRecommendedMonthlyTotal | money }}
+        </p>
+      </div>
+
+      <p *ngIf="aiRecommendation" class="ai-recommendation">{{ aiRecommendation }}</p>
+      <p *ngIf="aiRecommendPowered && aiRecommendation" class="ai-powered-note">Yanıt Ollama AI ile üretildi.</p>
+      <p *ngIf="aiRecommendError" class="error-box">{{ aiRecommendError }}</p>
+    </section>
+
+    <section id="calculator" class="panel calculator-panel">
+      <h2><mat-icon>calculate</mat-icon> Cihaz + Tarife Paket Hesaplayıcı</h2>
+      <p class="hint">2–6 ay faizsiz, 12–18 ay faizli taksit planları.</p>
+
+      <div class="calculator-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Tarife seçin</mat-label>
+          <mat-select [(ngModel)]="selectedTariffId">
+            <mat-option *ngFor="let tariff of tariffs" [value]="tariff.id">
+              {{ tariff.name }} — {{ tariff.price | money }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="device-installment-row">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="device-field">
+            <mat-label>Cihaz seçin</mat-label>
+            <mat-select [(ngModel)]="selectedDeviceId">
+              <mat-option [value]="null">Cihaz seçmeyin</mat-option>
+              <mat-option *ngFor="let device of devices" [value]="device.id">
+                {{ device.brand }} {{ device.name }} — {{ device.price | money }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="installment-field"
+            *ngIf="selectedDeviceId">
+            <mat-label>Taksit</mat-label>
+            <mat-select [(ngModel)]="selectedInstallmentMonths">
+              <mat-option *ngFor="let months of installmentOptions" [value]="months">
+                {{ months }} ay — {{ installmentLabel(months) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="package-summary" *ngIf="selectedTariff || selectedDevice">
+        <p *ngIf="selectedTariff">
+          <strong>Tarife:</strong> {{ selectedTariff!.name }} ({{ selectedTariff!.price | money }}/ay)
+        </p>
+        <p *ngIf="selectedDevice">
+          <strong>Cihaz:</strong> {{ selectedDevice!.brand }} {{ selectedDevice!.name }}
+          ({{ selectedInstallmentMonths }} ay · {{ installmentLabel(selectedInstallmentMonths) }}:
+          {{ deviceMonthlyInstallment | money }}/ay)
+        </p>
+        <p *ngIf="selectedDevice && deviceInterestAmount > 0" class="interest-line">
+          Toplam cihaz ödemesi: {{ deviceInstallmentTotal | money }}
+          (+{{ deviceInterestAmount | money }} faiz)
+        </p>
+        <p class="total-line">
+          Tahmini aylık toplam: <strong>{{ packageMonthlyTotal | money }}</strong>
+        </p>
+      </div>
+    </section>
+
+    <section id="application" class="panel application-panel">
+      <h2><mat-icon>assignment</mat-icon> Online Başvuru</h2>
+      <p class="hint">Form gönderildiğinde başvurunuz <strong>PENDING_VERIFICATION</strong> statüsünde kaydedilir.</p>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Ad</mat-label>
+          <input matInput [(ngModel)]="application.firstName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Soyad</mat-label>
+          <input matInput [(ngModel)]="application.lastName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>E-posta</mat-label>
+          <input matInput type="email" [(ngModel)]="application.email" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Telefon</mat-label>
+          <input matInput [(ngModel)]="application.phone" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Yaş</mat-label>
+          <input matInput type="number" [(ngModel)]="application.age" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+          <mat-label>Adres</mat-label>
+          <input matInput [(ngModel)]="application.address" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+          <mat-label>Not</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="application.notes"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="submit-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          class="submit-btn"
+          type="button"
+          [disabled]="isSubmitting"
+          (click)="submitApplication()">
+          {{ isSubmitting ? 'Gönderiliyor...' : 'Başvuruyu Gönder' }}
+        </button>
+      </div>
+
+      <p *ngIf="applicationMessage" class="success-box">{{ applicationMessage }}</p>
+      <p *ngIf="applicationError" class="error-box">{{ applicationError }}</p>
+    </section>
+  </ng-container>
+
+  <footer class="public-footer">
+    <span>© 2026 Telecom Fiyatlandırma</span>
+    <div class="footer-links">
+      <a [href]="crmUrl">Ana Sayfa (4201)</a>
+      <a [href]="selfServiceUrl">Müşteri Portalı (4202)</a>
+    </div>
+  </footer>
+</div>

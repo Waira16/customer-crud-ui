@@ -1,0 +1,94 @@
+<div class="portal">
+  <aside class="portal-sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <mat-icon>cell_tower</mat-icon>
+      </div>
+      <div>
+        <strong>Mobil Yanımda</strong>
+        <span>Self-Service Portal</span>
+      </div>
+    </div>
+
+    <div class="customer-chip">
+      <div class="avatar">{{ profile.firstName?.charAt(0) }}{{ profile.lastName?.charAt(0) }}</div>
+      <div>
+        <p class="chip-label">Hoş geldiniz</p>
+        <p class="chip-value">{{ profile.fullName }}</p>
+        <p class="chip-meta">Hat No #{{ profile.customerId }}</p>
+        <p class="chip-phone">{{ profile.phone }}</p>
+      </div>
+    </div>
+
+    <div class="package-chip">
+      <mat-icon>sim_card</mat-icon>
+      <div>
+        <p class="chip-label">Aktif Paketiniz</p>
+        <p class="package-name">{{ profile.packageName }}</p>
+        <p class="package-summary">{{ profile.packageSummary }}</p>
+      </div>
+    </div>
+
+    <nav class="side-nav">
+      <button
+        type="button"
+        *ngFor="let item of navItems"
+        class="side-link"
+        [class.active]="isActive(item)"
+        (click)="onNavClick(item)">
+        <mat-icon>{{ item.icon }}</mat-icon>
+        <span>{{ item.label }}</span>
+      </button>
+    </nav>
+
+    <button type="button" class="logout-btn" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Çıkış Yap</span>
+    </button>
+  </aside>
+
+  <div class="portal-main">
+    <header class="portal-topbar">
+      <div class="topbar-left welcome-block">
+        <div class="topbar-brand-mobile">
+          <mat-icon>cell_tower</mat-icon>
+          <span>Mobil Yanımda</span>
+        </div>
+        <p class="topbar-greeting slide-in">Hoş Geldiniz</p>
+        <h1 class="slide-in delay-1">{{ profile.fullName }}</h1>
+        <div class="welcome-meta slide-in delay-2">
+          <span class="meta-pill package-pill">
+            <mat-icon>local_offer</mat-icon>
+            {{ profile.packageName }}
+          </span>
+        </div>
+        <p class="welcome-sub slide-in delay-3">{{ profile.packageSummary }}</p>
+      </div>
+      <div class="topbar-actions">
+        <span class="status-pill">
+          <span class="dot"></span>
+          Hat Aktif
+        </span>
+        <button mat-icon-button type="button" class="logout-mobile" (click)="logout()" aria-label="Çıkış">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    </header>
+
+    <main class="portal-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <nav class="bottom-nav">
+    <button
+      type="button"
+      *ngFor="let item of navItems"
+      class="bottom-link"
+      [class.active]="isActive(item)"
+      (click)="onNavClick(item)">
+      <mat-icon>{{ item.icon }}</mat-icon>
+      <span>{{ item.label }}</span>
+    </button>
+  </nav>
+</div>

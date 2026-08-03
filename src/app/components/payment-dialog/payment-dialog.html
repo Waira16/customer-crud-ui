@@ -1,4 +1,7 @@
-<div class="payment-dialog">
+<div
+  class="payment-dialog"
+  [class.with-installments]="data.showInstallmentOptions">
+
   <div class="dialog-header">
     <div class="header-icon">
       <mat-icon>credit_card</mat-icon>
@@ -9,75 +12,124 @@
       <p *ngIf="data.amount != null" class="amount-line">
         Ödenecek tutar: <strong>{{ formatMoney(data.amount) }}</strong>
       </p>
+      <p *ngIf="data.showInstallmentOptions && installmentBasePrice" class="amount-line">
+        Cihaz bedeli: <strong>{{ formatMoney(installmentBasePrice) }}</strong>
+      </p>
     </div>
   </div>
 
-  <div class="card-preview">
-    <div class="card-chip"></div>
-    <div class="card-number-preview">
-      {{ cardNumber || '•••• •••• •••• ••••' }}
-    </div>
-    <div class="card-meta">
-      <span>{{ expiryDate || 'MM/YY' }}</span>
-      <span>CVV •••</span>
-    </div>
-  </div>
+  <div class="payment-body">
+    <div class="payment-column">
+      <div class="card-preview">
+        <div class="card-chip"></div>
+        <div class="card-number-preview">
+          {{ cardNumber || '•••• •••• •••• ••••' }}
+        </div>
+        <div class="card-meta">
+          <span>{{ expiryDate || 'MM/YY' }}</span>
+          <span>CVV •••</span>
+        </div>
+      </div>
 
-  <div class="form-grid">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Kart Numarası</mat-label>
-      <input
-        matInput
-        inputmode="numeric"
-        autocomplete="cc-number"
-        maxlength="23"
-        placeholder="4242 4242 4242 4242"
-        [ngModel]="cardNumber"
-        (ngModelChange)="onCardNumberInput($event)"
-        (blur)="cardTouched = true">
-      <mat-icon matSuffix>payment</mat-icon>
-    </mat-form-field>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Kart Numarası</mat-label>
+          <input
+            matInput
+            inputmode="numeric"
+            autocomplete="cc-number"
+            maxlength="23"
+            placeholder="4242 4242 4242 4242"
+            [ngModel]="cardNumber"
+            (ngModelChange)="onCardNumberInput($event)"
+            (blur)="cardTouched = true">
+          <mat-icon matSuffix>payment</mat-icon>
+        </mat-form-field>
 
-    <div class="field-error" *ngIf="showCardError">
-      Geçersiz kart numarası. Lütfen kontrol edin.
+        <div class="field-error" *ngIf="showCardError">
+          Geçersiz kart numarası. Lütfen kontrol edin.
+        </div>
+
+        <div class="row-fields">
+          <mat-form-field appearance="outline">
+            <mat-label>Son Kullanma (SKT)</mat-label>
+            <input
+              matInput
+              inputmode="numeric"
+              autocomplete="cc-exp"
+              maxlength="5"
+              placeholder="MM/YY"
+              [ngModel]="expiryDate"
+              (ngModelChange)="onExpiryInput($event)"
+              (blur)="expiryTouched = true">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>CVV</mat-label>
+            <input
+              matInput
+              inputmode="numeric"
+              autocomplete="cc-csc"
+              maxlength="4"
+              placeholder="123"
+              type="password"
+              [ngModel]="cvv"
+              (ngModelChange)="onCvvInput($event)"
+              (blur)="cvvTouched = true">
+          </mat-form-field>
+        </div>
+
+        <div class="field-error" *ngIf="showExpiryError">
+          Geçersiz veya süresi dolmuş son kullanma tarihi.
+        </div>
+
+        <div class="field-error" *ngIf="showCvvError">
+          CVV 3 veya 4 haneli olmalıdır.
+        </div>
+      </div>
     </div>
 
-    <div class="row-fields">
-      <mat-form-field appearance="outline">
-        <mat-label>Son Kullanma (SKT)</mat-label>
-        <input
-          matInput
-          inputmode="numeric"
-          autocomplete="cc-exp"
-          maxlength="5"
-          placeholder="MM/YY"
-          [ngModel]="expiryDate"
-          (ngModelChange)="onExpiryInput($event)"
-          (blur)="expiryTouched = true">
-      </mat-form-field>
+    <aside class="installment-column" *ngIf="data.showInstallmentOptions">
+      <div class="installment-header">
+        <mat-icon>calendar_month</mat-icon>
+        <div>
+          <h3>Taksit Seçenekleri</h3>
+          <p>2–6 ay faizsiz, 12–18 ay faizli planlar.</p>
+        </div>
+      </div>
 
-      <mat-form-field appearance="outline">
-        <mat-label>CVV</mat-label>
-        <input
-          matInput
-          inputmode="numeric"
-          autocomplete="cc-csc"
-          maxlength="4"
-          placeholder="123"
-          type="password"
-          [ngModel]="cvv"
-          (ngModelChange)="onCvvInput($event)"
-          (blur)="cvvTouched = true">
-      </mat-form-field>
-    </div>
-
-    <div class="field-error" *ngIf="showExpiryError">
-      Geçersiz veya süresi dolmuş son kullanma tarihi.
-    </div>
-
-    <div class="field-error" *ngIf="showCvvError">
-      CVV 3 veya 4 haneli olmalıdır.
-    </div>
+      <mat-radio-group
+        class="installment-options"
+        [(ngModel)]="selectedInstallments">
+        <label
+          class="installment-option"
+          *ngFor="let option of installmentOptions"
+          [class.selected]="selectedInstallments === option.months"
+          [class.interest-free]="option.interestFree">
+          <mat-radio-button [value]="option.months">
+            <span class="installment-option-top">
+              <span class="installment-label">{{ option.label }}</span>
+              <span
+                class="installment-badge"
+                [class.with-interest]="!option.interestFree">
+                {{ option.rateLabel }}
+              </span>
+            </span>
+            <span class="installment-monthly">
+              Aylık {{ formatMoney(getMonthlyInstallment(option.months)) }}
+            </span>
+            <span class="installment-total">
+              Toplam {{ formatMoney(getInstallmentTotal(option.months)) }}
+            </span>
+            <span
+              class="installment-interest"
+              *ngIf="getInterestAmount(option.months) > 0">
+              +{{ formatMoney(getInterestAmount(option.months)) }} faiz
+            </span>
+          </mat-radio-button>
+        </label>
+      </mat-radio-group>
+    </aside>
   </div>
 
   <div class="secure-note">

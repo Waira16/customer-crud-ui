@@ -8,6 +8,10 @@
       </a>
 
       <nav class="header-nav" aria-label="Ana menü">
+        <a href="#katalog" class="nav-link">
+          <mat-icon>storefront</mat-icon>
+          <span>Katalog</span>
+        </a>
         <a href="#tarifeler" class="nav-link">
           <mat-icon>wifi</mat-icon>
           <span>Tarifeler</span>
@@ -19,6 +23,10 @@
         <a href="#urunler" class="nav-link">
           <mat-icon>devices</mat-icon>
           <span>Ürünler</span>
+        </a>
+        <a [href]="publicPricingUrl" class="nav-link nav-link-ai">
+          <mat-icon>auto_awesome</mat-icon>
+          <span>AI Tarife Robotu</span>
         </a>
       </nav>
 
@@ -38,10 +46,16 @@
         </ng-container>
 
         <ng-template #guestLogin>
-          <a mat-flat-button color="primary" routerLink="/login">
-            <mat-icon>login</mat-icon>
-            Giriş Yap
-          </a>
+          <div class="login-actions">
+            <a mat-stroked-button routerLink="/login" class="login-staff">
+              <mat-icon>badge</mat-icon>
+              Personel Girişi
+            </a>
+            <a mat-flat-button color="primary" [href]="selfServiceUrl" class="login-customer">
+              <mat-icon>person</mat-icon>
+              Müşteri Girişi
+            </a>
+          </div>
         </ng-template>
       </nav>
     </div>
@@ -73,11 +87,17 @@
           ihtiyacınız olan her şey burada. Giriş yaparak müşteri işlemlerinizi yönetin.
         </p>
         <div class="hero-cta">
-          <a mat-flat-button color="primary" routerLink="/login" class="cta-primary">
-            Giriş Yap
-          </a>
-          <a mat-stroked-button href="#paketler" class="cta-secondary">
+          <a mat-stroked-button href="#katalog" class="cta-secondary">
+            <mat-icon>storefront</mat-icon>
             Paketleri İncele
+          </a>
+          <a mat-stroked-button routerLink="/login" class="cta-secondary">
+            <mat-icon>badge</mat-icon>
+            Personel Girişi
+          </a>
+          <a mat-flat-button color="primary" [href]="selfServiceUrl" class="cta-primary">
+            <mat-icon>person</mat-icon>
+            Müşteri Girişi
           </a>
         </div>
       </div>
@@ -130,7 +150,7 @@
 
   <ng-container *ngIf="!isLoading && !loadError">
 
-    <section id="paketler" class="catalog-section">
+    <section id="katalog" class="catalog-section">
       <div class="section-head">
         <h2>Tarifeler &amp; Ek Paketler</h2>
         <p>İnternet, mobil, yayın ve ek hizmet paketlerinin tamamı</p>
@@ -280,12 +300,22 @@
   <section class="cta-banner">
     <div>
       <h2>Müşteri işlemlerinizi yönetmeye hazır mısınız?</h2>
-      <p>Giriş yapın; fatura ödeme, bakiye yükleme ve daha fazlası sizi bekliyor.</p>
+      <p>Fatura, paket ve tarife işlemleri için giriş yapın. Size uygun paketi bulmak için üst menüden AI Tarife Robotu'nu kullanın.</p>
     </div>
-    <a mat-flat-button color="primary" routerLink="/login">
-      <mat-icon>login</mat-icon>
-      Giriş Yap
-    </a>
+    <div class="cta-banner-actions">
+      <a mat-flat-button color="primary" [href]="publicPricingUrl">
+        <mat-icon>auto_awesome</mat-icon>
+        AI Tarife Robotu
+      </a>
+      <a mat-stroked-button routerLink="/login">
+        <mat-icon>badge</mat-icon>
+        Personel Girişi
+      </a>
+      <a mat-stroked-button [href]="selfServiceUrl">
+        <mat-icon>person</mat-icon>
+        Müşteri Girişi
+      </a>
+    </div>
   </section>
 
   <footer class="landing-footer">

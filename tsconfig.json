@@ -12,7 +12,10 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "paths": {
+      "telecom-shared": ["./projects/telecom-shared/src/public-api.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
@@ -26,6 +29,18 @@
     },
     {
       "path": "./tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/public-pricing/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/customer-self-service/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/telecom-shared/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/telecom-shared/tsconfig.spec.json"
     }
   ]
 }

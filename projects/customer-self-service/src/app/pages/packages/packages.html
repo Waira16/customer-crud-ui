@@ -1,0 +1,106 @@
+<section class="packages-page">
+  <div class="summary-banner">
+    <div>
+      <span class="banner-tag">Paket Merkezi</span>
+      <h2>{{ customerName }}, paketleriniz</h2>
+      <p>Aktif tarifenizi görün, ek internet alın ve dijital ek paketleri keşfedin.</p>
+    </div>
+    <div class="summary-stats">
+      <article>
+        <span>Aktif Paket</span>
+        <strong>{{ packageName }}</strong>
+      </article>
+      <article>
+        <span>Kalan İnternet</span>
+        <strong>{{ remainingDataLabel }}</strong>
+      </article>
+    </div>
+  </div>
+
+  <section class="panel active-plan">
+    <div class="panel-head">
+      <div>
+        <h3>Mevcut Tarifeniz</h3>
+        <p>{{ packageSummary }}</p>
+      </div>
+      <a mat-stroked-button routerLink="/tariffs">Tarife Değiştir</a>
+    </div>
+    <div class="plan-meter">
+      <div class="meter-labels">
+        <span>Kullanılan: {{ dataUsedMb }} MB</span>
+        <span>Kota: {{ dataQuotaMb }} MB</span>
+      </div>
+      <div class="meter-track">
+        <div
+          class="meter-fill"
+          [style.width.%]="dataQuotaMb ? Math.min(100, (dataUsedMb / dataQuotaMb) * 100) : 0"
+        ></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <h3>Ek İnternet Paketleri</h3>
+        <p>Kotanız yetmediğinde anında tanımlanır, faturanıza yansır.</p>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="state-inline">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>Kullanım bilgisi güncelleniyor...</span>
+    </div>
+
+    <div class="offer-grid">
+      <article
+        *ngFor="let offer of extraOffers"
+        class="offer-card"
+        [class.featured]="offer.featured"
+      >
+        <span *ngIf="offer.featured" class="offer-badge">Popüler</span>
+        <mat-icon>wifi_tethering</mat-icon>
+        <h4>{{ offer.label }}</h4>
+        <p>{{ offer.hint }}</p>
+        <ul>
+          <li><mat-icon>check_circle</mat-icon> {{ offer.gb * 1024 }} MB ek kota</li>
+          <li><mat-icon>check_circle</mat-icon> Aynı gün geçerli</li>
+        </ul>
+        <button
+          mat-flat-button
+          color="primary"
+          class="buy-btn"
+          [disabled]="isBuying"
+          (click)="buyExtraGb(offer.gb)"
+        >
+          <mat-spinner *ngIf="isBuying && buyingGb === offer.gb" diameter="18"></mat-spinner>
+          <span>{{ isBuying && buyingGb === offer.gb ? 'İşleniyor...' : 'Satın Al' }}</span>
+        </button>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel" *ngIf="addons.length">
+    <div class="panel-head">
+      <div>
+        <h3>Dijital Ek Paketler</h3>
+        <p>Platform, TV ve güvenlik paketlerini tarife sayfasından inceleyebilirsiniz.</p>
+      </div>
+    </div>
+
+    <div class="addon-grid">
+      <article *ngFor="let addon of addons" class="addon-card">
+        <span class="addon-type">{{ addonTypeLabel(addon.type) }}</span>
+        <h4>{{ addon.name }}</h4>
+        <p>{{ addon.description || 'Ek hizmet paketi' }}</p>
+        <strong>{{ addon.price | money }}</strong>
+      </article>
+    </div>
+
+    <a mat-stroked-button routerLink="/tariffs" class="tariff-link">
+      <mat-icon>local_offer</mat-icon>
+      Tüm tarifeleri gör
+    </a>
+  </section>
+
+</section>

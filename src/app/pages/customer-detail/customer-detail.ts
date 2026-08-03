@@ -21,15 +21,23 @@ import { InvoiceService } from '../../services/invoice.service';
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { roundMoney } from '../../utils/money.util';
 import { NotificationService } from '../../services/notification.service';
-import { AuthService } from '../../services/auth.service';
 import { PaymentFlowService } from '../../services/payment-flow.service';
 import { CommitmentService } from '../../services/commitment.service';
 import { AddonService } from '../../services/addon.service';
+import { UsageService } from '../../services/usage.service';
 import { HasRoleDirective } from '../../directives/has-role.directive';
 import {
   isTariffDowngrade,
   requiresTariffChangeConfirmation
 } from '../../utils/tariff-change.util';
+import { ShopOrder, ShopOrderItem } from '../../models/shop-order';
+import { DeviceInstallment } from '../../models/device-installment';
+import { DailyUsageSummary, UsageType } from '../../models/usage';
+import { DEVICE_CATEGORY_LABELS, DeviceCategory } from '../../models/device';
+import {
+  catalogImageUrl,
+  onCatalogImageError
+} from '../../utils/catalog-image.util';
 
 
 
@@ -158,6 +166,10 @@ export class CustomerDetailComponent implements OnInit {
 
   invoices: Invoice[] = [];
 
+  shopOrders: ShopOrder[] = [];
+
+  deviceInstallments: DeviceInstallment[] = [];
+
   selectedTariffId!: number;
 
   selectedAddonId!: number;
@@ -167,6 +179,18 @@ export class CustomerDetailComponent implements OnInit {
   showPenaltyWarning = false;
 
   topUpAmount: number | null = null;
+
+  tariffsOpen = false;
+  addonsOpen = false;
+  ordersOpen = false;
+  installmentsOpen = false;
+  invoicesOpen = false;
+  usageOpen = false;
+
+  dailyUsageSummary: DailyUsageSummary | null = null;
+  isUsageLoading = false;
+  isSimulatingUsage = false;
+  selectedUsageType: UsageType = 'DATA';
 
   isLoading = true;
   loadError = '';
@@ -189,9 +213,9 @@ private commitmentService: CommitmentService,
 
 private notification: NotificationService,
 
-private authService: AuthService,
-
 private paymentFlow: PaymentFlowService,
+
+private usageService: UsageService,
 
 private router:Router,
 
@@ -236,6 +260,8 @@ next:(data:Customer)=>{
 this.customer=data;
 
 this.applyCommitmentData(data);
+
+this.loadDeviceInstallments(this.customerId);
 
 this.isLoading=false;
 
@@ -379,6 +405,202 @@ err
 
 
 
+
+loadShopOrders(customerId: number): void {
+  this.customerService.getShopOrders(customerId).subscribe({
+    next: (orders) => {
+      this.shopOrders = this.filterProductOrders(orders ?? []);
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.shopOrders = [];
+    }
+  });
+}
+
+loadDeviceInstallments(customerId: number): void {
+  this.customerService.getDeviceInstallments(customerId).subscribe({
+    next: (installments) => {
+      this.deviceInstallments = installments ?? [];
+      this.loadShopOrders(customerId);
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.deviceInstallments = [];
+    }
+  });
+}
+
+private filterProductOrders(orders: ShopOrder[]): ShopOrder[] {
+  return orders
+    .map((order) => {
+      const deviceItems = order.items.filter((item) => item.itemType === 'DEVICE');
+      return {
+        ...order,
+        items: deviceItems,
+        totalAmount: deviceItems.reduce(
+          (sum, item) => sum + Number(item.price ?? 0),
+          0
+        )
+      };
+    })
+    .filter((order) => order.items.length > 0);
+}
+
+toggleTariffsSection(): void {
+  this.tariffsOpen = !this.tariffsOpen;
+  this.cdr.detectChanges();
+}
+
+toggleAddonsSection(): void {
+  this.addonsOpen = !this.addonsOpen;
+  this.cdr.detectChanges();
+}
+
+toggleOrdersSection(): void {
+  this.ordersOpen = !this.ordersOpen;
+  this.cdr.detectChanges();
+}
+
+toggleInstallmentsSection(): void {
+  this.installmentsOpen = !this.installmentsOpen;
+  if (this.installmentsOpen && this.customer?.id) {
+    this.loadDeviceInstallments(this.customer.id);
+  }
+  this.cdr.detectChanges();
+}
+
+toggleInvoicesSection(): void {
+  this.invoicesOpen = !this.invoicesOpen;
+  this.cdr.detectChanges();
+}
+
+toggleUsageSection(): void {
+  this.usageOpen = !this.usageOpen;
+  if (this.usageOpen && this.customer?.id) {
+    this.loadUsageSummary(this.customer.id);
+  }
+  this.cdr.detectChanges();
+}
+
+loadUsageSummary(customerId: number): void {
+  this.isUsageLoading = true;
+  this.usageService.getDailySummary(customerId).subscribe({
+    next: (summary) => {
+      this.dailyUsageSummary = summary;
+      this.isUsageLoading = false;
+      this.cdr.detectChanges();
+    },
+    error: () => {
+      this.dailyUsageSummary = null;
+      this.isUsageLoading = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+simulateUsage(): void {
+  if (!this.customer?.id) {
+    return;
+  }
+
+  this.isSimulatingUsage = true;
+  this.usageService.simulateUsage({
+    customerId: this.customer.id,
+    customerPhone: this.customer.phone,
+    type: this.selectedUsageType
+  }).subscribe({
+    next: (response) => {
+      this.isSimulatingUsage = false;
+      this.loadUsageSummary(this.customer!.id!);
+      if (response.quotaExceeded) {
+        this.notification.warning(response.message || 'Günlük internet kotası aşıldı.');
+      } else {
+        this.notification.success(response.message || 'Kullanım kaydı oluşturuldu.');
+      }
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      this.isSimulatingUsage = false;
+      this.notification.error(
+        this.notification.extractError(err, 'Kullanım simülasyonu başarısız.')
+      );
+      this.cdr.detectChanges();
+    }
+  });
+}
+
+getUsageBarHeight(value: number, max: number): number {
+  if (!max || max <= 0) {
+    return 0;
+  }
+  return Math.max(8, Math.round((value / max) * 100));
+}
+
+getMaxHourlyData(): number {
+  const points = this.dailyUsageSummary?.hourlyBreakdown ?? [];
+  return Math.max(...points.map(point => point.dataMb), 1);
+}
+
+onOrderImageError(event: Event, item: ShopOrderItem): void {
+  const fallbackKey = item.itemType === 'DEVICE'
+    ? (item.itemCategory ?? 'DEFAULT')
+    : item.itemType === 'TARIFF'
+      ? item.itemCategory ?? 'MOBILE'
+      : item.itemCategory ?? 'STREAMING';
+  onCatalogImageError(event, fallbackKey, item.itemName);
+}
+
+getOrderItemImage(item: ShopOrderItem): string {
+  const fallbackKey = item.itemType === 'DEVICE'
+    ? (item.itemCategory ?? 'DEFAULT')
+    : item.itemType === 'TARIFF'
+      ? item.itemCategory ?? 'MOBILE'
+      : item.itemCategory ?? 'STREAMING';
+  return catalogImageUrl(item.imageUrl, fallbackKey, item.itemName);
+}
+
+getOrderItemTypeLabel(item: ShopOrderItem): string {
+  if (item.itemType === 'TARIFF') {
+    return 'Tarife';
+  }
+  if (item.itemType === 'ADDON') {
+    return 'Ek Paket';
+  }
+  if (item.itemCategory && item.itemCategory in DEVICE_CATEGORY_LABELS) {
+    return DEVICE_CATEGORY_LABELS[item.itemCategory as DeviceCategory];
+  }
+  return 'Cihaz';
+}
+
+formatDateTime(value?: string): string {
+  if (!value) {
+    return '-';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return this.formatDate(value);
+  }
+  return date.toLocaleString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+getCustomerStatusLabel(): string {
+  return this.customer?.status === 'SUSPENDED' ? 'Askıda' : 'Aktif';
+}
+
+isCustomerSuspended(): boolean {
+  return this.customer?.status === 'SUSPENDED';
+}
+
+getActiveCustomerTariffs() {
+  return this.customer?.tariffs?.filter(t => t.active) ?? [];
+}
 
 onTariffSelectionChange(): void {
 
@@ -716,12 +938,12 @@ this.paymentFlow.requestPayment({
   title: 'Kredi Kartı ile Ödeme',
   subtitle: `Fatura #${invoice.id}`,
   amount: this.getInvoiceAmount(invoice)
-}).subscribe((payment) => {
-  if (!payment) {
+}).subscribe((result) => {
+  if (!result) {
     return;
   }
 
-  this.invoiceService.payInvoice(invoice.id, payment)
+  this.invoiceService.payInvoice(invoice.id, result.payment)
     .subscribe({
       next: () => {
         this.notification.success('Fatura ödendi.');
@@ -875,15 +1097,15 @@ this.paymentFlow.requestPayment({
   title: 'Bakiye Yükleme',
   subtitle: `${this.customer.firstName} ${this.customer.lastName}`,
   amount
-}).subscribe((payment) => {
-  if (!payment) {
+}).subscribe((result) => {
+  if (!result) {
     return;
   }
 
   this.customerService.addBalance(
     this.customerId,
     {
-      ...payment,
+      ...result.payment,
       amount
     }
   )

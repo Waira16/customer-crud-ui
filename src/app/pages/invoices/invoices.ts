@@ -176,12 +176,12 @@ export class InvoicesComponent implements OnInit {
       title: 'Kredi Kartı ile Ödeme',
       subtitle: `Fatura #${invoice.id}`,
       amount: this.getAmount(invoice)
-    }).subscribe((payment) => {
-      if (!payment) {
+    }).subscribe((result) => {
+      if (!result) {
         return;
       }
 
-      this.invoiceService.payInvoice(invoice.id, payment)
+      this.invoiceService.payInvoice(invoice.id, result.payment)
         .subscribe({
           next: () => {
             this.showFeedback('Fatura başarıyla ödendi.', 'success');
@@ -264,6 +264,10 @@ export class InvoicesComponent implements OnInit {
 
     return Number(invoice.penaltyFee ?? 0);
 
+  }
+
+  getInstallmentTotal(invoice: Invoice): number {
+    return Number(invoice.installmentTotal ?? 0);
   }
 
 

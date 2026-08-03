@@ -1,0 +1,27 @@
+<div class="message-box" [ngClass]="'message-box--' + (data.type || 'info')">
+  <div class="message-box__header">
+    <mat-icon>{{ iconName }}</mat-icon>
+    <h2>{{ data.title }}</h2>
+  </div>
+
+  <p class="message-box__message">{{ data.message }}</p>
+
+  <div class="message-box__actions">
+    <button
+      *ngIf="data.mode === 'confirm'"
+      type="button"
+      mat-stroked-button
+      (click)="close(false)"
+    >
+      {{ data.cancelText || 'Vazgeç' }}
+    </button>
+    <button
+      type="button"
+      mat-flat-button
+      [color]="primaryButtonColor"
+      (click)="close(data.mode === 'confirm' ? true : undefined)"
+    >
+      {{ data.confirmText || (data.mode === 'confirm' ? 'Onayla' : 'Tamam') }}
+    </button>
+  </div>
+</div>

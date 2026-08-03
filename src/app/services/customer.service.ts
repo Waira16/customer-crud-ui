@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 
 import { Customer } from '../models/customer';
 import { ShopOrder } from '../models/shop-order';
+import { DeviceInstallment } from '../models/device-installment';
 import { TariffChangePreview } from '../models/tariff-change-preview';
 import { BalanceTopUpRequest, PaymentRequest } from '../models/payment-request';
 import { environment } from '../../environments/environment';
@@ -328,6 +329,12 @@ shopCheckout(
 getShopOrders(customerId: number): Observable<ShopOrder[]> {
   return this.http.get<ShopOrder[]>(
     `${this.apiUrl}/${customerId}/shop/orders`
+  );
+}
+
+getDeviceInstallments(customerId: number): Observable<DeviceInstallment[]> {
+  return this.http.get<DeviceInstallment[]>(
+    `${this.apiUrl}/${customerId}/device-installments`
   );
 }
 }

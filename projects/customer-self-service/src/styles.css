@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
+
+:root {
+  --portal-primary: #0b5cab;
+  --portal-primary-dark: #083d73;
+  --portal-accent: #00a3e0;
+  --portal-bg: #eef3f9;
+  --portal-card: #ffffff;
+  --portal-text: #0f172a;
+  --portal-muted: #64748b;
+  --portal-border: #dbe4ef;
+  --portal-shadow: 0 12px 32px rgba(11, 92, 171, 0.08);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: Roboto, Arial, sans-serif;
+  background: var(--portal-bg);
+  color: var(--portal-text);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+mat-icon,
+.mat-icon {
+  font-family: 'Material Icons' !important;
+  overflow: hidden;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.mat-mdc-form-field .mdc-notched-outline__notch {
+  max-width: none !important;
+}
+
+.mat-mdc-form-field-infix {
+  min-width: 0 !important;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.mat-mdc-button-base,
+.mat-mdc-unelevated-button,
+.mat-mdc-outlined-button {
+  letter-spacing: 0.01em;
+}
+
+.cdk-overlay-container {
+  z-index: 2000;
+}
+
+.self-message-box-panel .mdc-dialog__surface {
+  border-radius: 20px !important;
+  background: #fff !important;
+  color: #0f172a !important;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22) !important;
+}
+
+self-chat-widget {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10000;
+}

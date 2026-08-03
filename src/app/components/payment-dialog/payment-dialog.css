@@ -3,6 +3,10 @@
   padding: 8px 4px 4px;
 }
 
+.payment-dialog.with-installments {
+  width: min(100%, 820px);
+}
+
 .dialog-header {
   display: flex;
   gap: 16px;
@@ -35,6 +39,21 @@
 .amount-line {
   margin-top: 8px !important;
   color: #1a237e !important;
+}
+
+.payment-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.with-installments .payment-body {
+  grid-template-columns: minmax(0, 1fr) minmax(250px, 290px);
+}
+
+.payment-column {
+  min-width: 0;
 }
 
 .card-preview {
@@ -90,11 +109,127 @@
   margin: -4px 0 8px 4px;
 }
 
+.installment-column {
+  padding: 16px;
+  border-radius: 14px;
+  background: #f8fbff;
+  border: 1px solid #dbeafe;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.installment-header {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.installment-header mat-icon {
+  color: #2563eb;
+}
+
+.installment-header h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #1e3a8a;
+}
+
+.installment-header p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.installment-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.installment-option {
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #dbeafe;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.installment-option.selected {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb inset;
+  background: #eff6ff;
+}
+
+.installment-option.interest-free.selected {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 1px #16a34a inset;
+  background: #f0fdf4;
+}
+
+.installment-option mat-radio-button {
+  width: 100%;
+}
+
+.installment-option-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.installment-label {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.installment-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: #dcfce7;
+  color: #15803d;
+  white-space: nowrap;
+}
+
+.installment-badge.with-interest {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.installment-monthly {
+  display: block;
+  margin-top: 6px;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.installment-total {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.installment-interest {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #b45309;
+  font-weight: 600;
+}
+
 .secure-note {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 12px 0 20px;
+  margin: 16px 0 20px;
   padding: 10px 12px;
   border-radius: 10px;
   background: #f3f6fb;
@@ -112,9 +247,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-@media (max-width: 520px) {
+@media (max-width: 760px) {
+  .with-installments .payment-body {
+    grid-template-columns: 1fr;
+  }
+
+  .installment-column {
+    max-height: none;
+  }
+
   .row-fields {
     grid-template-columns: 1fr;
   }

@@ -14,6 +14,7 @@ import { Device, DEVICE_CATEGORY_LABELS, DeviceCategory } from '../../models/dev
 import { MoneyPipe } from '../../pipes/money.pipe';
 import { AuthService } from '../../services/auth.service';
 import { catalogImageUrl, onCatalogImageError } from '../../utils/catalog-image.util';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-landing',
@@ -42,6 +43,8 @@ export class LandingComponent implements OnInit {
   onImageError = onCatalogImageError;
 
   readonly carouselStep = 5;
+  readonly publicPricingUrl = environment.publicPricingUrl || 'http://localhost:4200';
+  readonly selfServiceUrl = environment.selfServiceUrl || 'http://localhost:4202';
 
   constructor(
     private tariffService: TariffService,

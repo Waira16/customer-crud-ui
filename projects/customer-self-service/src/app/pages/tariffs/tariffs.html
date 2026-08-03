@@ -1,0 +1,165 @@
+<section class="pricing-page">
+  <div class="pricing-hero">
+    <div>
+      <span class="hero-tag">Tarife & Fiyatlandırma</span>
+      <h2>Tarife Robotu ile size en uygun paketi bulun</h2>
+      <p>İnternet ve dakika ihtiyacınızı kaydırın, paket hesaplayın veya online başvuru yapın.</p>
+    </div>
+    <nav class="section-nav">
+      <a href="#robot">Robot</a>
+      <a href="#calculator">Hesaplayıcı</a>
+      <a href="#application">Başvuru</a>
+    </nav>
+  </div>
+
+  <div *ngIf="isLoading" class="state-card">
+    <mat-spinner diameter="36"></mat-spinner>
+    <p>Katalog yükleniyor...</p>
+  </div>
+
+  <div *ngIf="loadError && !isLoading" class="state-card error-card">
+    <mat-icon>error_outline</mat-icon>
+    <p>{{ loadError }}</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+    <section id="robot" class="panel">
+      <h3><mat-icon>tune</mat-icon> Tarife Robotu</h3>
+      <div class="sliders">
+        <label>İnternet: <strong>{{ selectedDataGb }} GB</strong></label>
+        <mat-slider [min]="minDataGb" [max]="100" [step]="5" discrete>
+          <input matSliderThumb [(ngModel)]="selectedDataGb" (ngModelChange)="onRobotChange()" />
+        </mat-slider>
+
+        <label>Dakika: <strong>{{ selectedMinutes }}</strong></label>
+        <mat-slider [min]="minMinutes" [max]="5000" [step]="100" discrete>
+          <input matSliderThumb [(ngModel)]="selectedMinutes" (ngModelChange)="onRobotChange()" />
+        </mat-slider>
+      </div>
+
+      <div class="tariff-results">
+        <p class="result-count">{{ filteredTariffs.length }} tarife eşleşti</p>
+        <mat-card class="tariff-card" *ngFor="let tariff of filteredTariffs">
+          <mat-card-content>
+            <span class="tariff-type">{{ tariff.type === 'MOBILE' ? 'Mobil' : 'Fiber' }}</span>
+            <h4>{{ tariff.name }}</h4>
+            <p>{{ tariff.dataGB }} GB · {{ tariff.minutes }} dk</p>
+            <strong>{{ tariff.price | money }} / ay</strong>
+          </mat-card-content>
+        </mat-card>
+        <p *ngIf="filteredTariffs.length === 0" class="empty-note">
+          Bu kriterlere uygun tarife bulunamadı. Slider değerlerini düşürmeyi deneyin.
+        </p>
+      </div>
+    </section>
+
+    <section id="calculator" class="panel">
+      <h3><mat-icon>calculate</mat-icon> Cihaz + Tarife Paket Hesaplayıcı</h3>
+      <p class="hint">2–6 ay faizsiz, 12–18 ay faizli taksit planları.</p>
+
+      <div class="calculator-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Tarife seçin</mat-label>
+          <mat-select [(ngModel)]="selectedTariffId">
+            <mat-option *ngFor="let tariff of tariffs" [value]="tariff.id">
+              {{ tariff.name }} — {{ tariff.price | money }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="device-installment-row">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="device-field">
+            <mat-label>Cihaz seçin</mat-label>
+            <mat-select [(ngModel)]="selectedDeviceId">
+              <mat-option [value]="null">Cihaz seçmeyin</mat-option>
+              <mat-option *ngFor="let device of devices" [value]="device.id">
+                {{ device.brand }} {{ device.name }} — {{ device.price | money }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field
+            appearance="outline"
+            subscriptSizing="dynamic"
+            class="installment-field"
+            *ngIf="selectedDeviceId">
+            <mat-label>Taksit</mat-label>
+            <mat-select [(ngModel)]="selectedInstallmentMonths">
+              <mat-option *ngFor="let months of installmentOptions" [value]="months">
+                {{ months }} ay — {{ installmentLabel(months) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <div class="package-summary" *ngIf="selectedTariff || selectedDevice">
+        <p *ngIf="selectedTariff">
+          <strong>Tarife:</strong> {{ selectedTariff!.name }} ({{ selectedTariff!.price | money }}/ay)
+        </p>
+        <p *ngIf="selectedDevice">
+          <strong>Cihaz:</strong> {{ selectedDevice!.brand }} {{ selectedDevice!.name }}
+          ({{ selectedInstallmentMonths }} ay · {{ installmentLabel(selectedInstallmentMonths) }}:
+          {{ deviceMonthlyInstallment | money }}/ay)
+        </p>
+        <p *ngIf="selectedDevice && deviceInterestAmount > 0" class="interest-line">
+          Toplam cihaz ödemesi: {{ deviceInstallmentTotal | money }}
+          (+{{ deviceInterestAmount | money }} faiz)
+        </p>
+        <p class="total-line">
+          Tahmini aylık toplam: <strong>{{ packageMonthlyTotal | money }}</strong>
+        </p>
+      </div>
+    </section>
+
+    <section id="application" class="panel">
+      <h3><mat-icon>assignment</mat-icon> Online Başvuru</h3>
+      <p class="hint">Form gönderildiğinde başvurunuz <strong>PENDING_VERIFICATION</strong> statüsünde kaydedilir.</p>
+
+      <div class="form-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Ad</mat-label>
+          <input matInput [(ngModel)]="application.firstName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Soyad</mat-label>
+          <input matInput [(ngModel)]="application.lastName" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>E-posta</mat-label>
+          <input matInput type="email" [(ngModel)]="application.email" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Telefon</mat-label>
+          <input matInput [(ngModel)]="application.phone" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Yaş</mat-label>
+          <input matInput type="number" [(ngModel)]="application.age" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+          <mat-label>Adres</mat-label>
+          <input matInput [(ngModel)]="application.address" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+          <mat-label>Not</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="application.notes"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="submit-actions">
+        <button
+          mat-flat-button
+          color="primary"
+          class="submit-btn"
+          type="button"
+          [disabled]="isSubmitting"
+          (click)="submitApplication()">
+          {{ isSubmitting ? 'Gönderiliyor...' : 'Başvuruyu Gönder' }}
+        </button>
+      </div>
+
+      <p *ngIf="loadError && !isLoading" class="error-box">{{ loadError }}</p>
+    </section>
+  </ng-container>
+</section>

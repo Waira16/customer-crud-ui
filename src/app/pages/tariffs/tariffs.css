@@ -283,6 +283,19 @@ h1 {
   margin: 0 0 12px;
 }
 
+.cart-selected-customer {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 14px;
+}
+
+.cart-selected-customer strong {
+  font-weight: 700;
+}
+
 .cart-items {
   display: flex;
   flex-direction: column;
@@ -323,6 +336,36 @@ h1 {
   width: 100%;
 }
 
+.installment-estimate {
+  color: #2563eb;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.installment-note {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.sales-device-card {
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+:host ::ng-deep .tariffs-scroll-top-btn {
+  position: fixed;
+  top: 96px;
+  right: 28px;
+  z-index: 3000;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.35);
+}
+
 @media (max-width: 640px) {
   .tariff-page {
     padding: 16px;
@@ -335,5 +378,11 @@ h1 {
   .card-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .scroll-top-btn,
+  :host ::ng-deep .tariffs-scroll-top-btn {
+    top: 76px;
+    right: 16px;
   }
 }
