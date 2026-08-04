@@ -7,11 +7,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize, timeout } from 'rxjs/operators';
 
-import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
 import { DailyUsageSummary, UsageService } from '../../core/usage.service';
 import { ProfileService, CustomerPortalProfile } from '../../core/profile.service';
 import { MessageBoxService } from '../../core/message-box/message-box.service';
+import {
+  DeviceInstallment,
+  DeviceInstallmentService
+} from '../../core/device-installment.service';
+import { MoneyPipe } from '../../core/money.pipe';
 
 @Component({
   selector: 'self-account',
@@ -22,16 +26,18 @@ import { MessageBoxService } from '../../core/message-box/message-box.service';
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MoneyPipe
   ],
   templateUrl: './account.html',
   styleUrl: './account.css'
 })
 export class AccountComponent implements OnInit {
   summary: DailyUsageSummary | null = null;
+  installments: DeviceInstallment[] = [];
+  installmentsLoading = false;
   error = '';
   isLoading = true;
-  readonly publicUrl = environment.publicPortalUrl;
   readonly todayLabel = new Intl.DateTimeFormat('tr-TR', {
     weekday: 'long',
     day: 'numeric',
@@ -42,6 +48,7 @@ export class AccountComponent implements OnInit {
     private authService: AuthService,
     private usageService: UsageService,
     private profileService: ProfileService,
+    private deviceInstallmentService: DeviceInstallmentService,
     private messageBox: MessageBoxService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -55,6 +62,7 @@ export class AccountComponent implements OnInit {
     }
 
     this.loadSummary(customerId);
+    this.loadInstallments();
   }
 
   get dataQuota(): number {
@@ -97,11 +105,60 @@ export class AccountComponent implements OnInit {
     return this.authService.getFullName();
   }
 
+  get monthlyInstallmentTotal(): number {
+    return this.installments.reduce(
+      (sum, item) => sum + Number(item.monthlyInstallment ?? 0),
+      0
+    );
+  }
+
+  get remainingInstallmentTotal(): number {
+    return this.installments.reduce(
+      (sum, item) => sum + this.remainingAmount(item),
+      0
+    );
+  }
+
+  paidInstallments(item: DeviceInstallment): number {
+    return Math.max(0, (item.totalInstallments ?? 0) - (item.remainingInstallments ?? 0));
+  }
+
+  remainingAmount(item: DeviceInstallment): number {
+    return Number(item.monthlyInstallment ?? 0) * Math.max(0, item.remainingInstallments ?? 0);
+  }
+
+  progressPercent(item: DeviceInstallment): number {
+    const total = item.totalInstallments ?? 0;
+    if (!total) {
+      return 0;
+    }
+    return Math.min(100, Math.round((this.paidInstallments(item) / total) * 100));
+  }
+
   retry(): void {
     const customerId = this.authService.getCustomerId();
     if (customerId) {
       this.loadSummary(customerId);
+      this.loadInstallments();
     }
+  }
+
+  private loadInstallments(): void {
+    this.installmentsLoading = true;
+    this.deviceInstallmentService.listMine().pipe(
+      timeout(15000),
+      finalize(() => {
+        this.installmentsLoading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (items) => {
+        this.installments = items ?? [];
+      },
+      error: () => {
+        this.installments = [];
+      }
+    });
   }
 
   loadSummary(customerId: number): void {
@@ -214,8 +271,7 @@ export class AccountComponent implements OnInit {
       if (!confirmed) {
         return;
       }
-      this.authService.logout();
-      void this.router.navigate(['/login']);
+      this.authService.logoutAndGoHome();
     });
   }
 

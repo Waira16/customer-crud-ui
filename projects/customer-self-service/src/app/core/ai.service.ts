@@ -30,11 +30,11 @@ export class AiService {
     private authService: AuthService
   ) {}
 
-  sendChat(message: string): Observable<ChatResponse> {
+  sendChat(message: string, history: { role: string; content: string }[] = []): Observable<ChatResponse> {
     const customerId = this.authService.getCustomerId();
     return this.http.post<ChatResponse>(
       `${this.base}/chat`,
-      { customerId, message },
+      { customerId, message, history },
       { headers: this.authHeaders() }
     );
   }

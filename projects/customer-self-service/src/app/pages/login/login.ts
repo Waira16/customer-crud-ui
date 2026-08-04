@@ -36,7 +36,7 @@ export class LoginComponent {
   phone = '';
   error = '';
   isLoading = false;
-  readonly publicUrl = environment.publicPortalUrl;
+  readonly homePageUrl = environment.crmPortalUrl;
 
   constructor(
     private authService: AuthService,

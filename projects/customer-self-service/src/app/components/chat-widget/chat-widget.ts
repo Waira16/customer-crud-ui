@@ -39,8 +39,9 @@ export class ChatWidgetComponent {
 
   readonly quickPrompts = [
     'Bu ay faturam neden yüksek geldi?',
-    'Bugünkü internet kullanımım nedir?',
-    'Aktif paketim ve taksitlerim neler?'
+    'Bugünkü internet, dakika ve SMS kullanımım nedir?',
+    'Kalan internet kotam ne kadar?',
+    'Bana uygun paket öner'
   ];
 
   constructor(
@@ -102,7 +103,12 @@ export class ChatWidgetComponent {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.aiService.sendChat(text).subscribe({
+    const history = this.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .slice(-7, -1)
+      .map((m) => ({ role: m.role, content: m.text }));
+
+    this.aiService.sendChat(text, history).subscribe({
       next: (response: { reply: string; aiPowered: boolean }) => {
         this.isLoading = false;
         this.ollamaAvailable = response.aiPowered || this.ollamaAvailable;

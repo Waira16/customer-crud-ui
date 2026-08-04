@@ -36,10 +36,13 @@ export class PortalAiService {
     return this.http.get<PortalAiHealthResponse>(`${this.base}/health`);
   }
 
-  sendChat(message: string): Observable<PortalChatResponse> {
+  sendChat(
+    message: string,
+    history: { role: string; content: string }[] = []
+  ): Observable<PortalChatResponse> {
     return this.http.post<PortalChatResponse>(
       `${this.base}/chat`,
-      { customerId: this.getCustomerId(), message },
+      { customerId: this.getCustomerId(), message, history },
       { headers: this.authHeaders() }
     );
   }

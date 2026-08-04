@@ -100,6 +100,91 @@
       </div>
     </section>
 
+    <section class="panel products-panel">
+      <div class="panel-head">
+        <div>
+          <h3>Aldığım Ürünler & Taksitler</h3>
+          <p>Cihaz taksitleriniz faturanıza yansır. Kalan tutarı buradan takip edin.</p>
+        </div>
+        <a mat-stroked-button routerLink="/invoices" *ngIf="installments.length">
+          <mat-icon>receipt_long</mat-icon>
+          Faturalara Git
+        </a>
+      </div>
+
+      <div *ngIf="installmentsLoading" class="products-loading">
+        <mat-spinner diameter="28"></mat-spinner>
+        <span>Ürünleriniz yükleniyor...</span>
+      </div>
+
+      <div *ngIf="!installmentsLoading && installments.length === 0" class="products-empty">
+        <mat-icon>devices</mat-icon>
+        <div>
+          <strong>Aktif taksitli ürün yok</strong>
+          <p>Tarifeler sayfasından cihaz seçerek taksitli başvuru yapabilirsiniz.</p>
+        </div>
+        <a mat-flat-button color="primary" routerLink="/tariffs">Cihaz İncele</a>
+      </div>
+
+      <ng-container *ngIf="!installmentsLoading && installments.length">
+        <div class="products-summary">
+          <article>
+            <span>Aktif ürün</span>
+            <strong>{{ installments.length }}</strong>
+          </article>
+          <article>
+            <span>Aylık taksit toplamı</span>
+            <strong>{{ monthlyInstallmentTotal | money }}</strong>
+          </article>
+          <article>
+            <span>Kalan toplam borç</span>
+            <strong>{{ remainingInstallmentTotal | money }}</strong>
+          </article>
+        </div>
+
+        <div class="product-list">
+          <article class="product-card" *ngFor="let item of installments">
+            <div class="product-icon">
+              <mat-icon>smartphone</mat-icon>
+            </div>
+            <div class="product-body">
+              <div class="product-title-row">
+                <h4>{{ item.deviceName }}</h4>
+                <span class="product-badge" [class.done]="item.remainingInstallments === 0">
+                  {{ item.remainingInstallments === 0 ? 'Tamamlandı' : 'Aktif taksit' }}
+                </span>
+              </div>
+              <p class="product-meta" *ngIf="item.startDate">
+                Başlangıç: {{ item.startDate }}
+              </p>
+
+              <div class="product-stats">
+                <div>
+                  <span>Aylık ödeme</span>
+                  <strong>{{ item.monthlyInstallment | money }}</strong>
+                </div>
+                <div>
+                  <span>Kalan taksit</span>
+                  <strong>{{ item.remainingInstallments }} / {{ item.totalInstallments }}</strong>
+                </div>
+                <div>
+                  <span>Kalan tutar</span>
+                  <strong>{{ remainingAmount(item) | money }}</strong>
+                </div>
+              </div>
+
+              <div class="progress-track" aria-hidden="true">
+                <div class="progress-fill" [style.width.%]="progressPercent(item)"></div>
+              </div>
+              <small class="progress-label">
+                {{ paidInstallments(item) }} taksit ödendi · %{{ progressPercent(item) }}
+              </small>
+            </div>
+          </article>
+        </div>
+      </ng-container>
+    </section>
+
     <section class="panel support-panel">
       <div class="support-grid">
         <a class="support-item" routerLink="/invoices">

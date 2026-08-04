@@ -81,8 +81,7 @@ export class PortalShellComponent implements OnInit {
       if (!confirmed) {
         return;
       }
-      this.authService.logout();
-      void this.router.navigate(['/login']);
+      this.authService.logoutAndGoHome();
     });
   }
 

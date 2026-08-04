@@ -103,7 +103,12 @@ export class CustomerChatWidgetComponent {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.portalAi.sendChat(text).subscribe({
+    const history = this.messages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .slice(-7, -1)
+      .map((m) => ({ role: m.role, content: m.text }));
+
+    this.portalAi.sendChat(text, history).subscribe({
       next: (response) => {
         this.isLoading = false;
         this.ollamaAvailable = response.aiPowered || this.ollamaAvailable;

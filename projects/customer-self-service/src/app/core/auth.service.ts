@@ -77,6 +77,17 @@ export class AuthService {
     this.loggedInSubject.next(false);
   }
 
+  /** CRM ana sayfasi (4201 landing). */
+  get homePageUrl(): string {
+    return environment.crmPortalUrl || 'http://localhost:4201';
+  }
+
+  /** Cikis sonrasi ana sayfaya yonlendir. */
+  logoutAndGoHome(): void {
+    this.logout();
+    window.location.href = this.homePageUrl;
+  }
+
   getToken(): string | null {
     return localStorage.getItem(this.tokenKey);
   }
