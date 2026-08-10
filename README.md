@@ -1,8 +1,8 @@
-# Customer CRUD UI
+# Customer UI
 
 Telecom CRM & self-service frontend monorepo (Angular).
 
-Tek API: **`http://localhost:8080`** (`customer-crud-api` monolith).
+Tek API: **`http://localhost:8080`** (`customer-crud-api` monolith — [telecom-microservices](https://github.com/Waira16/telecom-microservices) içinde).
 
 ## Framework & Stack
 
@@ -23,7 +23,7 @@ Tek API: **`http://localhost:8080`** (`customer-crud-api` monolith).
 | **Self-Service (Müşteri)** | 4202 | `npm run start:self-service` |
 
 ```powershell
-cd customer-crud-ui
+cd customer-ui
 npm install
 npm run start:public        # http://localhost:4200
 npm run start:crm           # http://localhost:4201
