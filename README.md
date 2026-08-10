@@ -129,5 +129,4 @@ npm run build:public
 
 ## İlişkili projeler
 
-- Backend: [customer_crud_api](https://github.com/Waira16/customer_crud_api)
-- Mikroservisler: [telecom-microservices](https://github.com/Waira16/telecom-microservices)
+- Backend (monolit + mikroservisler, tek repo): [telecom-microservices](https://github.com/Waira16/telecom-microservices) — monolit: `customer-crud-api/`
