@@ -50,12 +50,11 @@
 
   <section class="hero">
     <div class="hero-inner">
-      <span class="hero-badge">4200 · Akıllı Paket Danışmanı</span>
       <h1>Tarife Robotu ile size en uygun paketi bulun</h1>
-      <p>İnternet ve dakika ihtiyacınızı kaydırın, AI destekli öneriyi alın, cihaz taksitini hesaplayın.</p>
+      <p>İnternet ve dakika ihtiyacınızı kaydırın, öneriyi alın, cihaz taksitini hesaplayın.</p>
       <div class="hero-chips">
         <span><mat-icon>wifi</mat-icon> Tarife eşleştirme</span>
-        <span><mat-icon>smart_toy</mat-icon> Ollama AI</span>
+        <span><mat-icon>smart_toy</mat-icon> AI öneri</span>
         <span><mat-icon>devices</mat-icon> Cihaz taksiti</span>
       </div>
     </div>
@@ -99,7 +98,7 @@
       <h2><mat-icon>smart_toy</mat-icon> AI Paket Öneri Asistanı</h2>
       <p class="hint">
         Tarife robotundaki {{ selectedDataGb }} GB / {{ selectedMinutes }} dk profilinize göre
-        en uygun paketi doğal dille açıklar. (Ollama · ücretsiz)
+        en uygun paketi doğal dille açıklar.
       </p>
 
       <div class="ai-actions">
@@ -118,7 +117,7 @@
       </div>
 
       <p *ngIf="aiRecommendation" class="ai-recommendation">{{ aiRecommendation }}</p>
-      <p *ngIf="aiRecommendPowered && aiRecommendation" class="ai-powered-note">Yanıt Ollama AI ile üretildi.</p>
+      <p *ngIf="aiRecommendPowered && aiRecommendation" class="ai-powered-note">Yanıt yapay zeka ile üretildi.</p>
       <p *ngIf="aiRecommendError" class="error-box">{{ aiRecommendError }}</p>
     </section>
 

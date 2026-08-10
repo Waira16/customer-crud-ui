@@ -3,7 +3,7 @@
     <div>
       <span class="banner-tag">Paket Merkezi</span>
       <h2>{{ customerName }}, paketleriniz</h2>
-      <p>Aktif tarifenizi görün, ek internet alın ve dijital ek paketleri keşfedin.</p>
+      <p>Aktif tarifenizi görün, ek internet alın ve dijital ek paket / ürünleri sepete ekleyin.</p>
     </div>
     <div class="summary-stats">
       <article>
@@ -43,7 +43,7 @@
     <div class="panel-head">
       <div>
         <h3>Ek İnternet Paketleri</h3>
-        <p>Kotanız yetmediğinde anında tanımlanır, faturanıza yansır.</p>
+        <p>1 ay geçerli; süre bitince otomatik kapanır, faturanıza yansır.</p>
       </div>
     </div>
 
@@ -64,7 +64,7 @@
         <p>{{ offer.hint }}</p>
         <ul>
           <li><mat-icon>check_circle</mat-icon> {{ offer.gb * 1024 }} MB ek kota</li>
-          <li><mat-icon>check_circle</mat-icon> Aynı gün geçerli</li>
+          <li><mat-icon>check_circle</mat-icon> 1 ay geçerli</li>
         </ul>
         <button
           mat-flat-button
@@ -80,27 +80,180 @@
     </div>
   </section>
 
-  <section class="panel" *ngIf="addons.length">
+  <section class="panel digital-shop">
     <div class="panel-head">
       <div>
-        <h3>Dijital Ek Paketler</h3>
-        <p>Platform, TV ve güvenlik paketlerini tarife sayfasından inceleyebilirsiniz.</p>
+        <h3>Dijital Ek Paketler &amp; Ürünler</h3>
+        <p>Ek paket veya ürün seçin, sepete ekleyin ve tek adımda satın alın.</p>
       </div>
     </div>
 
-    <div class="addon-grid">
-      <article *ngFor="let addon of addons" class="addon-card">
-        <span class="addon-type">{{ addonTypeLabel(addon.type) }}</span>
-        <h4>{{ addon.name }}</h4>
-        <p>{{ addon.description || 'Ek hizmet paketi' }}</p>
-        <strong>{{ addon.price | money }}</strong>
-      </article>
+    <div class="catalog-tabs" role="tablist">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="catalogTab === 'addons'"
+        (click)="setCatalogTab('addons')"
+      >
+        <mat-icon>live_tv</mat-icon>
+        Ek Paketler
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="catalogTab === 'devices'"
+        (click)="setCatalogTab('devices')"
+      >
+        <mat-icon>smartphone</mat-icon>
+        Ürünler
+      </button>
     </div>
 
-    <a mat-stroked-button routerLink="/tariffs" class="tariff-link">
-      <mat-icon>local_offer</mat-icon>
-      Tüm tarifeleri gör
-    </a>
-  </section>
+    <div *ngIf="catalogLoading" class="state-inline">
+      <mat-spinner diameter="28"></mat-spinner>
+      <span>Katalog yükleniyor...</span>
+    </div>
 
+    <div class="shop-layout" *ngIf="!catalogLoading">
+      <div class="shop-catalog">
+        <div class="addon-grid" *ngIf="catalogTab === 'addons'">
+          <article *ngFor="let addon of addons" class="addon-card">
+            <div class="card-media" [class.logo-media]="addon.type === 'STREAMING' || addon.type === 'TV'">
+              <img
+                [src]="addonImage(addon)"
+                [alt]="addon.name"
+                (error)="onImageError($event, addon.type || 'STREAMING', addon.name)"
+              />
+            </div>
+            <span class="addon-type">{{ addonTypeLabel(addon.type) }}</span>
+            <h4>{{ addon.name }}</h4>
+            <p>{{ addon.description || 'Ek hizmet paketi' }}</p>
+            <div class="price-stack">
+              <span class="old-price" *ngIf="pricedAddon(addon).discounted">
+                {{ pricedAddon(addon).originalPrice | money }}
+              </span>
+              <strong>{{ pricedAddon(addon).price | money }}</strong>
+              <span class="deal-badge" *ngIf="pricedAddon(addon).discounted">
+                {{ pricedAddon(addon).discountLabel }}
+              </span>
+            </div>
+            <button
+              mat-flat-button
+              color="primary"
+              class="buy-btn"
+              [disabled]="isInCart('ADDON', addon.id) || isCheckingOut"
+              (click)="addAddonToCart(addon)"
+            >
+              {{ isInCart('ADDON', addon.id) ? 'Sepette' : 'Sepete Ekle' }}
+            </button>
+          </article>
+
+          <p class="empty-hint" *ngIf="!addons.length">Şu an listelenecek ek paket yok.</p>
+        </div>
+
+        <div class="addon-grid" *ngIf="catalogTab === 'devices'">
+          <article *ngFor="let device of devices" class="addon-card">
+            <div class="card-media">
+              <img
+                [src]="deviceImage(device)"
+                [alt]="device.name"
+                (error)="onImageError($event, device.category || 'PHONE', device.name)"
+              />
+            </div>
+            <span class="addon-type">{{ device.category || 'Ürün' }}</span>
+            <h4>{{ device.brand ? (device.brand + ' ' + device.name) : device.name }}</h4>
+            <p *ngIf="device.stock != null">Stok: {{ device.stock }}</p>
+            <p *ngIf="device.stock == null">Mağaza ürünü</p>
+            <div class="price-stack">
+              <span class="old-price" *ngIf="pricedDevice(device).discounted">
+                {{ pricedDevice(device).originalPrice | money }}
+              </span>
+              <strong>{{ pricedDevice(device).price | money }}</strong>
+              <span class="deal-badge" *ngIf="pricedDevice(device).discounted">
+                {{ pricedDevice(device).discountLabel }}
+              </span>
+              <small class="installment-hint">
+                {{ deviceMonthlyEstimate(device) | money }}/ay’dan başlayan taksit
+              </small>
+            </div>
+            <button
+              mat-flat-button
+              color="primary"
+              class="buy-btn"
+              [disabled]="isInCart('DEVICE', device.id) || isCheckingOut || (device.stock != null && device.stock <= 0)"
+              (click)="addDeviceToCart(device)"
+            >
+              <ng-container *ngIf="device.stock != null && device.stock <= 0; else deviceCartLabel">
+                Stok Yok
+              </ng-container>
+              <ng-template #deviceCartLabel>
+                {{ isInCart('DEVICE', device.id) ? 'Sepette' : 'Sepete Ekle' }}
+              </ng-template>
+            </button>
+          </article>
+
+          <p class="empty-hint" *ngIf="!devices.length">Şu an listelenecek ürün yok.</p>
+        </div>
+      </div>
+
+      <aside class="cart-panel">
+        <div class="cart-head">
+          <h4>
+            <mat-icon>shopping_cart</mat-icon>
+            Sepet
+            <span *ngIf="cartCount">{{ cartCount }}</span>
+          </h4>
+          <button
+            type="button"
+            class="clear-btn"
+            *ngIf="cartCount"
+            [disabled]="isCheckingOut"
+            (click)="clearCart()"
+          >
+            Temizle
+          </button>
+        </div>
+
+        <p class="cart-empty" *ngIf="!cartCount">Henüz ürün eklemediniz.</p>
+
+        <ul class="cart-list" *ngIf="cartCount">
+          <li *ngFor="let item of cart">
+            <div>
+              <strong>{{ item.name }}</strong>
+              <small>{{ item.type === 'ADDON' ? 'Ek Paket' : 'Ürün' }}</small>
+            </div>
+            <div class="cart-item-actions">
+              <span>{{ item.price | money }}</span>
+              <button
+                type="button"
+                mat-icon-button
+                [disabled]="isCheckingOut"
+                (click)="removeFromCart(item.key)"
+                aria-label="Kaldır"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            </div>
+          </li>
+        </ul>
+
+        <div class="cart-footer" *ngIf="cartCount">
+          <div class="cart-total">
+            <span>Toplam</span>
+            <strong>{{ cartTotal | money }}</strong>
+          </div>
+          <button
+            mat-flat-button
+            color="primary"
+            class="buy-btn checkout-btn"
+            [disabled]="isCheckingOut"
+            (click)="checkoutCart()"
+          >
+            <mat-spinner *ngIf="isCheckingOut" diameter="18"></mat-spinner>
+            <span>{{ isCheckingOut ? 'İşleniyor...' : 'Öde' }}</span>
+          </button>
+        </div>
+      </aside>
+    </div>
+  </section>
 </section>

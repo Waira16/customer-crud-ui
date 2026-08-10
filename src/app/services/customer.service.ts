@@ -86,6 +86,20 @@ export class CustomerService {
 
   }
 
+  approveOnlineApplication(id: number): Observable<{ id: number; status: string; message: string }> {
+    return this.http.post<{ id: number; status: string; message: string }>(
+      `${this.apiUrl}/applications/${id}/approve`,
+      {}
+    );
+  }
+
+  rejectOnlineApplication(id: number): Observable<{ id: number; message: string }> {
+    return this.http.post<{ id: number; message: string }>(
+      `${this.apiUrl}/applications/${id}/reject`,
+      {}
+    );
+  }
+
 
 
 

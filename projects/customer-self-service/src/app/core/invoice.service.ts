@@ -13,8 +13,12 @@ export interface Invoice {
   billingPeriod?: string;
   dueDate?: string;
   tariffs?: string[];
+  addons?: string[];
+  addonTotal?: number;
   installmentTotal?: number;
   deviceInstallments?: string[];
+  oneTimeCharges?: number;
+  shopPurchases?: string[];
 }
 
 export interface PaymentRequest {

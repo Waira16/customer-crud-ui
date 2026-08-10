@@ -13,6 +13,7 @@ import { finalize, timeout } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth.service';
 import { ProfileService } from '../../core/profile.service';
+import { PricingService } from '../../core/pricing.service';
 import { MessageBoxService } from '../../core/message-box/message-box.service';
 
 @Component({
@@ -32,8 +33,11 @@ import { MessageBoxService } from '../../core/message-box/message-box.service';
   styleUrl: './login.css'
 })
 export class LoginComponent {
+  step: 'credentials' | 'otp' = 'credentials';
   customerId: number | null = null;
   phone = '';
+  otpCode = '';
+  maskedPhone = '';
   error = '';
   isLoading = false;
   readonly homePageUrl = environment.crmPortalUrl;
@@ -41,6 +45,7 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private profileService: ProfileService,
+    private pricingService: PricingService,
     private messageBox: MessageBoxService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -50,7 +55,7 @@ export class LoginComponent {
     }
   }
 
-  submit(): void {
+  submitCredentials(): void {
     this.error = '';
 
     const customerId = Number(this.customerId);
@@ -61,6 +66,37 @@ export class LoginComponent {
       void this.messageBox.warning('Eksik Bilgi', this.error);
       return;
     }
+
+    this.maskedPhone = this.maskPhone(phone);
+    this.otpCode = '';
+    this.step = 'otp';
+    this.cdr.detectChanges();
+  }
+
+  backToCredentials(): void {
+    this.step = 'credentials';
+    this.otpCode = '';
+    this.error = '';
+    this.cdr.detectChanges();
+  }
+
+  /** Demo: kod dogrulamasini atla, dogrudan giris. */
+  skipOtpAndLogin(): void {
+    this.completeLogin();
+  }
+
+  verifyOtpAndLogin(): void {
+    if (!this.otpCode?.trim()) {
+      this.error = 'Doğrulama kodunu girin veya Hemen Gir ile devam edin.';
+      return;
+    }
+    this.completeLogin();
+  }
+
+  private completeLogin(): void {
+    this.error = '';
+    const customerId = Number(this.customerId);
+    const phone = this.normalizePhone(this.phone);
 
     this.isLoading = true;
     this.cdr.detectChanges();
@@ -73,11 +109,13 @@ export class LoginComponent {
       })
     ).subscribe({
       next: () => {
+        this.pricingService.clearCache();
         void this.router.navigate(['/account']);
         this.profileService.loadProfile().subscribe({
           next: (profile) => {
             if (profile) {
               this.authService.setProfile(profile);
+              this.pricingService.loadOffers().subscribe();
               this.cdr.detectChanges();
             }
           }
@@ -97,5 +135,13 @@ export class LoginComponent {
 
   private normalizePhone(value: string): string {
     return value.replace(/\s+/g, '').trim();
+  }
+
+  private maskPhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 4) {
+      return '****';
+    }
+    return `${digits.slice(0, 3)} *** ** ${digits.slice(-2)}`;
   }
 }

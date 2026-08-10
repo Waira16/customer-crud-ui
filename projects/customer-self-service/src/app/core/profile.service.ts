@@ -21,6 +21,11 @@ export interface CustomerPortalProfile {
   dataQuotaMb?: number;
   voiceQuotaMinutes?: number;
   smsQuota?: number;
+  loyaltyDiscountPercent?: number;
+  loyaltyTierLabel?: string;
+  loyaltySpendTotal?: number;
+  loyaltyProductCount?: number;
+  loyaltyNextTierHint?: string;
 }
 
 @Injectable({ providedIn: 'root' })

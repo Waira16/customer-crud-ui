@@ -1,7 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, interval } from 'rxjs';
+import { switchMap, filter } from 'rxjs/operators';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -88,6 +90,8 @@ export interface Customer {
 
   phone:string;
 
+  address?:string;
+
   age:number;
 
   complaintCount:number;
@@ -150,7 +154,7 @@ export interface Customer {
 })
 
 
-export class CustomerDetailComponent implements OnInit {
+export class CustomerDetailComponent implements OnInit, OnDestroy {
 
   readonly isTariffDowngrade = isTariffDowngrade;
 
@@ -186,6 +190,7 @@ export class CustomerDetailComponent implements OnInit {
   installmentsOpen = false;
   invoicesOpen = false;
   usageOpen = false;
+  private usagePollSub?: Subscription;
 
   dailyUsageSummary: DailyUsageSummary | null = null;
   isUsageLoading = false;
@@ -479,8 +484,36 @@ toggleUsageSection(): void {
   this.usageOpen = !this.usageOpen;
   if (this.usageOpen && this.customer?.id) {
     this.loadUsageSummary(this.customer.id);
+    this.startUsagePolling(this.customer.id);
+  } else {
+    this.stopUsagePolling();
   }
   this.cdr.detectChanges();
+}
+
+private startUsagePolling(customerId: number): void {
+  this.stopUsagePolling();
+  this.usagePollSub = interval(8000)
+    .pipe(
+      filter(() => this.usageOpen),
+      switchMap(() => this.usageService.getDailySummary(customerId))
+    )
+    .subscribe({
+      next: (summary) => {
+        this.dailyUsageSummary = summary;
+        this.isUsageLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+}
+
+private stopUsagePolling(): void {
+  this.usagePollSub?.unsubscribe();
+  this.usagePollSub = undefined;
+}
+
+ngOnDestroy(): void {
+  this.stopUsagePolling();
 }
 
 loadUsageSummary(customerId: number): void {
@@ -591,11 +624,90 @@ formatDateTime(value?: string): string {
 }
 
 getCustomerStatusLabel(): string {
-  return this.customer?.status === 'SUSPENDED' ? 'Askıda' : 'Aktif';
+  if (this.customer?.status === 'SUSPENDED') {
+    return 'Askıda';
+  }
+  if (this.customer?.status === 'PENDING_VERIFICATION') {
+    return 'Doğrulama Bekliyor';
+  }
+  return 'Aktif';
 }
 
 isCustomerSuspended(): boolean {
   return this.customer?.status === 'SUSPENDED';
+}
+
+isCustomerPending(): boolean {
+  return this.customer?.status === 'PENDING_VERIFICATION';
+}
+
+isApplicationActionLoading = false;
+
+approveApplication(): void {
+  if (!this.customer?.id || this.isApplicationActionLoading) {
+    return;
+  }
+
+  this.notification.confirm(
+    'Bu başvuruyu doğrulayıp müşteriyi aktif etmek istiyor musunuz?',
+    'Başvuruyu Doğrula',
+    'Doğrula',
+    'Vazgeç'
+  ).subscribe((confirmed) => {
+    if (!confirmed) {
+      return;
+    }
+
+    this.isApplicationActionLoading = true;
+    this.customerService.approveOnlineApplication(this.customer!.id!).subscribe({
+      next: (result) => {
+        this.notification.success(result.message || 'Başvuru doğrulandı.');
+        this.isApplicationActionLoading = false;
+        this.loadCustomer();
+      },
+      error: (err) => {
+        this.isApplicationActionLoading = false;
+        this.notification.error(
+          this.notification.extractError(err, 'Başvuru doğrulanamadı.')
+        );
+        this.cdr.detectChanges();
+      }
+    });
+  });
+}
+
+rejectApplication(): void {
+  if (!this.customer?.id || this.isApplicationActionLoading) {
+    return;
+  }
+
+  this.notification.confirm(
+    'Bu başvuruyu reddetmek istiyor musunuz? Kayıt silinecek.',
+    'Başvuruyu Reddet',
+    'Reddet',
+    'Vazgeç',
+    true
+  ).subscribe((confirmed) => {
+    if (!confirmed) {
+      return;
+    }
+
+    this.isApplicationActionLoading = true;
+    this.customerService.rejectOnlineApplication(this.customer!.id!).subscribe({
+      next: (result) => {
+        this.notification.success(result.message || 'Başvuru reddedildi.');
+        this.isApplicationActionLoading = false;
+        this.router.navigate(['/customers']);
+      },
+      error: (err) => {
+        this.isApplicationActionLoading = false;
+        this.notification.error(
+          this.notification.extractError(err, 'Başvuru reddedilemedi.')
+        );
+        this.cdr.detectChanges();
+      }
+    });
+  });
 }
 
 getActiveCustomerTariffs() {
@@ -1275,18 +1387,18 @@ applyCommitmentData(data: Customer): void {
       this.cdr.detectChanges();
     },
     error: () => {
-      this.commitment = {
-        startDate: data.contractStartDate,
-        durationMonths: data.contractDuration,
-        endDate: this.calculateContractEndDate(
-          data.contractStartDate,
-          data.contractDuration
-        )
-      };
+      this.commitment = null;
       this.cdr.detectChanges();
     }
   });
 
+}
+
+hasCommitment(): boolean {
+  return !!(
+    this.commitment?.startDate
+    || this.customer?.contractStartDate
+  );
 }
 
 formatDate(value?: string): string {

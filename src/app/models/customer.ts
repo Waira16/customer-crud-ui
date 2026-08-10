@@ -70,6 +70,8 @@ export interface Customer {
 
   status:'ACTIVE' | 'SUSPENDED';
 
+  loyaltyDiscountPercent?: number;
+
 
   contractStartDate?:string;
 

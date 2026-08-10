@@ -24,6 +24,20 @@
       </div>
     </div>
 
+    <article class="loyalty-card" *ngIf="loyaltyDiscount > 0 || loyaltyTier">
+      <div>
+        <span class="loyalty-tag">{{ loyaltyTier }} sadakat</span>
+        <h3 *ngIf="loyaltyDiscount > 0">Sadakat indirimin: %{{ loyaltyDiscount }}</h3>
+        <h3 *ngIf="loyaltyDiscount === 0">Harcamaya devam, indirim kazan</h3>
+        <p *ngIf="loyaltyDiscount > 0">
+          Katalog fiyatlarına uygulanır. Pahalı ürünlerde oran düşer.
+          {{ loyaltyHint }}
+        </p>
+        <p *ngIf="loyaltyDiscount === 0">{{ loyaltyHint }}</p>
+      </div>
+      <strong *ngIf="loyaltyDiscount > 0">%{{ loyaltyDiscount }}</strong>
+    </article>
+
     <div class="quick-grid">
       <article class="quick-card data">
         <mat-icon>wifi</mat-icon>
@@ -103,10 +117,10 @@
     <section class="panel products-panel">
       <div class="panel-head">
         <div>
-          <h3>Aldığım Ürünler & Taksitler</h3>
-          <p>Cihaz taksitleriniz faturanıza yansır. Kalan tutarı buradan takip edin.</p>
+          <h3>Aldıklarım</h3>
+          <p>Ek paketler, mağaza siparişleri ve cihaz taksitleriniz.</p>
         </div>
-        <a mat-stroked-button routerLink="/invoices" *ngIf="installments.length">
+        <a mat-stroked-button routerLink="/invoices">
           <mat-icon>receipt_long</mat-icon>
           Faturalara Git
         </a>
@@ -114,19 +128,85 @@
 
       <div *ngIf="installmentsLoading" class="products-loading">
         <mat-spinner diameter="28"></mat-spinner>
-        <span>Ürünleriniz yükleniyor...</span>
+        <span>Satın almalarınız yükleniyor...</span>
       </div>
 
-      <div *ngIf="!installmentsLoading && installments.length === 0" class="products-empty">
-        <mat-icon>devices</mat-icon>
+      <div
+        *ngIf="!installmentsLoading && !activeAddons.length && !shopOrders.length && !installments.length"
+        class="products-empty"
+      >
+        <mat-icon>shopping_bag</mat-icon>
         <div>
-          <strong>Aktif taksitli ürün yok</strong>
-          <p>Tarifeler sayfasından cihaz seçerek taksitli başvuru yapabilirsiniz.</p>
+          <strong>Henüz satın alma yok</strong>
+          <p>Paketler sayfasından ek paket veya ürün alabilirsiniz.</p>
         </div>
-        <a mat-flat-button color="primary" routerLink="/tariffs">Cihaz İncele</a>
+        <a mat-flat-button color="primary" routerLink="/packages">Paketlere Git</a>
       </div>
 
-      <ng-container *ngIf="!installmentsLoading && installments.length">
+      <div class="purchase-block" *ngIf="!installmentsLoading && activeAddons.length">
+        <h4 class="purchase-subtitle">Aktif Ek Paketler</h4>
+        <div class="product-list">
+          <article class="product-card" *ngFor="let addon of activeAddons">
+            <div class="product-icon">
+              <mat-icon>live_tv</mat-icon>
+            </div>
+            <div class="product-body">
+              <div class="product-title-row">
+                <h4>{{ addon.name }}</h4>
+                <span class="product-badge">Aktif</span>
+              </div>
+              <p class="product-meta" *ngIf="addon.startDate">Başlangıç: {{ addon.startDate }}</p>
+              <p class="product-meta" *ngIf="addon.endDate">
+                Bitiş: {{ addon.endDate }}
+                <span *ngIf="addon.validDaysLeft != null"> · {{ addon.validDaysLeft }} gün kaldı</span>
+              </p>
+              <p class="product-meta validity-note">1 aylık paket — süre bitince otomatik kapanır</p>
+              <div class="product-stats">
+                <div>
+                  <span>Aylık ücret</span>
+                  <strong>{{ addon.price | money }}</strong>
+                </div>
+                <div>
+                  <span>Tür</span>
+                  <strong>{{ addon.type || 'Ek paket' }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="purchase-block" *ngIf="!installmentsLoading && shopOrders.length">
+        <h4 class="purchase-subtitle">Mağaza Siparişleri</h4>
+        <div class="product-list">
+          <article class="product-card" *ngFor="let order of shopOrders">
+            <div class="product-icon">
+              <mat-icon>receipt</mat-icon>
+            </div>
+            <div class="product-body">
+              <div class="product-title-row">
+                <h4>Sipariş #{{ order.id }}</h4>
+                <span class="product-badge done">Ödendi</span>
+              </div>
+              <p class="product-meta" *ngIf="order.orderDate">Tarih: {{ order.orderDate }}</p>
+              <ul class="order-items">
+                <li *ngFor="let item of order.items">
+                  {{ item.itemName }} — {{ item.price | money }}
+                </li>
+              </ul>
+              <div class="product-stats">
+                <div>
+                  <span>Toplam</span>
+                  <strong>{{ order.totalAmount | money }}</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div class="purchase-block" *ngIf="!installmentsLoading && installments.length">
+        <h4 class="purchase-subtitle">Cihaz Taksitleri</h4>
         <div class="products-summary">
           <article>
             <span>Aktif ürün</span>
@@ -182,7 +262,7 @@
             </div>
           </article>
         </div>
-      </ng-container>
+      </div>
     </section>
 
     <section class="panel support-panel">

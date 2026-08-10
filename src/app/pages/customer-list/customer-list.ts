@@ -49,7 +49,7 @@ export interface Customer {
 
   balance?: number;
 
-  status?: 'ACTIVE' | 'SUSPENDED';
+  status?: 'ACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
 
 }
 
@@ -158,6 +158,8 @@ export class CustomerListComponent implements OnInit {
 
   selectedInvoiceStatus = 'ALL';
 
+  selectedCustomerStatus = 'ALL';
+
   private invoices: Invoice[] = [];
 
 
@@ -212,12 +214,14 @@ export class CustomerListComponent implements OnInit {
         risk?: string;
         paymentType?: string;
         invoiceStatus?: string;
+        customerStatus?: string;
       };
 
       const search = (parsed.search || '').trim().toLowerCase();
       const risk = parsed.risk || 'ALL';
       const paymentType = parsed.paymentType || 'ALL';
       const invoiceStatus = parsed.invoiceStatus || 'ALL';
+      const customerStatus = parsed.customerStatus || 'ALL';
 
       const matchesSearch = !search || [
         data.id?.toString(),
@@ -237,6 +241,9 @@ export class CustomerListComponent implements OnInit {
       const matchesPaymentType =
         paymentType === 'ALL' || data.paymentType === paymentType;
 
+      const matchesCustomerStatus =
+        customerStatus === 'ALL' || data.status === customerStatus;
+
       const hasUnpaidInvoice = this.invoices.some(
         invoice => invoice.customerId === data.id && invoice.status === 'UNPAID'
       );
@@ -249,6 +256,7 @@ export class CustomerListComponent implements OnInit {
       return matchesSearch
         && matchesRisk
         && matchesPaymentType
+        && matchesCustomerStatus
         && matchesInvoiceStatus;
 
     };
@@ -262,7 +270,8 @@ export class CustomerListComponent implements OnInit {
       search: this.searchText,
       risk: this.selectedRisk,
       paymentType: this.selectedPaymentType,
-      invoiceStatus: this.selectedInvoiceStatus
+      invoiceStatus: this.selectedInvoiceStatus,
+      customerStatus: this.selectedCustomerStatus
     });
 
   }
@@ -348,6 +357,10 @@ export class CustomerListComponent implements OnInit {
     this.applyFilters();
   }
 
+  filterCustomerStatus(): void {
+    this.applyFilters();
+  }
+
 
 
 
@@ -357,7 +370,13 @@ export class CustomerListComponent implements OnInit {
 
   getStatusLabel(status?: string): string {
 
-    return status === 'SUSPENDED' ? 'Askıda' : 'Aktif';
+    if (status === 'SUSPENDED') {
+      return 'Askıda';
+    }
+    if (status === 'PENDING_VERIFICATION') {
+      return 'Doğrulama Bekliyor';
+    }
+    return 'Aktif';
 
   }
 
@@ -447,6 +466,75 @@ export class CustomerListComponent implements OnInit {
 
 
 
+  }
+
+  isApplicationActionLoading = false;
+
+  approveApplication(id: number): void {
+    if (this.isApplicationActionLoading) {
+      return;
+    }
+
+    this.notification.confirm(
+      'Bu başvuruyu doğrulayıp müşteriyi aktif etmek istiyor musunuz?',
+      'Başvuruyu Doğrula',
+      'Doğrula',
+      'Vazgeç'
+    ).subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.isApplicationActionLoading = true;
+      this.customerService.approveOnlineApplication(id).subscribe({
+        next: (result) => {
+          this.isApplicationActionLoading = false;
+          this.notification.success(result.message || 'Başvuru doğrulandı.');
+          this.loadCustomers();
+        },
+        error: (err: unknown) => {
+          this.isApplicationActionLoading = false;
+          this.notification.error(
+            this.notification.extractError(err, 'Başvuru doğrulanamadı.')
+          );
+          this.cdr.detectChanges();
+        }
+      });
+    });
+  }
+
+  rejectApplication(id: number): void {
+    if (this.isApplicationActionLoading) {
+      return;
+    }
+
+    this.notification.confirm(
+      'Bu başvuruyu reddetmek istiyor musunuz? Kayıt silinecek.',
+      'Başvuruyu Reddet',
+      'Reddet',
+      'Vazgeç',
+      true
+    ).subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.isApplicationActionLoading = true;
+      this.customerService.rejectOnlineApplication(id).subscribe({
+        next: (result) => {
+          this.isApplicationActionLoading = false;
+          this.notification.success(result.message || 'Başvuru reddedildi.');
+          this.loadCustomers();
+        },
+        error: (err: unknown) => {
+          this.isApplicationActionLoading = false;
+          this.notification.error(
+            this.notification.extractError(err, 'Başvuru reddedilemedi.')
+          );
+          this.cdr.detectChanges();
+        }
+      });
+    });
   }
 
 

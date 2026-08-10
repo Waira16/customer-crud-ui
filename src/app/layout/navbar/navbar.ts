@@ -25,6 +25,7 @@ import { Customer } from '../../models/customer';
 import { AuthService } from '../../services/auth.service';
 import { AgentContextService } from '../../services/agent-context.service';
 import { MatButtonModule } from '@angular/material/button';
+import { environment } from '../../../environments/environment';
 
 
 
@@ -132,6 +133,15 @@ import { MatButtonModule } from '@angular/material/button';
     </div>
 
     <button
+      *ngIf="authService.isAdmin()"
+      mat-stroked-button
+      type="button"
+      class="docs-btn"
+      (click)="openApiDocs()">
+      API Docs
+    </button>
+
+    <button
       mat-stroked-button
       type="button"
       class="logout-btn"
@@ -168,6 +178,10 @@ export class NavbarComponent implements OnInit {
   currentPage = signal('Gösterge Paneli');
 
   searchPlaceholder = 'Müşteri ara...';
+
+  readonly apiDocsUrl = environment.apiBaseUrl
+    ? `${environment.apiBaseUrl}/docs`
+    : '/docs';
 
 
 
@@ -422,6 +436,10 @@ export class NavbarComponent implements OnInit {
     }
 
     this.router.navigate(['/customer-detail', customer.id]);
+  }
+
+  openApiDocs(): void {
+    window.open(this.apiDocsUrl, '_blank', 'noopener');
   }
 
   logout(): void {

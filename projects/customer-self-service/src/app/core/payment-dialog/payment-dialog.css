@@ -1,0 +1,359 @@
+.payment-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(440px, 92vw);
+  max-height: min(88vh, 820px);
+  padding: 4px 2px 0;
+  box-sizing: border-box;
+}
+
+.payment-dialog.with-installments,
+.payment-dialog.with-methods {
+  width: min(820px, 94vw);
+}
+
+.dialog-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.method-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.method-card {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 2px solid #dbeafe;
+  background: #f8fbff;
+  color: #334155;
+  text-align: left;
+  cursor: pointer;
+}
+
+.method-card mat-icon {
+  color: #0b5cab;
+}
+
+.method-card strong {
+  font-size: 15px;
+}
+
+.method-card span {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.method-card.active {
+  border-color: #0b5cab;
+  background: #eff6ff;
+  box-shadow: 0 0 0 1px #0b5cab inset;
+}
+
+.method-card.active strong {
+  color: #0b5cab;
+}
+
+.invoice-panel .invoice-preview {
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+}
+
+.invoice-preview mat-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: #0b5cab;
+}
+
+.invoice-preview h3 {
+  margin: 12px 0 8px;
+  font-size: 18px;
+}
+
+.invoice-preview p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.invoice-amount {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.invoice-amount span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.invoice-amount strong {
+  color: #0b5cab;
+  font-size: 20px;
+}
+
+.dialog-header {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #eff6ff;
+  color: #0b5cab;
+  flex-shrink: 0;
+}
+
+.dialog-header h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.dialog-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.amount-line {
+  margin-top: 8px !important;
+  color: #0f172a !important;
+  font-size: 14px !important;
+}
+
+.payment-body {
+  display: grid;
+  gap: 16px;
+}
+
+.payment-dialog.with-installments .payment-body {
+  grid-template-columns: 1.1fr 0.9fr;
+  align-items: start;
+}
+
+.card-preview {
+  padding: 18px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0b5cab 0%, #0369a1 55%, #0ea5e9 100%);
+  color: #fff;
+  margin-bottom: 16px;
+  box-shadow: 0 12px 28px rgba(11, 92, 171, 0.25);
+}
+
+.card-chip {
+  width: 36px;
+  height: 26px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  margin-bottom: 18px;
+}
+
+.card-number-preview {
+  font-size: 18px;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  opacity: 0.92;
+}
+
+.form-grid {
+  display: grid;
+  gap: 4px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.row-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-size: 12px;
+  margin: -6px 0 8px;
+}
+
+.installment-column {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+}
+
+.installment-header {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.installment-header mat-icon {
+  color: #0b5cab;
+}
+
+.installment-header h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.installment-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.installment-options {
+  display: grid;
+  gap: 8px;
+}
+
+.installment-option {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+}
+
+.installment-option.selected {
+  border-color: #0b5cab;
+  box-shadow: 0 0 0 1px #0b5cab inset;
+}
+
+.installment-option.interest-free.selected {
+  border-color: #059669;
+  box-shadow: 0 0 0 1px #059669 inset;
+}
+
+.installment-option-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.installment-label {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.installment-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.installment-badge.with-interest {
+  background: #ffedd5;
+  color: #9a3412;
+}
+
+.installment-monthly,
+.installment-total,
+.installment-interest {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.installment-monthly {
+  color: #0b5cab;
+  font-weight: 700;
+}
+
+.secure-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.secure-note mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #0b5cab;
+  flex-shrink: 0;
+}
+
+.dialog-actions {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px 4px 4px;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.pay-btn {
+  min-width: 180px;
+}
+
+.pay-btn mat-icon {
+  margin-right: 4px;
+}
+
+@media (max-width: 720px) {
+  .payment-dialog.with-installments .payment-body,
+  .method-grid,
+  .row-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-actions {
+    flex-wrap: wrap;
+  }
+
+  .pay-btn {
+    width: 100%;
+  }
+}

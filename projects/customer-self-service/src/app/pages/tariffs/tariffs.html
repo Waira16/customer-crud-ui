@@ -44,7 +44,15 @@
             <span class="tariff-type">{{ tariff.type === 'MOBILE' ? 'Mobil' : 'Fiber' }}</span>
             <h4>{{ tariff.name }}</h4>
             <p>{{ tariff.dataGB }} GB · {{ tariff.minutes }} dk</p>
-            <strong>{{ tariff.price | money }} / ay</strong>
+            <div class="price-stack">
+              <span class="old-price" *ngIf="pricedTariff(tariff).discounted">
+                {{ pricedTariff(tariff).originalPrice | money }}
+              </span>
+              <strong>{{ pricedTariff(tariff).price | money }} / ay</strong>
+              <span class="deal-badge" *ngIf="pricedTariff(tariff).discounted">
+                {{ pricedTariff(tariff).discountLabel }}
+              </span>
+            </div>
           </mat-card-content>
         </mat-card>
         <p *ngIf="filteredTariffs.length === 0" class="empty-note">
@@ -62,7 +70,12 @@
           <mat-label>Tarife seçin</mat-label>
           <mat-select [(ngModel)]="selectedTariffId">
             <mat-option *ngFor="let tariff of tariffs" [value]="tariff.id">
-              {{ tariff.name }} — {{ tariff.price | money }}
+              {{ tariff.name }} —
+              <ng-container *ngIf="pricedTariff(tariff).discounted; else plainTariff">
+                {{ pricedTariff(tariff).price | money }}
+                (liste {{ pricedTariff(tariff).originalPrice | money }})
+              </ng-container>
+              <ng-template #plainTariff>{{ tariff.price | money }}</ng-template>
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -73,7 +86,11 @@
             <mat-select [(ngModel)]="selectedDeviceId">
               <mat-option [value]="null">Cihaz seçmeyin</mat-option>
               <mat-option *ngFor="let device of devices" [value]="device.id">
-                {{ device.brand }} {{ device.name }} — {{ device.price | money }}
+                {{ device.brand }} {{ device.name }} —
+                <ng-container *ngIf="pricedDevice(device).discounted; else plainDevice">
+                  {{ pricedDevice(device).price | money }}
+                </ng-container>
+                <ng-template #plainDevice>{{ device.price | money }}</ng-template>
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -95,7 +112,11 @@
 
       <div class="package-summary" *ngIf="selectedTariff || selectedDevice">
         <p *ngIf="selectedTariff">
-          <strong>Tarife:</strong> {{ selectedTariff!.name }} ({{ selectedTariff!.price | money }}/ay)
+          <strong>Tarife:</strong> {{ selectedTariff!.name }}
+          ({{ pricedTariff(selectedTariff!).price | money }}/ay
+          <span *ngIf="pricedTariff(selectedTariff!).discounted">
+            · liste {{ pricedTariff(selectedTariff!).originalPrice | money }}
+          </span>)
         </p>
         <p *ngIf="selectedDevice">
           <strong>Cihaz:</strong> {{ selectedDevice!.brand }} {{ selectedDevice!.name }}

@@ -17,10 +17,21 @@
   border: 2px solid #fecaca;
 }
 
+.main-card.pending-card {
+  border: 2px solid #fde68a;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
 .customer-status {
-  position: absolute;
-  top: 20px;
-  right: 20px;
+  position: static;
   display: inline-block;
   padding: 8px 16px;
   border-radius: 999px;
@@ -29,6 +40,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  flex-shrink: 0;
 }
 
 .active-status {
@@ -43,11 +55,17 @@
   border: 2px solid #b91c1c;
 }
 
+.pending-status {
+  background: #d97706;
+  color: #ffffff;
+  border: 2px solid #b45309;
+}
+
 mat-card-title {
   font-size: 26px;
   font-weight: 800;
   color: #1e293b;
-  padding-right: 100px;
+  padding-right: 0;
 }
 
 .suspended-warning {
@@ -59,20 +77,37 @@ mat-card-title {
   margin-bottom: 16px;
 }
 
-.top-section {
+.pending-warning {
+  background: #fffbeb;
+  color: #92400e;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
   display: flex;
-  gap: 30px;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.left-column {
-  flex: 2;
+.pending-warning-text {
+  flex: 1 1 240px;
 }
 
-.right-column {
-  flex: 1;
-  min-width: 280px;
+.pending-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.top-section {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.info-column {
+  width: 100%;
 }
 
 .section-title {
@@ -83,6 +118,7 @@ mat-card-title {
 }
 
 .left-column p,
+.info-column p,
 .contract-card p,
 .nested-card p,
 .invoice-detail-card p {
@@ -103,16 +139,32 @@ strong {
   display: inline-block;
 }
 
+.commitment-section {
+  margin: 0 0 24px;
+}
+
 .contract-card {
   border-radius: 16px !important;
   background: #f8fafc;
-  position: sticky;
-  top: 20px;
+  border: 1px solid #e2e8f0;
+  position: static;
 }
 
 .contract-card h3 {
   margin: 0 0 12px;
   color: #1e293b;
+}
+
+.commitment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 4px 16px;
+}
+
+.commitment-empty {
+  margin: 0 !important;
+  color: #64748b !important;
+  font-style: italic;
 }
 
 .summary-row {
@@ -517,16 +569,15 @@ mat-divider {
   .customer-status {
     position: static;
     display: inline-block;
-    margin-bottom: 12px;
+    margin-bottom: 0;
   }
 
   .top-section {
-    flex-direction: column;
+    display: block;
   }
 
-  .right-column {
-    width: 100%;
-    min-width: 0;
+  .commitment-section {
+    margin-bottom: 20px;
   }
 
   .contract-card {

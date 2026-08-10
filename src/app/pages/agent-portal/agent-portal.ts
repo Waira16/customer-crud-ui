@@ -12,7 +12,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { Subscription, interval } from 'rxjs';
 
 import { AgentContextService } from '../../services/agent-context.service';
 import { CustomerService } from '../../services/customer.service';
@@ -71,6 +72,7 @@ export class AgentPortalComponent implements OnInit {
   installmentsOpen = false;
   invoicesOpen = false;
   usageOpen = false;
+  private usagePollSub?: Subscription;
   topUpAmount: number | null = null;
 
   dailyUsageSummary: DailyUsageSummary | null = null;
@@ -106,6 +108,9 @@ export class AgentPortalComponent implements OnInit {
           this.commitment = null;
           this.invoices = [];
           this.shopOrders = [];
+          this.stopUsagePolling();
+          this.usageOpen = false;
+          this.dailyUsageSummary = null;
           this.cdr.detectChanges();
         }
       });
@@ -131,6 +136,10 @@ export class AgentPortalComponent implements OnInit {
         this.applyCommitmentData(customer);
         this.loadInvoices(customerId);
         this.loadDeviceInstallments(customerId);
+        if (this.usageOpen) {
+          this.loadUsageSummary(customerId);
+          this.startUsagePolling(customerId);
+        }
         this.isLoading = false;
         this.loadingCustomerId = null;
         this.cdr.detectChanges();
@@ -502,8 +511,32 @@ export class AgentPortalComponent implements OnInit {
     this.usageOpen = !this.usageOpen;
     if (this.usageOpen && this.customer?.id) {
       this.loadUsageSummary(this.customer.id);
+      this.startUsagePolling(this.customer.id);
+    } else {
+      this.stopUsagePolling();
     }
     this.cdr.detectChanges();
+  }
+
+  private startUsagePolling(customerId: number): void {
+    this.stopUsagePolling();
+    this.usagePollSub = interval(8000)
+      .pipe(
+        filter(() => this.usageOpen),
+        switchMap(() => this.usageService.getDailySummary(customerId))
+      )
+      .subscribe({
+        next: (summary) => {
+          this.dailyUsageSummary = summary;
+          this.isUsageLoading = false;
+          this.cdr.detectChanges();
+        }
+      });
+  }
+
+  private stopUsagePolling(): void {
+    this.usagePollSub?.unsubscribe();
+    this.usagePollSub = undefined;
   }
 
   loadUsageSummary(customerId: number): void {
@@ -786,6 +819,9 @@ export class AgentPortalComponent implements OnInit {
     this.invoices = [];
     this.shopOrders = [];
     this.deviceInstallments = [];
+    this.stopUsagePolling();
+    this.usageOpen = false;
+    this.dailyUsageSummary = null;
   }
 
 }

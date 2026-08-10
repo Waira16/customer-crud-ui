@@ -80,6 +80,47 @@
   opacity: 0.86;
 }
 
+.loyalty-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ecfdf5 0%, #eff6ff 100%);
+  border: 1px solid #bbf7d0;
+}
+
+.loyalty-tag {
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #166534;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.loyalty-card h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.loyalty-card p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+.loyalty-card > strong {
+  font-size: 34px;
+  color: #059669;
+  line-height: 1;
+}
+
 .hero-stat strong {
   font-size: clamp(28px, 5vw, 38px);
   line-height: 1.1;
@@ -554,4 +595,31 @@
   .support-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.purchase-block {
+  margin-top: 18px;
+}
+
+.purchase-subtitle {
+  margin: 0 0 12px;
+  font-size: 15px;
+  color: #334155;
+}
+
+.order-items {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.cancel-addon-btn {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.validity-note {
+  color: #0b5cab !important;
+  font-weight: 600;
 }

@@ -14,6 +14,10 @@ export interface PortalLoginResponse {
   fullName?: string;
   packageName?: string;
   packageSummary?: string;
+  loyaltyDiscountPercent?: number;
+  loyaltyTierLabel?: string;
+  loyaltySpendTotal?: number;
+  loyaltyNextTierHint?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -26,6 +30,9 @@ export class AuthService {
   private readonly packageNameKey = 'customer_portal_package_name';
   private readonly packageSummaryKey = 'customer_portal_package_summary';
   private readonly fullNameKey = 'customer_portal_full_name';
+  private readonly loyaltyDiscountKey = 'customer_portal_loyalty_discount';
+  private readonly loyaltyTierKey = 'customer_portal_loyalty_tier';
+  private readonly loyaltyHintKey = 'customer_portal_loyalty_hint';
   private readonly loggedInSubject = new BehaviorSubject<boolean>(this.hasToken());
   private readonly profileSubject = new BehaviorSubject<CustomerPortalProfile | null>(this.loadStoredProfile());
 
@@ -58,6 +65,15 @@ export class AuthService {
     localStorage.setItem(this.fullNameKey, profile.fullName ?? '');
     localStorage.setItem(this.packageNameKey, profile.packageName ?? '');
     localStorage.setItem(this.packageSummaryKey, profile.packageSummary ?? '');
+    if (profile.loyaltyDiscountPercent != null) {
+      localStorage.setItem(this.loyaltyDiscountKey, String(profile.loyaltyDiscountPercent));
+    }
+    if (profile.loyaltyTierLabel) {
+      localStorage.setItem(this.loyaltyTierKey, profile.loyaltyTierLabel);
+    }
+    if (profile.loyaltyNextTierHint) {
+      localStorage.setItem(this.loyaltyHintKey, profile.loyaltyNextTierHint);
+    }
     if (profile.phone) {
       localStorage.setItem(this.phoneKey, profile.phone);
     }
@@ -73,11 +89,14 @@ export class AuthService {
     localStorage.removeItem(this.packageNameKey);
     localStorage.removeItem(this.packageSummaryKey);
     localStorage.removeItem(this.fullNameKey);
+    localStorage.removeItem(this.loyaltyDiscountKey);
+    localStorage.removeItem(this.loyaltyTierKey);
+    localStorage.removeItem(this.loyaltyHintKey);
     this.profileSubject.next(null);
     this.loggedInSubject.next(false);
   }
 
-  /** CRM ana sayfasi (4201 landing). */
+  /** CRM ana sayfasi. */
   get homePageUrl(): string {
     return environment.crmPortalUrl || 'http://localhost:4201';
   }
@@ -144,6 +163,28 @@ export class AuthService {
       || 'Tarife bilgisi yükleniyor';
   }
 
+  getLoyaltyDiscountPercent(): number {
+    const profile = this.profileSubject.value ?? this.loadStoredProfile();
+    if (profile?.loyaltyDiscountPercent != null) {
+      return Number(profile.loyaltyDiscountPercent) || 0;
+    }
+    return Number(localStorage.getItem(this.loyaltyDiscountKey) || 0) || 0;
+  }
+
+  getLoyaltyTierLabel(): string {
+    const profile = this.profileSubject.value ?? this.loadStoredProfile();
+    return profile?.loyaltyTierLabel
+      || localStorage.getItem(this.loyaltyTierKey)
+      || 'Yeni';
+  }
+
+  getLoyaltyNextTierHint(): string {
+    const profile = this.profileSubject.value ?? this.loadStoredProfile();
+    return profile?.loyaltyNextTierHint
+      || localStorage.getItem(this.loyaltyHintKey)
+      || 'Alışveriş ve paket aldıkça sadakat puanı kazanırsınız.';
+  }
+
   getDisplayProfile(): CustomerPortalProfile {
     return this.profileSubject.value ?? this.loadStoredProfile() ?? {
       customerId: this.getCustomerId() ?? 0,
@@ -180,6 +221,15 @@ export class AuthService {
     if (response.packageSummary) {
       localStorage.setItem(this.packageSummaryKey, response.packageSummary);
     }
+    if (response.loyaltyDiscountPercent != null) {
+      localStorage.setItem(this.loyaltyDiscountKey, String(response.loyaltyDiscountPercent));
+    }
+    if (response.loyaltyTierLabel) {
+      localStorage.setItem(this.loyaltyTierKey, response.loyaltyTierLabel);
+    }
+    if (response.loyaltyNextTierHint) {
+      localStorage.setItem(this.loyaltyHintKey, response.loyaltyNextTierHint);
+    }
   }
 
   private loadStoredProfile(): CustomerPortalProfile | null {
@@ -201,7 +251,10 @@ export class AuthService {
       fullName: fullName || 'Değerli Müşterimiz',
       phone: this.getPhone() ?? '',
       packageName: localStorage.getItem(this.packageNameKey) ?? 'Aktif paket tanımlı değil',
-      packageSummary: localStorage.getItem(this.packageSummaryKey) ?? ''
+      packageSummary: localStorage.getItem(this.packageSummaryKey) ?? '',
+      loyaltyDiscountPercent: Number(localStorage.getItem(this.loyaltyDiscountKey) || 0) || 0,
+      loyaltyTierLabel: localStorage.getItem(this.loyaltyTierKey) ?? 'Yeni',
+      loyaltyNextTierHint: localStorage.getItem(this.loyaltyHintKey) ?? ''
     };
   }
 

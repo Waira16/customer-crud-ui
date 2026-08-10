@@ -200,6 +200,78 @@
   font-weight: 600;
 }
 
+.otp-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.otp-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.otp-banner mat-icon {
+  margin-top: 2px;
+}
+
+.otp-banner strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.otp-banner p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.otp-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.skip-btn {
+  width: 100%;
+  border-color: #94a3b8 !important;
+  color: #334155 !important;
+}
+
+.back-otp {
+  justify-self: start;
+  color: #64748b;
+}
+
+.price-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.price-stack .old-price {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
+.price-stack .deal-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+
 @media (max-width: 860px) {
   .login-shell {
     grid-template-columns: 1fr;

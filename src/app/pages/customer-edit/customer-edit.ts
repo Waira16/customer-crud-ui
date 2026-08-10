@@ -66,7 +66,8 @@ export class CustomerEditComponent implements OnInit {
     riskStatus: 'LOW',
     paymentType: 'POSTPAID',
     balance: 0,
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    loyaltyDiscountPercent: 0
 
   };
 
@@ -133,7 +134,8 @@ export class CustomerEditComponent implements OnInit {
             ...data,
             paymentType: data.paymentType || 'POSTPAID',
             balance: data.balance ?? 0,
-            status: data.status || 'ACTIVE'
+            status: data.status || 'ACTIVE',
+            loyaltyDiscountPercent: data.loyaltyDiscountPercent ?? 0
           };
 
           this.isLoading = false;
@@ -175,7 +177,8 @@ export class CustomerEditComponent implements OnInit {
       age: Number(this.customer.age) || 18,
       complaintCount: Number(this.customer.complaintCount) || 0,
       churnRiskScore: Number(this.customer.churnRiskScore) || 0,
-      balance: Number(this.customer.balance) || 0
+      balance: Number(this.customer.balance) || 0,
+      loyaltyDiscountPercent: Math.max(0, Math.min(50, Number(this.customer.loyaltyDiscountPercent) || 0))
     };
 
     delete payload.contractStartDate;

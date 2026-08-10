@@ -55,7 +55,7 @@ export class ChatWidgetComponent {
 
   get assistantSubtitle(): string {
     return this.ollamaAvailable
-      ? 'Ollama AI · Tarife önerisi'
+      ? 'Tarife önerisi'
       : 'Tarife öneri asistanı';
   }
 

@@ -20,6 +20,8 @@ export interface CatalogDevice {
   price: number;
   category?: string;
   imageUrl?: string;
+  active?: boolean;
+  stock?: number;
 }
 
 @Injectable({ providedIn: 'root' })

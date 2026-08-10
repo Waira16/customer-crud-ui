@@ -1,11 +1,12 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { finalize, timeout } from 'rxjs/operators';
+import { Subscription, interval } from 'rxjs';
+import { finalize, switchMap, timeout } from 'rxjs/operators';
 
 import { AuthService } from '../../core/auth.service';
 import { DailyUsageSummary, UsageService } from '../../core/usage.service';
@@ -15,6 +16,12 @@ import {
   DeviceInstallment,
   DeviceInstallmentService
 } from '../../core/device-installment.service';
+import {
+  PortalPurchases,
+  PurchasedAddon,
+  PurchasesService,
+  ShopOrder
+} from '../../core/purchases.service';
 import { MoneyPipe } from '../../core/money.pipe';
 
 @Component({
@@ -32,12 +39,15 @@ import { MoneyPipe } from '../../core/money.pipe';
   templateUrl: './account.html',
   styleUrl: './account.css'
 })
-export class AccountComponent implements OnInit {
+export class AccountComponent implements OnInit, OnDestroy {
   summary: DailyUsageSummary | null = null;
   installments: DeviceInstallment[] = [];
+  activeAddons: PurchasedAddon[] = [];
+  shopOrders: ShopOrder[] = [];
   installmentsLoading = false;
   error = '';
   isLoading = true;
+  private usagePollSub?: Subscription;
   readonly todayLabel = new Intl.DateTimeFormat('tr-TR', {
     weekday: 'long',
     day: 'numeric',
@@ -49,6 +59,7 @@ export class AccountComponent implements OnInit {
     private usageService: UsageService,
     private profileService: ProfileService,
     private deviceInstallmentService: DeviceInstallmentService,
+    private purchasesService: PurchasesService,
     private messageBox: MessageBoxService,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -62,7 +73,12 @@ export class AccountComponent implements OnInit {
     }
 
     this.loadSummary(customerId);
-    this.loadInstallments();
+    this.loadPurchases();
+    this.startUsagePolling(customerId);
+  }
+
+  ngOnDestroy(): void {
+    this.stopUsagePolling();
   }
 
   get dataQuota(): number {
@@ -99,6 +115,18 @@ export class AccountComponent implements OnInit {
 
   get packageSummary(): string {
     return this.authService.getPackageSummary();
+  }
+
+  get loyaltyDiscount(): number {
+    return this.authService.getLoyaltyDiscountPercent();
+  }
+
+  get loyaltyTier(): string {
+    return this.authService.getLoyaltyTierLabel();
+  }
+
+  get loyaltyHint(): string {
+    return this.authService.getLoyaltyNextTierHint();
   }
 
   get customerName(): string {
@@ -139,12 +167,56 @@ export class AccountComponent implements OnInit {
     const customerId = this.authService.getCustomerId();
     if (customerId) {
       this.loadSummary(customerId);
-      this.loadInstallments();
+      this.loadPurchases();
+      this.startUsagePolling(customerId);
     }
   }
 
-  private loadInstallments(): void {
+  private startUsagePolling(customerId: number): void {
+    this.stopUsagePolling();
+    this.usagePollSub = interval(8000)
+      .pipe(switchMap(() => this.usageService.getDailySummary(customerId).pipe(timeout(12000))))
+      .subscribe({
+        next: (summary) => {
+          this.summary = summary;
+          this.error = '';
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          // Sessiz: bir sonraki tick tekrar dener
+        }
+      });
+  }
+
+  private stopUsagePolling(): void {
+    this.usagePollSub?.unsubscribe();
+    this.usagePollSub = undefined;
+  }
+
+  private loadPurchases(): void {
     this.installmentsLoading = true;
+    this.purchasesService.listMine().pipe(
+      timeout(15000),
+      finalize(() => {
+        this.installmentsLoading = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (data: PortalPurchases) => {
+        this.activeAddons = data?.addons ?? [];
+        this.shopOrders = data?.shopOrders ?? [];
+        this.installments = data?.deviceInstallments ?? [];
+      },
+      error: () => {
+        this.activeAddons = [];
+        this.shopOrders = [];
+        this.loadInstallmentsFallback();
+      }
+    });
+  }
+
+  private loadInstallmentsFallback(): void {
     this.deviceInstallmentService.listMine().pipe(
       timeout(15000),
       finalize(() => {
@@ -185,15 +257,12 @@ export class AccountComponent implements OnInit {
           if (this.hasUsageData(profile)) {
             this.summary = this.summaryFromProfile(profile, customerId);
             this.error = '';
-            return;
           }
         }
         this.loadUsageFromApi(customerId);
       },
       error: () => {
-        if (!this.summary) {
-          this.loadUsageFromApi(customerId);
-        }
+        this.loadUsageFromApi(customerId);
       }
     });
   }
@@ -205,6 +274,7 @@ export class AccountComponent implements OnInit {
       next: (summary) => {
         this.summary = summary;
         this.error = '';
+        this.isLoading = false;
         this.cdr.detectChanges();
       },
       error: (err: { error?: { message?: string }; name?: string; status?: number }) => {
@@ -260,21 +330,6 @@ export class AccountComponent implements OnInit {
     };
   }
 
-  logout(): void {
-    this.messageBox.confirm({
-      title: 'Çıkış Onayı',
-      message: 'Oturumunuz kapatılacak. Çıkmak istiyor musunuz?',
-      type: 'warning',
-      confirmText: 'Çıkış Yap',
-      cancelText: 'Vazgeç'
-    }).subscribe((confirmed) => {
-      if (!confirmed) {
-        return;
-      }
-      this.authService.logoutAndGoHome();
-    });
-  }
-
   ringPercent(used: number, quota: number): number {
     if (!quota) {
       return 0;
@@ -283,9 +338,14 @@ export class AccountComponent implements OnInit {
   }
 
   ringStyle(used: number, quota: number, color: string): Record<string, string> {
-    const percent = this.ringPercent(used, quota);
+    const pct = this.ringPercent(used, quota);
     return {
-      background: `conic-gradient(${color} ${percent * 3.6}deg, #e2e8f0 0deg)`
+      background: `conic-gradient(${color} ${pct}%, #e2e8f0 0)`
     };
+  }
+
+  logout(): void {
+    this.stopUsagePolling();
+    this.authService.logoutAndGoHome();
   }
 }

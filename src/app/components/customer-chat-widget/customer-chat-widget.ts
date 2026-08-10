@@ -52,8 +52,8 @@ export class CustomerChatWidgetComponent {
 
   get assistantSubtitle(): string {
     return this.ollamaAvailable
-      ? 'Ollama AI · Canlı fatura & kullanım'
-      : 'Canlı fatura & kullanım verisi';
+      ? 'Canlı fatura ve kullanım'
+      : 'Canlı fatura ve kullanım verisi';
   }
 
   toggle(): void {

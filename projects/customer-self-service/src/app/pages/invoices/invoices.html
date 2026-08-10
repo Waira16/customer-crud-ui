@@ -39,7 +39,9 @@
   <article class="invoice-card" *ngFor="let invoice of filteredInvoices">
     <div class="invoice-head">
       <div>
-        <p class="invoice-period">{{ invoice.billingPeriod || 'Fatura Dönemi' }}</p>
+        <p class="invoice-period">
+          {{ invoicePeriodLabel(invoice) }}
+        </p>
         <h3>#{{ invoice.id }}</h3>
       </div>
       <span class="status-badge" [class.paid]="invoice.status === 'PAID'">
@@ -54,11 +56,21 @@
       </div>
       <div class="meta-grid">
         <p><mat-icon>event</mat-icon> Son ödeme: {{ invoice.dueDate || '—' }}</p>
-        <p *ngIf="invoice.installmentTotal">
+        <p *ngIf="invoice.installmentTotal && !isShopInvoice(invoice)">
           <mat-icon>smartphone</mat-icon> Cihaz taksiti: {{ invoice.installmentTotal | money }}
+        </p>
+        <p *ngIf="invoice.addonTotal && !isShopInvoice(invoice)">
+          <mat-icon>live_tv</mat-icon> Ek paket: {{ invoice.addonTotal | money }}
+        </p>
+        <p *ngIf="invoice.oneTimeCharges && !isShopInvoice(invoice)">
+          <mat-icon>wifi_tethering</mat-icon> Tek seferlik: {{ invoice.oneTimeCharges | money }}
         </p>
       </div>
     </div>
+
+    <ul class="invoice-lines" *ngIf="invoiceLines(invoice).length">
+      <li *ngFor="let line of invoiceLines(invoice)">{{ line }}</li>
+    </ul>
 
     <div *ngIf="invoice.status !== 'PAID'" class="invoice-actions">
       <button

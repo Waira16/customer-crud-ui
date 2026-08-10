@@ -123,6 +123,11 @@ button[mat-icon-button]:hover {
 
 }
 
+.actions-cell {
+  white-space: nowrap;
+  text-align: right;
+}
+
 
 
 /* Risk renkleri */
@@ -187,6 +192,13 @@ button[mat-icon-button]:hover {
   border: 1px solid #cbd5e1;
 }
 
+.status-badge.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+  min-width: 120px;
+}
+
 tr.suspended-row {
   opacity: 0.55;
   background: #f8fafc !important;
@@ -194,4 +206,12 @@ tr.suspended-row {
 
 tr.suspended-row:hover {
   background: #f1f5f9 !important;
+}
+
+tr.pending-row {
+  background: #fffbeb !important;
+}
+
+tr.pending-row:hover {
+  background: #fef3c7 !important;
 }

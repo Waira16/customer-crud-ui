@@ -1,0 +1,207 @@
+<div
+  class="payment-dialog"
+  [class.with-installments]="data.showInstallmentOptions"
+  [class.with-methods]="allowBillToInvoice"
+>
+  <div class="dialog-scroll">
+    <div class="dialog-header">
+      <div class="header-icon">
+        <mat-icon>{{ paymentMethod === 'INVOICE' ? 'receipt_long' : 'credit_card' }}</mat-icon>
+      </div>
+      <div>
+        <h2>{{ data.title }}</h2>
+        <p *ngIf="data.subtitle">{{ data.subtitle }}</p>
+        <p class="amount-line">
+          Tutar: <strong>{{ formatMoney(payableAmount) }}</strong>
+        </p>
+        <p *ngIf="data.showInstallmentOptions && selectedInstallments > 0" class="amount-line">
+          Aylık taksit: <strong>{{ formatMoney(getMonthlyInstallment(selectedInstallments)) }}</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="method-grid" *ngIf="allowBillToInvoice" role="tablist">
+      <button
+        type="button"
+        class="method-card"
+        [class.active]="paymentMethod === 'CARD'"
+        (click)="setMethod('CARD')"
+      >
+        <mat-icon>credit_card</mat-icon>
+        <strong>Kredi Kartı</strong>
+        <span>Kartınızdan peşin / banka taksiti (faturaya yazılmaz)</span>
+      </button>
+      <button
+        type="button"
+        class="method-card"
+        [class.active]="paymentMethod === 'INVOICE'"
+        (click)="setMethod('INVOICE')"
+      >
+        <mat-icon>receipt_long</mat-icon>
+        <strong>Faturaya Yansıt</strong>
+        <span>Peşin veya taksit telekom faturasına eklenir</span>
+      </button>
+    </div>
+
+    <div class="payment-body">
+      <div class="payment-column" *ngIf="paymentMethod === 'CARD'">
+        <div class="card-preview">
+          <div class="card-chip"></div>
+          <div class="card-number-preview">
+            {{ cardNumber || '•••• •••• •••• ••••' }}
+          </div>
+          <div class="card-meta">
+            <span>{{ expiryDate || 'MM/YY' }}</span>
+            <span>CVV •••</span>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Kart Numarası</mat-label>
+            <input
+              matInput
+              inputmode="numeric"
+              autocomplete="cc-number"
+              maxlength="23"
+              placeholder="4242 4242 4242 4242"
+              [ngModel]="cardNumber"
+              (ngModelChange)="onCardNumberInput($event)"
+              (blur)="cardTouched = true"
+            />
+            <mat-icon matSuffix>payment</mat-icon>
+          </mat-form-field>
+
+          <div class="field-error" *ngIf="showCardError">
+            Geçersiz kart numarası. Lütfen kontrol edin.
+          </div>
+
+          <div class="row-fields">
+            <mat-form-field appearance="outline">
+              <mat-label>Son Kullanma (SKT)</mat-label>
+              <input
+                matInput
+                inputmode="numeric"
+                autocomplete="cc-exp"
+                maxlength="5"
+                placeholder="MM/YY"
+                [ngModel]="expiryDate"
+                (ngModelChange)="onExpiryInput($event)"
+                (blur)="expiryTouched = true"
+              />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>CVV</mat-label>
+              <input
+                matInput
+                inputmode="numeric"
+                autocomplete="cc-csc"
+                maxlength="4"
+                placeholder="123"
+                type="password"
+                [ngModel]="cvv"
+                (ngModelChange)="onCvvInput($event)"
+                (blur)="cvvTouched = true"
+              />
+            </mat-form-field>
+          </div>
+
+          <div class="field-error" *ngIf="showExpiryError">
+            Geçersiz veya süresi dolmuş son kullanma tarihi.
+          </div>
+
+          <div class="field-error" *ngIf="showCvvError">
+            CVV 3 veya 4 haneli olmalıdır.
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-column invoice-panel" *ngIf="paymentMethod === 'INVOICE'">
+        <div class="invoice-preview">
+          <mat-icon>description</mat-icon>
+          <h3>Faturaya yansıt</h3>
+          <p>
+            Kart çekilmez. Peşin alımlarda tutar tek seferlik,
+            taksitli ürünlerde aylık taksit olarak faturanıza eklenir.
+          </p>
+          <div class="invoice-amount">
+            <span>{{ selectedInstallments > 0 ? 'Aylık taksit' : 'Faturaya eklenecek' }}</span>
+            <strong>
+              {{
+                selectedInstallments > 0
+                  ? formatMoney(getMonthlyInstallment(selectedInstallments))
+                  : formatMoney(payableAmount)
+              }}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <aside class="installment-column" *ngIf="data.showInstallmentOptions">
+        <div class="installment-header">
+          <mat-icon>calendar_month</mat-icon>
+          <div>
+            <h3>Ödeme Planı</h3>
+            <p>Peşin veya 2–6 ay faizsiz / 12–18 ay faizli taksit.</p>
+          </div>
+        </div>
+
+        <mat-radio-group class="installment-options" [(ngModel)]="selectedInstallments">
+          <label
+            class="installment-option"
+            *ngFor="let option of installmentOptions"
+            [class.selected]="selectedInstallments === option.months"
+            [class.interest-free]="option.interestFree"
+          >
+            <mat-radio-button [value]="option.months">
+              <span class="installment-option-top">
+                <span class="installment-label">{{ option.label }}</span>
+                <span class="installment-badge" [class.with-interest]="!option.interestFree">
+                  {{ option.rateLabel }}
+                </span>
+              </span>
+              <span class="installment-monthly" *ngIf="option.months > 0">
+                Aylık {{ formatMoney(getMonthlyInstallment(option.months)) }}
+              </span>
+              <span class="installment-monthly" *ngIf="option.months === 0">
+                Tek çekim {{ formatMoney(installmentBasePrice) }}
+              </span>
+              <span class="installment-total" *ngIf="option.months > 0">
+                Toplam {{ formatMoney(getInstallmentTotal(option.months)) }}
+              </span>
+              <span class="installment-interest" *ngIf="getInterestAmount(option.months) > 0">
+                +{{ formatMoney(getInterestAmount(option.months)) }} faiz
+              </span>
+            </mat-radio-button>
+          </label>
+        </mat-radio-group>
+      </aside>
+    </div>
+
+    <div class="secure-note">
+      <mat-icon>lock</mat-icon>
+      <span *ngIf="paymentMethod === 'CARD'">
+        Kartınızdan peşin veya banka taksiti çekilir; tutar telekom faturanıza yazılmaz.
+      </span>
+      <span *ngIf="paymentMethod === 'INVOICE'">
+        Kart çekilmez. Peşin tutar veya taksit doğrudan telekom faturanıza işlenir.
+      </span>
+    </div>
+  </div>
+
+  <div class="dialog-actions">
+    <button mat-button type="button" (click)="cancel()">İptal</button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="button"
+      class="pay-btn"
+      [disabled]="!isFormValid"
+      (click)="pay()"
+    >
+      <mat-icon>{{ paymentMethod === 'INVOICE' ? 'receipt_long' : 'payments' }}</mat-icon>
+      {{ confirmLabel }}
+    </button>
+  </div>
+</div>

@@ -113,6 +113,19 @@
                 </mat-form-field>
 
                 <mat-form-field appearance="outline">
+                  <mat-label>Sadakat İndirimi (%) — otomatik</mat-label>
+                  <input
+                    matInput
+                    type="number"
+                    min="0"
+                    max="50"
+                    [(ngModel)]="customer.loyaltyDiscountPercent"
+                    name="loyaltyDiscountPercent"
+                    readonly>
+                  <mat-hint>Harcama / ürünlere göre sistem hesaplar</mat-hint>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
                   <mat-label>Risk Durumu</mat-label>
                   <mat-select [(ngModel)]="customer.riskStatus" name="riskStatus">
                     <mat-option value="LOW">Düşük</mat-option>
@@ -156,6 +169,7 @@
                 <mat-select [(ngModel)]="customer.status" name="status">
                   <mat-option value="ACTIVE">Aktif</mat-option>
                   <mat-option value="SUSPENDED">Askıya Alınmış</mat-option>
+                  <mat-option value="PENDING_VERIFICATION">Doğrulama Bekliyor</mat-option>
                 </mat-select>
               </mat-form-field>
 

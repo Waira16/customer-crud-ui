@@ -15,7 +15,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApplicationService } from '../../core/application.service';
 import { AuthService } from '../../core/auth.service';
 import { CatalogDevice, CatalogService, CatalogTariff } from '../../core/catalog.service';
+import { PricingService } from '../../core/pricing.service';
 import { MoneyPipe } from '../../core/money.pipe';
+import { PricedItem } from '../../core/pricing.util';
 import {
   calculateInstallmentTotal,
   calculateInterestAmount,
@@ -78,6 +80,7 @@ export class TariffsComponent implements OnInit {
     private catalogService: CatalogService,
     private applicationService: ApplicationService,
     private authService: AuthService,
+    private pricingService: PricingService,
     private messageBox: MessageBoxService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -87,6 +90,8 @@ export class TariffsComponent implements OnInit {
     if (phone) {
       this.application.phone = phone;
     }
+
+    this.pricingService.loadOffers().subscribe();
 
     forkJoin({
       tariffs: this.catalogService.fetchTariffs().pipe(catchError(() => of([]))),
@@ -106,6 +111,14 @@ export class TariffsComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  pricedTariff(tariff: CatalogTariff): PricedItem {
+    return this.pricingService.price(Number(tariff.price), 'TARIFF', tariff.id);
+  }
+
+  pricedDevice(device: CatalogDevice): PricedItem {
+    return this.pricingService.price(Number(device.price), 'DEVICE', device.id);
   }
 
   applyTariffFilter(): void {
@@ -137,7 +150,7 @@ export class TariffsComponent implements OnInit {
       return 0;
     }
     return calculateMonthlyInstallment(
-      Number(this.selectedDevice.price),
+      this.pricedDevice(this.selectedDevice).price,
       this.selectedInstallmentMonths
     );
   }
@@ -147,7 +160,7 @@ export class TariffsComponent implements OnInit {
       return 0;
     }
     return calculateInstallmentTotal(
-      Number(this.selectedDevice.price),
+      this.pricedDevice(this.selectedDevice).price,
       this.selectedInstallmentMonths
     );
   }
@@ -157,13 +170,15 @@ export class TariffsComponent implements OnInit {
       return 0;
     }
     return calculateInterestAmount(
-      Number(this.selectedDevice.price),
+      this.pricedDevice(this.selectedDevice).price,
       this.selectedInstallmentMonths
     );
   }
 
   get packageMonthlyTotal(): number {
-    const tariffPrice = Number(this.selectedTariff?.price ?? 0);
+    const tariffPrice = this.selectedTariff
+      ? this.pricedTariff(this.selectedTariff).price
+      : 0;
     return tariffPrice + this.deviceMonthlyInstallment;
   }
 

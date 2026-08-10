@@ -74,6 +74,13 @@ input {
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.22) !important;
 }
 
+.self-payment-dialog-panel .mdc-dialog__surface {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  max-height: 92vh !important;
+  padding: 16px 18px 12px !important;
+}
+
 self-chat-widget {
   position: fixed;
   right: 24px;

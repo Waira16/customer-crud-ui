@@ -19,7 +19,7 @@
     </section>
 
     <mat-card class="login-card">
-      <div class="card-header">
+      <div class="card-header" *ngIf="step === 'credentials'">
         <mat-icon>verified_user</mat-icon>
         <div>
           <h2>Giriş Yap</h2>
@@ -27,7 +27,15 @@
         </div>
       </div>
 
-      <form class="login-form" (ngSubmit)="submit()">
+      <div class="card-header" *ngIf="step === 'otp'">
+        <mat-icon>sms</mat-icon>
+        <div>
+          <h2>Doğrulama</h2>
+          <p>Telefonunuza doğrulama kodu gönderildi.</p>
+        </div>
+      </div>
+
+      <form class="login-form" *ngIf="step === 'credentials'" (ngSubmit)="submitCredentials()">
         <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
           <mat-label>Müşteri No</mat-label>
           <input matInput type="number" [(ngModel)]="customerId" name="customerId" required />
@@ -44,20 +52,62 @@
         </mat-form-field>
 
         <button mat-flat-button color="primary" class="login-btn" type="submit" [disabled]="isLoading">
-          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-          <span *ngIf="!isLoading">Giriş Yap</span>
-          <span *ngIf="isLoading">Giriş yapılıyor...</span>
+          <span>Giriş Yap</span>
         </button>
       </form>
+
+      <div class="otp-panel" *ngIf="step === 'otp'">
+        <div class="otp-banner">
+          <mat-icon>mark_chat_read</mat-icon>
+          <div>
+            <strong>Doğrulama kodu gönderildi</strong>
+            <p>{{ maskedPhone }} numarasına SMS ile kod iletildi.</p>
+          </div>
+        </div>
+
+        <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+          <mat-label>Doğrulama Kodu</mat-label>
+          <input
+            matInput
+            [(ngModel)]="otpCode"
+            name="otpCode"
+            inputmode="numeric"
+            maxlength="6"
+            autocomplete="one-time-code" />
+        </mat-form-field>
+
+        <div class="otp-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            class="login-btn"
+            type="button"
+            [disabled]="isLoading"
+            (click)="verifyOtpAndLogin()">
+            <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
+            <span *ngIf="!isLoading">Doğrula ve Gir</span>
+            <span *ngIf="isLoading">Giriş yapılıyor...</span>
+          </button>
+
+          <button
+            mat-stroked-button
+            class="skip-btn"
+            type="button"
+            [disabled]="isLoading"
+            (click)="skipOtpAndLogin()">
+            Hemen Gir
+          </button>
+        </div>
+
+        <button mat-button type="button" class="back-otp" (click)="backToCredentials()" [disabled]="isLoading">
+          <mat-icon>arrow_back</mat-icon>
+          Bilgileri değiştir
+        </button>
+      </div>
 
       <div *ngIf="error" class="error-box">
         <mat-icon>error_outline</mat-icon>
         <span>{{ error }}</span>
-      </div>
-
-      <div class="demo-box">
-        <p><strong>İpucu</strong></p>
-        <span>CRM’de müşteri detayından numara ve telefonu kontrol edebilirsiniz.</span>
       </div>
 
       <a class="back-link" [href]="homePageUrl">

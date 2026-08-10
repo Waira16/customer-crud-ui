@@ -1,33 +1,62 @@
 <div class="detail-page">
 
-<mat-card *ngIf="customer" class="main-card" [class.suspended-card]="isCustomerSuspended()">
+<mat-card *ngIf="customer" class="main-card"
+  [class.suspended-card]="isCustomerSuspended()"
+  [class.pending-card]="isCustomerPending()">
 
-  <div
-    class="customer-status"
-    [class.active-status]="!isCustomerSuspended()"
-    [class.suspended-status]="isCustomerSuspended()">
-    {{ getCustomerStatusLabel() }}
-  </div>
-
-  <mat-card-header>
+  <mat-card-header class="detail-header">
     <mat-card-title>
       {{ customer.firstName }} {{ customer.lastName }}
     </mat-card-title>
+    <div
+      class="customer-status"
+      [class.active-status]="!isCustomerSuspended() && !isCustomerPending()"
+      [class.suspended-status]="isCustomerSuspended()"
+      [class.pending-status]="isCustomerPending()">
+      {{ getCustomerStatusLabel() }}
+    </div>
   </mat-card-header>
 
   <div *ngIf="isCustomerSuspended()" class="suspended-warning">
     Bu müşteri askıya alınmıştır. Ödeme yapıldıktan sonra hizmet aktif olacaktır.
   </div>
 
+  <div *ngIf="isCustomerPending()" class="pending-warning">
+    <div class="pending-warning-text">
+      Online başvuru — doğrulama bekliyor. Bilgileri kontrol edip onaylayın veya reddedin.
+    </div>
+    <div class="pending-actions">
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="isApplicationActionLoading"
+        (click)="approveApplication()">
+        <mat-icon>verified</mat-icon>
+        Doğrula
+      </button>
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        [disabled]="isApplicationActionLoading"
+        (click)="rejectApplication()">
+        <mat-icon>cancel</mat-icon>
+        Reddet
+      </button>
+    </div>
+  </div>
+
   <mat-card-content>
 
     <div class="top-section">
-      <div class="left-column">
+      <div class="info-column">
         <h3 class="section-title">Müşteri Bilgileri</h3>
         <p><strong>Ad:</strong> {{ customer.firstName }}</p>
         <p><strong>Soyad:</strong> {{ customer.lastName }}</p>
         <p><strong>E-posta:</strong> {{ customer.email }}</p>
         <p><strong>Telefon:</strong> {{ customer.phone || '-' }}</p>
+        <p *ngIf="customer.address"><strong>Adres / Başvuru Notu:</strong> {{ customer.address }}</p>
         <p><strong>Yaş:</strong> {{ customer.age }}</p>
         <p><strong>Şikayet Sayısı:</strong> {{ customer.complaintCount ?? 0 }}</p>
         <p><strong>Geç Ödeme:</strong> {{ customer.hasLatePayments ? 'Var' : 'Yok' }}</p>
@@ -44,23 +73,30 @@
           </span>
         </p>
       </div>
+    </div>
 
-      <div class="right-column">
-        <mat-card class="contract-card">
-          <mat-card-content>
-            <h3>Taahhüt</h3>
-            <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
-            <p><strong>Süre:</strong> {{ getCommitmentDuration() }} ay</p>
-            <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
-            <p><strong>Kalan:</strong> {{ getRemainingMonths() }} ay</p>
+    <section class="commitment-section">
+      <mat-card class="contract-card">
+        <mat-card-content>
+          <h3>Taahhüt</h3>
+          <ng-container *ngIf="hasCommitment(); else noCommitment">
+            <div class="commitment-grid">
+              <p><strong>Başlangıç:</strong> {{ getCommitmentStartDate() }}</p>
+              <p><strong>Süre:</strong> {{ getCommitmentDuration() }} ay</p>
+              <p><strong>Bitiş:</strong> {{ getCommitmentEndDate() }}</p>
+              <p><strong>Kalan:</strong> {{ getRemainingMonths() }} ay</p>
+            </div>
             <p *ngIf="commitment?.penaltyAmount && commitment!.penaltyAmount! > 0">
               <strong>Bekleyen Cayma Bedeli:</strong>
               {{ commitment!.penaltyAmount | money }}
             </p>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </div>
+          </ng-container>
+          <ng-template #noCommitment>
+            <p class="commitment-empty">Henüz başlamadı. Aktif tarife atandığında otomatik başlar.</p>
+          </ng-template>
+        </mat-card-content>
+      </mat-card>
+    </section>
 
     <div class="summary-row">
       <mat-card class="price-card" *ngIf="customer.paymentType === 'PREPAID'">

@@ -149,6 +149,23 @@
 
       </mat-form-field>
 
+      <mat-form-field appearance="outline">
+
+        <mat-label>
+          Müşteri Durumu
+        </mat-label>
+
+        <mat-select
+          [(ngModel)]="selectedCustomerStatus"
+          (selectionChange)="filterCustomerStatus()">
+          <mat-option value="ALL">Tümü</mat-option>
+          <mat-option value="ACTIVE">Aktif</mat-option>
+          <mat-option value="SUSPENDED">Askıda</mat-option>
+          <mat-option value="PENDING_VERIFICATION">Online Başvurular</mat-option>
+        </mat-select>
+
+      </mat-form-field>
+
 
 
     </div>
@@ -509,7 +526,8 @@
 
           <span
             class="status-badge"
-            [class.status-suspended]="element.status === 'SUSPENDED'">
+            [class.status-suspended]="element.status === 'SUSPENDED'"
+            [class.status-pending]="element.status === 'PENDING_VERIFICATION'">
 
             {{ getStatusLabel(element.status) }}
 
@@ -608,61 +626,45 @@
 
           mat-cell
 
-          *matCellDef="let element">
+          *matCellDef="let element"
+          class="actions-cell">
 
-
+          <ng-container *ngIf="element.status === 'PENDING_VERIFICATION'">
+            <button
+              mat-icon-button
+              color="primary"
+              title="Doğrula"
+              (click)="approveApplication(element.id)"
+              [disabled]="isApplicationActionLoading">
+              <mat-icon>verified</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              color="warn"
+              title="Reddet"
+              (click)="rejectApplication(element.id)"
+              [disabled]="isApplicationActionLoading">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </ng-container>
 
           <button
-
             mat-icon-button
-
             color="primary"
-
+            title="Düzenle"
             *appHasRole="'ROLE_ADMIN'"
-
             (click)="editCustomer(element.id)">
-
-
-
-            <mat-icon>
-
-              edit
-
-            </mat-icon>
-
-
-
+            <mat-icon>edit</mat-icon>
           </button>
-
-
-
-
-
-
 
           <button
-
             mat-icon-button
-
             color="warn"
-
+            title="Sil"
             *appHasRole="'ROLE_ADMIN'"
-
             (click)="deleteCustomer(element.id)">
-
-
-
-            <mat-icon>
-
-              delete
-
-            </mat-icon>
-
-
-
+            <mat-icon>delete</mat-icon>
           </button>
-
-
 
         </td>
 
@@ -695,7 +697,8 @@
         mat-row
 
         *matRowDef="let row; columns: displayedColumns;"
-        [class.suspended-row]="row.status === 'SUSPENDED'">
+        [class.suspended-row]="row.status === 'SUSPENDED'"
+        [class.pending-row]="row.status === 'PENDING_VERIFICATION'">
 
 
       </tr>

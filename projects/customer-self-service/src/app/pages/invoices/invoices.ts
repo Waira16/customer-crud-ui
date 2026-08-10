@@ -98,6 +98,29 @@ export class InvoicesComponent implements OnInit {
     return status === 'PAID' ? 'Ödendi' : 'Ödenmedi';
   }
 
+  isShopInvoice(invoice: Invoice): boolean {
+    return !!invoice.billingPeriod?.includes('-SHOP-');
+  }
+
+  invoicePeriodLabel(invoice: Invoice): string {
+    if (this.isShopInvoice(invoice)) {
+      return 'Mağaza siparişi (peşin)';
+    }
+    return invoice.billingPeriod || 'Fatura Dönemi';
+  }
+
+  invoiceLines(invoice: Invoice): string[] {
+    if (this.isShopInvoice(invoice)) {
+      return invoice.shopPurchases ?? [];
+    }
+    return [
+      ...(invoice.tariffs ?? []),
+      ...(invoice.addons ?? []),
+      ...(invoice.deviceInstallments ?? []),
+      ...(invoice.shopPurchases ?? [])
+    ];
+  }
+
   loadInvoices(customerId: number): void {
     this.isLoading = true;
     this.invoiceService.getCustomerInvoices(customerId).pipe(

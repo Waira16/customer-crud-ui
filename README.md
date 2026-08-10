@@ -1,59 +1,133 @@
-# CustomerCrudUi
+# Customer CRUD UI
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.6.
+Telecom CRM & self-service frontend monorepo (Angular).
 
-## Development server
+Tek API: **`http://localhost:8080`** (`customer-crud-api` monolith).
 
-To start a local development server, run:
+## Framework & Stack
 
-```bash
-ng serve
+| Teknoloji | Not |
+|-----------|-----|
+| Angular | 22 (CLI) |
+| Angular Material | UI bileşenleri |
+| TypeScript | Strict |
+| RxJS | HTTP / async |
+| telecom-shared | Ortak taksit / para yardımcıları |
+
+Üç uygulama aynı workspace içinde:
+
+| Uygulama | Port | npm script |
+|----------|------|------------|
+| **Public Pricing** | 4200 | `npm run start:public` |
+| **CRM (Agent/Admin)** | 4201 | `npm run start` / `start:crm` |
+| **Self-Service (Müşteri)** | 4202 | `npm run start:self-service` |
+
+```powershell
+cd customer-crud-ui
+npm install
+npm run start:public        # http://localhost:4200
+npm run start:crm           # http://localhost:4201
+npm run start:self-service  # http://localhost:4202
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+> `npm run start:all` için `concurrently` gerekir (`npm i -D concurrently`).
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 1) Public Pricing — `:4200`
 
-```bash
-ng generate component component-name
+Herkese açık vitrin.
+
+**Ne yapılabilir?**
+- Tarife / cihaz kataloğunu görüntüleme ve filtreleme
+- AI paket önerisi sohbeti
+- Yeni müşteri **online başvurusu** (`POST /api/customers/applications`)
+
+Giriş gerekmez.
+
+---
+
+## 2) CRM UI — `:4201`
+
+Bayi / admin paneli.
+
+**Giriş:** staff kullanıcı (`admin` / `admin123` veya `agent` / `agent123`)  
+→ `POST /api/auth/login`
+
+**Ne yapılabilir?**
+
+| Sayfa | Yetki | İşlev |
+|-------|-------|--------|
+| Dashboard | ADMIN | Müşteri / fatura / risk istatistikleri |
+| Müşteriler | ADMIN | Liste, arama, ekle, düzenle, detay |
+| Agent Portal | AGENT/ADMIN | Müşteri seç → profil, fatura öde, bakiye, kullanım |
+| Faturalar | AGENT/ADMIN | Fatura listesi / ödeme |
+| Tarifeler | Auth | Katalog yönetimi görünümü |
+| Bayiler | AGENT/ADMIN | Bayi / komisyon ekranı |
+| AI Chat | Auth | Destek asistanı widget |
+
+---
+
+## 3) Self-Service — `:4202`
+
+Müşteri self-servis portalı.
+
+**Giriş:** `customerId` + telefon  
+→ `POST /api/auth/customer-portal-login`
+
+**Ne yapılabilir?**
+
+| Sayfa | İşlev |
+|-------|--------|
+| **Hesabım** | Profil, sadakat, kullanım özeti, aldıklarım, taksitli ürünler |
+| **Paketler** | Ek paket & ürün mağazası, sepet, ödeme |
+| **Faturalar** | Aylık + mağaza faturaları, ödeme |
+| **Tarifeler** | Tarife görüntüleme / değiştirme |
+| **AI Chat** | Destek sohbeti |
+
+### Ödeme ekranı (Paketler → Sepet → Öde)
+
+1. **Kredi Kartı** — peşin veya banka taksiti; tutar telekom faturasına yazılmaz.  
+2. **Faturaya Yansıt** — peşin tutar veya taksit doğrudan faturaya eklenir (`billToInvoice: true`).
+
+Kart demo: `4242 4242 4242 4242` · SKT `12/30` · CVV `123`
+
+---
+
+## API bağımlılıkları (özet)
+
+Self-service tipik çağrılar:
+
+```http
+GET  /api/customers/portal/me
+GET  /api/customers/portal/purchases
+POST /api/customers/portal/shop/checkout
+POST /api/customers/portal/devices/purchase
+GET  /api/invoices/customer/{id}
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+CRM tipik çağrılar:
 
-```bash
-ng generate --help
+```http
+GET  /api/customers
+GET  /api/dashboard/stats
+POST /api/invoices/{id}/pay
+GET  /api/customers/{id}/shop/orders
 ```
 
-## Building
+Ortam dosyası: her projedeki `environments/environment.ts` → `apiBaseUrl: 'http://localhost:8080'`.
 
-To build the project run:
+---
 
-```bash
-ng build
+## Build
+
+```powershell
+npm run build:crm
+npm run build:self-service
+npm run build:public
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## İlişkili projeler
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Backend: [customer_crud_api](https://github.com/Waira16/customer_crud_api)
+- Mikroservisler: [telecom-microservices](https://github.com/Waira16/telecom-microservices)
